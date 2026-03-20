@@ -14,12 +14,9 @@
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root {
-      --red:#e63946;--red2:#c1121f;--green:#4ade80;--gold:#f59e0b;
-      --bg:#090909;--bg2:#111111;--bg3:#181818;--border:#1f1f1f;
-      --text:#f2f2f2;--muted:#555;
-      --safe-b:env(safe-area-inset-bottom,0px);--safe-t:env(safe-area-inset-top,0px);
-    }
+    :root{--red:#e63946;--red2:#c1121f;--green:#4ade80;--gold:#f59e0b;--purple:#8b5cf6;
+      --bg:#090909;--bg2:#111111;--bg3:#181818;--border:#1f1f1f;--text:#f2f2f2;--muted:#555;
+      --safe-b:env(safe-area-inset-bottom,0px);--safe-t:env(safe-area-inset-top,0px);}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
     html{height:100%;overflow:hidden;}
     body{height:100%;background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;overscroll-behavior:none;-webkit-font-smoothing:antialiased;}
@@ -30,8 +27,10 @@
     @keyframes shimmer{0%,100%{opacity:1}50%{opacity:0.35}}
     @keyframes slideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
     @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
-    @keyframes glow{0%,100%{box-shadow:0 0 20px rgba(245,158,11,0.4)}50%{box-shadow:0 0 40px rgba(245,158,11,0.8)}}
     .bc{font-family:'Barlow Condensed',sans-serif;}
+    .pixel-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:1px;background:#1a1a1a;border-radius:4px;overflow:hidden;touch-action:none;}
+    .pixel-cell{aspect-ratio:1;cursor:crosshair;}
+    .pixel-cell:hover{opacity:0.8;}
   </style>
 </head>
 <body><div id="root"></div>
@@ -39,16 +38,11 @@
 const SUPABASE_URL  = 'https://csfhunqizwwgxjcdfttp.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzZmh1bnFpend3Z3hqY2RmdHRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MzgzMTAsImV4cCI6MjA4OTQxNDMxMH0.qRLgc7eVaa-njdhbV5hupLCQJHhupY016MqAaLQ0CPc';
 const START_DATE = new Date('2026-03-22');
-
 const {createClient}=window.supabase;
 const db=createClient(SUPABASE_URL,SUPABASE_ANON);
-const {useState,useEffect,useRef,useCallback}=React;
+const {useState,useEffect,useRef,useCallback,useMemo}=React;
 
-const getChallengeDay=()=>{
-  const t=new Date();t.setHours(0,0,0,0);
-  const s=new Date(START_DATE);s.setHours(0,0,0,0);
-  return Math.min(Math.max(Math.floor((t-s)/86400000)+1,0),30);
-};
+const getChallengeDay=()=>{const t=new Date();t.setHours(0,0,0,0);const s=new Date(START_DATE);s.setHours(0,0,0,0);return Math.min(Math.max(Math.floor((t-s)/86400000)+1,0),30);};
 
 const DAYS=[
   {day:1,sets:[6,4,3,3],oneGo:false},{day:2,sets:[10],oneGo:true},
@@ -67,75 +61,220 @@ const DAYS=[
   {day:27,sets:[18,18,9,9],oneGo:false},{day:28,sets:[47],oneGo:true},
   {day:29,sets:[20,18,10,10],oneGo:false},{day:30,sets:[50],oneGo:true},
 ];
-
 const MOTIVATIONS=["Kein Schmerz, kein Gewinn!","Jeder Burpee zählt! 🔥","Du bist stärker als du denkst!","Schweiß ist Fett, das weint ⚡","Heute schmerzt es – morgen stärkst du!","30 Tage. Kein Aufgeben! 🏆","Einmal mehr als gestern!","Dein zukünftiges Ich dankt dir!"];
 const EMOJIS=["🔥","💪","⚡","🎉","👊","🏆","😤","🚀"];
-const AVATARS=["💪","🔥","⚡","🐻","🦊","🐺","🦁","🐯","🐸","🦅","🦊","🐲","👊","🤘","💀","🧠","🏋️","🚀","⚔️","🛡️","🌊","🗻","💎","🎯"];
-
-// Chuck Norris / Yoda / andere Legenden
-const JOKER_QUOTES=[
-  {char:"Chuck Norris",emoji:"🤠",quote:"Chuck Norris hat nie einen Joker benutzt. Er hat einfach die Schwerkraft neu verhandelt. Wähle. Weise."},
-  {char:"Yoda",emoji:"🟢",quote:"Hmmmm. Einen Joker nutzen, willst du? Stark die dunkle Seite ist. Aber stärker bist du. Vielleicht."},
-  {char:"Rocky Balboa",emoji:"🥊",quote:"Yo... ich hab auch mal aufgeben wollen. Dann hab ich trotzdem trainiert. Und du? Was machst du?"},
-  {char:"Yoda",emoji:"🟢",quote:"Ausreden, viele gibt es. Burpees, es gibt nur. Entscheide du musst, junger Padawan."},
-  {char:"Chuck Norris",emoji:"🤠",quote:"Als Chuck Norris schlechte Tage hatte, erfand er den Burpee. Du hast jetzt einen. Nutze ihn weise."},
-  {char:"Gandalf",emoji:"🧙",quote:"Ein Zauberer kommt nie zu spät. Und er überspringt auch kein Training. Wähle weise, Freund."},
+// ══ LEGENDEN DATENBANK ══════════════════════════════════
+// ── Legenden werden aus Supabase geladen ─────────────────
+const LEGENDS_FALLBACK=[
+  {id:'chuck',char:'Chuck Norris',emoji:'🤠',abteilung:'Chuck Norris Abteilung',begriff:'Die Erdrotations-Eichung',color:'#d35400',quotes:[{anheizer:'Schwerkraft führt 1:0!',quote:'Die Schwerkraft hat heute 1:0 Führung. Geh runter und mach den Ausgleich, du weiche Nudel!'}]},
+  {id:'goggins',char:'David Goggins',emoji:'⚓',abteilung:'David Goggins Abteilung',begriff:'Die Seelen-Ernte',color:'#2c3e50',quotes:[{anheizer:'Stay Hard!',quote:'Stay Hard! Deine Couch ist eine Lüge. Der Schmerz ist die einzige Wahrheit. Beweg dich!'}]},
 ];
-
+const rndItem=a=>a[Math.floor(Math.random()*a.length)];
+const getTwoLegends=(legends)=>{
+  const pool=(legends&&legends.length>=2)?legends:LEGENDS_FALLBACK;
+  const s=[...pool].sort(()=>Math.random()-0.5);
+  const a=s[0],b=s[1];
+  const qa=rndItem(a.quotes),qb=rndItem(b.quotes);
+  return [{...a,anheizer:qa.anheizer,selectedQuote:qa.quote},{...b,anheizer:qb.anheizer,selectedQuote:qb.quote}];
+};
+const getJokerQuote=(legends)=>{
+  const pool=(legends&&legends.length)?legends:LEGENDS_FALLBACK;
+  const l=rndItem(pool);const q=rndItem(l.quotes);
+  return {char:l.char,emoji:l.emoji,color:l.color,quote:q.quote};
+};
+// 20 Pixel-Art Farben
+const PALETTE=['#e63946','#ff6b6b','#ffd700','#f59e0b','#4ade80','#22c55e','#60a5fa','#3b82f6','#8b5cf6','#ec4899','#FDBCB4','#C68642','#8D5524','#4A3728','#B5651D','#ffffff','#aaaaaa','#555555','#222222','#000000'];
+const EMPTY_PIXELS=()=>Array(64).fill(null);
 const rnd=a=>a[Math.floor(Math.random()*a.length)];
 const tot=d=>d.sets.reduce((a,b)=>a+b,0);
 
-// ── Avatar Component ──────────────────────────────────────
+// ── Pixel Art Avatar Renderer ─────────────────────────────
+function PixelArtAvatar({pixels,size=40}){
+  if(!pixels||!pixels.some(Boolean)){
+    return <div style={{width:size,height:size,borderRadius:'50%',background:'var(--bg3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:size*0.5,flexShrink:0}}>💪</div>;
+  }
+  const cellSize=size/8;
+  return(
+    <div style={{width:size,height:size,flexShrink:0,borderRadius:'50%',overflow:'hidden',display:'grid',gridTemplateColumns:'repeat(8,1fr)',gap:0}}>
+      {pixels.map((c,i)=>(
+        <div key={i} style={{width:cellSize,height:cellSize,background:c||'#1a1a1a'}}/>
+      ))}
+    </div>
+  );
+}
+
+// ── Avatar with Gimmick Badge ─────────────────────────────
 function Avatar({profile,size=40,showGimmick=true}){
-  const av=profile?.avatar||'💪';
+  const pixels=profile?.avatar_pixels;
   const jokerSwapped=profile?.joker_swapped;
   const jokerUsed=(profile?.jokers_used||0)>0;
   const halfUsed=(profile?.half_used||0)>0;
+  let border='2px solid var(--border)',glow='none';
+  if(jokerSwapped){border='2px solid var(--purple)';glow='0 0 12px rgba(139,92,246,0.5)';}
 
-  // Border gimmick
-  let border='2px solid var(--border)';
-  let glow='none';
-  if(jokerSwapped){border='2px solid #8b5cf6';glow='0 0 12px rgba(139,92,246,0.5)';}
-  else if(jokerUsed){border='2px solid #555';}
-
-  // Badge
   let badge=null;
   if(showGimmick){
-    if(jokerSwapped) badge=<span style={{position:'absolute',bottom:-4,right:-4,fontSize:'0.7rem',background:'#8b5cf6',borderRadius:'50%',width:'18px',height:'18px',display:'flex',alignItems:'center',justifyContent:'center'}}>⚡</span>;
-    else if(jokerUsed) badge=<span style={{position:'absolute',bottom:-4,right:-4,fontSize:'0.7rem',background:'#333',borderRadius:'50%',width:'18px',height:'18px',display:'flex',alignItems:'center',justifyContent:'center'}}>💀</span>;
-    else if(halfUsed) badge=<span style={{position:'absolute',bottom:-4,right:-4,fontSize:'0.7rem',background:'#1e3a5f',borderRadius:'50%',width:'18px',height:'18px',display:'flex',alignItems:'center',justifyContent:'center'}}>🌙</span>;
+    if(jokerSwapped) badge=<span style={{position:'absolute',bottom:-3,right:-3,fontSize:'0.65rem',background:'var(--purple)',borderRadius:'50%',width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>⚡</span>;
+    else if(jokerUsed) badge=<span style={{position:'absolute',bottom:-3,right:-3,fontSize:'0.65rem',background:'#333',borderRadius:'50%',width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>💀</span>;
+    else if(halfUsed) badge=<span style={{position:'absolute',bottom:-3,right:-3,fontSize:'0.65rem',background:'#1e3a5f',borderRadius:'50%',width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>🌙</span>;
   }
 
   return(
     <div style={{position:'relative',width:size,height:size,flexShrink:0}}>
-      <div style={{width:size,height:size,borderRadius:'50%',background:'var(--bg3)',border,boxShadow:glow,display:'flex',alignItems:'center',justifyContent:'center',fontSize:size*0.5}}>
-        {av}
+      <div style={{width:size,height:size,borderRadius:'50%',border,boxShadow:glow,overflow:'hidden'}}>
+        {pixels&&pixels.some(Boolean)
+          ? <PixelArtAvatar pixels={pixels} size={size}/>
+          : <div style={{width:'100%',height:'100%',background:'var(--bg3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:size*0.45}}>{profile?.avatar||'💪'}</div>
+        }
       </div>
       {badge}
     </div>
   );
 }
 
+// ── Pixel Art Editor ──────────────────────────────────────
+function PixelArtEditor({initialPixels,onSave,onCancel}){
+  const [pixels,setPixels]=useState(()=>initialPixels&&initialPixels.some(Boolean)?[...initialPixels]:EMPTY_PIXELS());
+  const [color,setColor]=useState('#e63946');
+  const [isEraser,setIsEraser]=useState(false);
+  const [isPainting,setIsPainting]=useState(false);
+  const gridRef=useRef();
+
+  const paint=(i)=>{
+    setPixels(prev=>{const n=[...prev];n[i]=isEraser?null:color;return n;});
+  };
+
+  const handleMouseDown=(i)=>{setIsPainting(true);paint(i);};
+  const handleMouseEnter=(i)=>{if(isPainting)paint(i);};
+  const handleMouseUp=()=>setIsPainting(false);
+
+  // Touch support
+  const getTouchIndex=(e)=>{
+    const touch=e.touches[0];
+    const grid=gridRef.current;
+    if(!grid)return -1;
+    const rect=grid.getBoundingClientRect();
+    const x=touch.clientX-rect.left;
+    const y=touch.clientY-rect.top;
+    const cellW=rect.width/8;
+    const cellH=rect.height/8;
+    const col=Math.floor(x/cellW);
+    const row=Math.floor(y/cellH);
+    if(col<0||col>7||row<0||row>7)return -1;
+    return row*8+col;
+  };
+
+  const handleTouchStart=(e)=>{e.preventDefault();setIsPainting(true);const i=getTouchIndex(e);if(i>=0)paint(i);};
+  const handleTouchMove=(e)=>{e.preventDefault();const i=getTouchIndex(e);if(i>=0&&isPainting)paint(i);};
+  const handleTouchEnd=()=>setIsPainting(false);
+
+  const cellSize=Math.floor((Math.min(window.innerWidth,380)-40)/8);
+
+  return(
+    <div style={{position:'fixed',inset:0,background:'var(--bg)',zIndex:300,display:'flex',flexDirection:'column',animation:'slideUp 0.3s ease both'}}>
+      <div style={{padding:'calc(var(--safe-t) + 1rem) 1.25rem 0.75rem',display:'flex',alignItems:'center',gap:'1rem',borderBottom:'1px solid var(--border)',flexShrink:0}}>
+        <button onClick={onCancel} style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'10px',padding:'8px 14px',color:'var(--text)',fontSize:'0.9rem'}}>←</button>
+        <span className="bc" style={{fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.05em',flex:1}}>🎨 AVATAR ERSTELLEN</span>
+        <button onClick={()=>onSave(pixels)} style={{background:'var(--red)',border:'none',borderRadius:'10px',padding:'8px 16px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontWeight:800,fontSize:'0.95rem'}}>SPEICHERN</button>
+      </div>
+
+      <div style={{flex:1,overflowY:'auto',padding:'1.25rem',display:'flex',flexDirection:'column',alignItems:'center',gap:'1.25rem'}}>
+        {/* Preview */}
+        <div style={{display:'flex',alignItems:'center',gap:'1rem'}}>
+          <div style={{textAlign:'center'}}>
+            <PixelArtAvatar pixels={pixels} size={64}/>
+            <div style={{fontSize:'0.65rem',color:'var(--muted)',marginTop:'4px'}}>64px</div>
+          </div>
+          <div style={{textAlign:'center'}}>
+            <PixelArtAvatar pixels={pixels} size={40}/>
+            <div style={{fontSize:'0.65rem',color:'var(--muted)',marginTop:'4px'}}>40px</div>
+          </div>
+          <div style={{textAlign:'center'}}>
+            <PixelArtAvatar pixels={pixels} size={24}/>
+            <div style={{fontSize:'0.65rem',color:'var(--muted)',marginTop:'4px'}}>24px</div>
+          </div>
+        </div>
+
+        {/* Grid */}
+        <div
+          ref={gridRef}
+          className="pixel-grid"
+          style={{width:cellSize*8+9,touchAction:'none'}}
+          onMouseLeave={handleMouseUp}
+          onMouseUp={handleMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {pixels.map((c,i)=>(
+            <div key={i} className="pixel-cell"
+              style={{background:c||'#1a1a1a',width:cellSize,height:cellSize,outline:isEraser&&c?'2px solid rgba(255,255,255,0.3)':undefined}}
+              onMouseDown={()=>handleMouseDown(i)}
+              onMouseEnter={()=>handleMouseEnter(i)}
+            />
+          ))}
+        </div>
+
+        {/* Tools */}
+        <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
+          <button onClick={()=>setIsEraser(false)}
+            style={{padding:'8px 16px',background:!isEraser?'var(--red)':'var(--bg2)',border:`1px solid ${!isEraser?'var(--red)':'var(--border)'}`,borderRadius:'8px',color:'#fff',fontSize:'0.85rem',fontWeight:600}}>
+            ✏️ Zeichnen
+          </button>
+          <button onClick={()=>setIsEraser(true)}
+            style={{padding:'8px 16px',background:isEraser?'#555':'var(--bg2)',border:`1px solid ${isEraser?'#555':'var(--border)'}`,borderRadius:'8px',color:'#fff',fontSize:'0.85rem',fontWeight:600}}>
+            🧹 Löschen
+          </button>
+          <button onClick={()=>setPixels(EMPTY_PIXELS())}
+            style={{padding:'8px 12px',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'8px',color:'var(--muted)',fontSize:'0.85rem'}}>
+            🗑️
+          </button>
+        </div>
+
+        {/* Active color */}
+        {!isEraser&&<div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+          <div style={{width:32,height:32,borderRadius:'8px',background:color,border:'2px solid rgba(255,255,255,0.3)'}}/>
+          <span style={{color:'var(--muted)',fontSize:'0.82rem'}}>Aktive Farbe</span>
+        </div>}
+
+        {/* Palette */}
+        <div style={{display:'grid',gridTemplateColumns:'repeat(10,1fr)',gap:'6px',width:'100%',maxWidth:'340px'}}>
+          {PALETTE.map(c=>(
+            <button key={c} onClick={()=>{setColor(c);setIsEraser(false);}}
+              style={{width:'100%',aspectRatio:'1',background:c,borderRadius:'6px',border:`2px solid ${color===c&&!isEraser?'white':'transparent'}`,transform:color===c&&!isEraser?'scale(1.15)':'scale(1)',transition:'all 0.1s'}}
+            />
+          ))}
+        </div>
+
+        {/* Custom color */}
+        <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+          <span style={{color:'var(--muted)',fontSize:'0.82rem'}}>Eigene Farbe:</span>
+          <input type="color" value={color} onChange={e=>{setColor(e.target.value);setIsEraser(false);}}
+            style={{width:40,height:32,border:'none',borderRadius:'6px',background:'none',cursor:'pointer'}}/>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Token Bar ─────────────────────────────────────────────
 function TokenBar({profile}){
-  const jokersLeft = 1-(profile?.jokers_used||0)-(profile?.joker_swapped?1:0);
-  const halfLeft   = 2+(profile?.joker_swapped?1:0)-(profile?.half_used||0);
+  const jokersLeft=1-(profile?.jokers_used||0)-(profile?.joker_swapped?1:0);
+  const halfLeft=2+(profile?.joker_swapped?1:0)-(profile?.half_used||0);
   return(
     <div style={{display:'flex',gap:'8px',margin:'0 1.25rem 1rem'}}>
       <div style={{flex:1,background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0.65rem 0.85rem',display:'flex',alignItems:'center',gap:'8px'}}>
         <span style={{fontSize:'1.1rem'}}>🃏</span>
         <div>
-          <div className="bc" style={{fontSize:'0.65rem',color:'var(--muted)',letterSpacing:'0.1em'}}>JOKER</div>
-          <div className="bc" style={{fontSize:'1.1rem',fontWeight:800,color:jokersLeft>0?'var(--gold)':'var(--muted)'}}>{jokersLeft > 0 ? '1× verfügbar' : 'verbraucht'}</div>
+          <div className="bc" style={{fontSize:'0.6rem',color:'var(--muted)',letterSpacing:'0.1em'}}>JOKER</div>
+          <div className="bc" style={{fontSize:'1rem',fontWeight:800,color:jokersLeft>0?'var(--gold)':'var(--muted)'}}>{jokersLeft>0?'1× frei':'verbraucht'}</div>
         </div>
       </div>
       <div style={{flex:1,background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0.65rem 0.85rem',display:'flex',alignItems:'center',gap:'8px'}}>
         <span style={{fontSize:'1.1rem'}}>🌙</span>
         <div>
-          <div className="bc" style={{fontSize:'0.65rem',color:'var(--muted)',letterSpacing:'0.1em'}}>HALBE</div>
-          <div className="bc" style={{fontSize:'1.1rem',fontWeight:800,color:halfLeft>0?'#60a5fa':'var(--muted)'}}>
-            {halfLeft > 0 ? `${halfLeft}× verfügbar` : 'verbraucht'}
-          </div>
+          <div className="bc" style={{fontSize:'0.6rem',color:'var(--muted)',letterSpacing:'0.1em'}}>HALBE</div>
+          <div className="bc" style={{fontSize:'1rem',fontWeight:800,color:halfLeft>0?'#60a5fa':'var(--muted)'}}>{halfLeft>0?`${halfLeft}× frei`:'verbraucht'}</div>
         </div>
       </div>
     </div>
@@ -143,99 +282,168 @@ function TokenBar({profile}){
 }
 
 // ── Joker Modal ───────────────────────────────────────────
-function JokerModal({onCancel,onConfirm,onSwap,profile}){
-  const q=useRef(rnd(JOKER_QUOTES)).current;
+function JokerModal({onCancel,onConfirm,onSwap,profile,jokerQuote}){
+  const q=useRef(jokerQuote||{char:'Chuck Norris',emoji:'🤠',color:'#d35400',quote:'Die Schwerkraft wartet nicht.'}).current;
   const jokersLeft=1-(profile?.jokers_used||0)-(profile?.joker_swapped?1:0);
-  const halfLeft=2+(profile?.joker_swapped?1:0)-(profile?.half_used||0);
-  const [shaking,setShaking]=useState(false);
-
-  const handleConfirm=()=>{
-    setShaking(true);
-    setTimeout(()=>{setShaking(false);onConfirm();},600);
-  };
-
   return(
-    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:200,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',animation:'fadeIn 0.2s ease'}}>
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:200,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',animation:'fadeIn 0.2s ease'}} onClick={e=>e.target===e.currentTarget&&onCancel()}>
       <div style={{width:'100%',maxWidth:'480px',background:'var(--bg)',borderRadius:'24px 24px 0 0',padding:'2rem 1.5rem',paddingBottom:'calc(2rem + var(--safe-b))'}}>
-        {/* Character */}
         <div style={{textAlign:'center',marginBottom:'1.25rem'}}>
-          <div style={{fontSize:'4rem',marginBottom:'0.5rem',animation:shaking?'shake 0.5s ease':'pop 0.4s ease both'}}>{q.emoji}</div>
+          <div style={{fontSize:'4rem',marginBottom:'0.5rem',animation:'pop 0.4s ease both'}}>{q.emoji}</div>
           <div className="bc" style={{fontSize:'1rem',fontWeight:700,color:'var(--gold)',letterSpacing:'0.1em',marginBottom:'0.75rem'}}>{q.char.toUpperCase()} SPRICHT:</div>
           <p style={{fontSize:'0.95rem',lineHeight:1.55,color:'#ccc',fontStyle:'italic'}}>"{q.quote}"</p>
         </div>
-
         <div style={{height:'1px',background:'var(--border)',margin:'1.25rem 0'}}/>
-
-        {/* Buttons */}
         <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
-          <button onClick={()=>{}} style={{width:'100%',padding:'1rem',background:'linear-gradient(135deg,var(--red),var(--red2))',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.1rem',fontWeight:800,letterSpacing:'0.08em',boxShadow:'0 4px 20px rgba(230,57,70,0.4)'}}
-            onClick={onCancel}>
+          <button onClick={onCancel} style={{width:'100%',padding:'1rem',background:'linear-gradient(135deg,var(--red),var(--red2))',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.1rem',fontWeight:800,letterSpacing:'0.08em',boxShadow:'0 4px 20px rgba(230,57,70,0.4)'}}>
             💪 TROTZDEM MACHEN!
           </button>
-
-          {jokersLeft>0&&(
-            <button onClick={handleConfirm}
-              style={{width:'100%',padding:'0.9rem',background:'#1a1a1a',border:'2px solid #444',borderRadius:'14px',color:'#aaa',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1rem',fontWeight:700,letterSpacing:'0.05em'}}>
-              🃏 Joker einsetzen ({jokersLeft} verbleibend)
-            </button>
-          )}
-
-          {jokersLeft>0&&!profile?.joker_swapped&&(
-            <button onClick={onSwap}
-              style={{width:'100%',padding:'0.9rem',background:'rgba(139,92,246,0.1)',border:'2px solid rgba(139,92,246,0.4)',borderRadius:'14px',color:'#a78bfa',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.95rem',fontWeight:700,letterSpacing:'0.05em'}}>
-              ⚡ Joker → Halbe tauschen (+1 Halbe, Avatar-Upgrade)
-            </button>
-          )}
-
-          <button onClick={onCancel} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.82rem',padding:'0.5rem'}}>
-            Abbrechen
-          </button>
+          {jokersLeft>0&&<button onClick={onConfirm} style={{width:'100%',padding:'0.9rem',background:'#1a1a1a',border:'2px solid #444',borderRadius:'14px',color:'#aaa',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1rem',fontWeight:700,letterSpacing:'0.05em'}}>
+            🃏 Joker einsetzen (1 verbleibend)
+          </button>}
+          {jokersLeft>0&&!profile?.joker_swapped&&<button onClick={onSwap} style={{width:'100%',padding:'0.9rem',background:'rgba(139,92,246,0.1)',border:'2px solid rgba(139,92,246,0.4)',borderRadius:'14px',color:'#a78bfa',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.95rem',fontWeight:700,letterSpacing:'0.05em'}}>
+            ⚡ Joker → Halbe tauschen + Avatar-Upgrade
+          </button>}
+          <button onClick={onCancel} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.82rem',padding:'0.5rem'}}>Abbrechen</button>
         </div>
       </div>
     </div>
   );
 }
 
+// ── Feuer Machen Modal ────────────────────────────────────
+function FeuermachenModal({from,to,onSend,onCancel,legends}){
+  const [options]=useState(()=>getTwoLegends(legends));
+  const [chosen,setChosen]=useState(null);
+  return(
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.95)',zIndex:250,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',animation:'slideUp 0.3s ease both'}} onClick={e=>e.target===e.currentTarget&&onCancel()}>
+      <div style={{width:'100%',maxWidth:'480px',background:'var(--bg)',borderRadius:'24px 24px 0 0',padding:'1.5rem',paddingBottom:'calc(1.5rem + var(--safe-b))'}}>
+        <div style={{textAlign:'center',marginBottom:'1.25rem'}}>
+          <div style={{fontSize:'2rem',marginBottom:'4px'}}>🔥</div>
+          <div className="bc" style={{fontSize:'1.4rem',fontWeight:900,letterSpacing:'0.05em',color:'var(--red)'}}>FEUER MACHEN</div>
+          <div style={{color:'var(--muted)',fontSize:'0.82rem',marginTop:'4px'}}>Wähle eine Legende für <b style={{color:'var(--text)'}}>{to}</b></div>
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:'10px',marginBottom:'1rem'}}>
+          {options.map((leg,i)=>(
+            <button key={leg.id} onClick={()=>setChosen(i)}
+              style={{background:chosen===i?`${leg.color}22`:'var(--bg2)',border:`2px solid ${chosen===i?leg.color:'var(--border)'}`,borderRadius:'16px',padding:'1rem',textAlign:'left',transition:'all 0.15s'}}>
+              <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'6px'}}>
+                <span style={{fontSize:'1.5rem'}}>{leg.emoji}</span>
+                <div>
+                  <div className="bc" style={{fontSize:'0.95rem',fontWeight:800,color:chosen===i?leg.color:'var(--text)',letterSpacing:'0.05em'}}>{leg.char.toUpperCase()}</div>
+                  <div style={{fontSize:'0.62rem',color:'var(--muted)',letterSpacing:'0.08em'}}>{leg.abteilung} · {leg.begriff}</div>
+                </div>
+                {chosen===i&&<span style={{marginLeft:'auto',fontSize:'1.2rem'}}>✓</span>}
+              </div>
+              <p style={{fontSize:'0.85rem',lineHeight:1.5,color:'#ccc',fontStyle:'italic'}}>"{leg.selectedQuote}"</p>
+            </button>
+          ))}
+        </div>
+        <button onClick={()=>chosen!==null&&onSend(options[chosen])} disabled={chosen===null}
+          style={{width:'100%',padding:'1rem',background:chosen!==null?'var(--red)':'var(--bg3)',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.08em',opacity:chosen!==null?1:0.4,boxShadow:chosen!==null?'0 4px 20px rgba(230,57,70,0.4)':'none'}}>
+          🔥 FEUER MACHEN!
+        </button>
+        <button onClick={onCancel} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.82rem',padding:'0.75rem',width:'100%',marginTop:'4px'}}>Abbrechen</button>
+      </div>
+    </div>
+  );
+}
+
+// ── Countdown ─────────────────────────────────────────────
+function Countdown(){
+  const [time,setTime]=useState(null);
+  useEffect(()=>{
+    const calc=()=>{
+      const now=new Date();
+      const start=new Date(START_DATE);
+      start.setHours(0,0,0,0);
+      const diff=start-now;
+      if(diff<=0){setTime(null);return;}
+      const d=Math.floor(diff/86400000);
+      const h=Math.floor((diff%86400000)/3600000);
+      const m=Math.floor((diff%3600000)/60000);
+      const s=Math.floor((diff%60000)/1000);
+      setTime({d,h,m,s});
+    };
+    calc();
+    const iv=setInterval(calc,1000);
+    return()=>clearInterval(iv);
+  },[]);
+  if(!time)return null;
+  return(
+    <div style={{margin:'0 1.25rem 1rem',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'16px',padding:'1rem',textAlign:'center'}}>
+      <div className="bc" style={{fontSize:'0.65rem',color:'var(--muted)',letterSpacing:'0.15em',marginBottom:'8px'}}>⏳ CHALLENGE STARTET IN</div>
+      <div style={{display:'flex',justifyContent:'center',gap:'8px'}}>
+        {[[time.d,'TAGE'],[time.h,'STD'],[time.m,'MIN'],[time.s,'SEK']].map(([v,l])=>(
+          <div key={l} style={{background:'var(--bg3)',borderRadius:'10px',padding:'8px 10px',minWidth:'48px'}}>
+            <div className="bc" style={{fontSize:'1.6rem',fontWeight:900,color:'var(--red)',lineHeight:1}}>{String(v).padStart(2,'0')}</div>
+            <div style={{fontSize:'0.55rem',color:'var(--muted)',marginTop:'2px',letterSpacing:'0.1em'}}>{l}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{fontSize:'0.75rem',color:'var(--muted)',marginTop:'8px'}}>22. März 2026 · Tag 1</div>
+    </div>
+  );
+}
+
+// ── Invite Button ─────────────────────────────────────────
+function InviteButton({groupSize,maxSize=12}){
+  const [copied,setCopied]=useState(false);
+  const share=async()=>{
+    const url=window.location.href;
+    const text=`💥 Burpee Challenge – 30 Tage, 50 Burpees! Mach mit: ${url}`;
+    if(navigator.share){try{await navigator.share({title:'Burpee Challenge',text,url});return;}catch(e){}}
+    try{await navigator.clipboard.writeText(url);setCopied(true);setTimeout(()=>setCopied(false),2500);}catch(e){}
+  };
+  const spotsLeft=maxSize-groupSize;
+  return(
+    <div style={{margin:'0 1.25rem 1rem'}}>
+      <button onClick={share} style={{width:'100%',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'14px',padding:'0.85rem 1rem',display:'flex',alignItems:'center',gap:'12px',transition:'border-color 0.2s',borderColor:copied?'var(--green)':'var(--border)'}}>
+        <span style={{fontSize:'1.3rem'}}>{copied?'✅':'🔗'}</span>
+        <div style={{textAlign:'left',flex:1}}>
+          <div className="bc" style={{fontSize:'1rem',fontWeight:700,letterSpacing:'0.05em',color:copied?'var(--green)':'var(--text)'}}>{copied?'LINK KOPIERT!':'FREUNDE EINLADEN'}</div>
+          <div style={{fontSize:'0.7rem',color:'var(--muted)'}}>{spotsLeft>0?`${spotsLeft} von ${maxSize} Plätzen frei`:`Gruppe voll (${maxSize}/${maxSize})`}</div>
+        </div>
+        <div className="bc" style={{fontSize:'0.8rem',fontWeight:700,color:'var(--muted)'}}>{groupSize}/{maxSize}</div>
+      </button>
+    </div>
+  );
+}
+
+// ── Toast ─────────────────────────────────────────────────
+function Toast({msg}){
+  if(!msg)return null;
+  return <div style={{position:'fixed',top:'calc(var(--safe-t) + 12px)',left:'50%',transform:'translateX(-50%)',background:'var(--red)',color:'#fff',padding:'10px 20px',borderRadius:'100px',fontSize:'0.85rem',fontWeight:600,zIndex:9999,whiteSpace:'nowrap',boxShadow:'0 4px 24px rgba(230,57,70,0.5)',animation:'slideDown 0.3s ease both',maxWidth:'90vw',textAlign:'center'}}>{msg}</div>;
+}
+
 // ── Onboarding ────────────────────────────────────────────
 function Onboarding({onJoin}){
-  const [step,setStep]=useState('name'); // name | avatar
+  const [step,setStep]=useState('name');
   const [name,setName]=useState('');
-  const [avatar,setAvatar]=useState('💪');
+  const [pixels,setPixels]=useState(EMPTY_PIXELS());
+  const [showEditor,setShowEditor]=useState(false);
   const [loading,setLoading]=useState(false);
   const ref=useRef();
   useEffect(()=>{if(step==='name')setTimeout(()=>ref.current?.focus(),400);},[step]);
 
-  const goAvatar=()=>{if(name.trim())setStep('avatar');};
-  const join=async()=>{
-    if(loading)return;setLoading(true);
-    await onJoin(name.trim(),avatar);setLoading(false);
-  };
+  const join=async()=>{if(loading)return;setLoading(true);await onJoin(name.trim(),pixels);setLoading(false);};
 
-  if(step==='avatar') return(
+  if(showEditor)return <PixelArtEditor initialPixels={pixels} onSave={p=>{setPixels(p);setShowEditor(false);}} onCancel={()=>setShowEditor(false)}/>;
+
+  if(step==='preview')return(
     <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
-      <div style={{flex:1,overflowY:'auto',padding:'2rem 1.5rem 1rem',textAlign:'center'}}>
-        <div style={{fontSize:'3rem',marginBottom:'0.5rem',animation:'pop 0.4s ease both'}}>{avatar}</div>
-        <h2 className="bc" style={{fontSize:'2rem',fontWeight:800,marginBottom:'0.5rem',animation:'slideUp 0.3s ease both'}}>WÄHLE DEINEN AVATAR</h2>
-        <p style={{color:'var(--muted)',fontSize:'0.85rem',marginBottom:'1.5rem',animation:'slideUp 0.3s 0.05s ease both'}}>Du kannst ihn später nicht ändern 😈</p>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:'10px',animation:'slideUp 0.3s 0.1s ease both'}}>
-          {AVATARS.map(a=>(
-            <button key={a} onClick={()=>setAvatar(a)}
-              style={{background:avatar===a?'rgba(230,57,70,0.2)':'var(--bg2)',border:`2px solid ${avatar===a?'var(--red)':'var(--border)'}`,borderRadius:'12px',padding:'10px',fontSize:'1.6rem',transition:'all 0.15s',transform:avatar===a?'scale(1.1)':'scale(1)'}}>
-              {a}
-            </button>
-          ))}
+      <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'2rem',textAlign:'center'}}>
+        <div style={{marginBottom:'1.5rem',animation:'pop 0.5s ease both'}}>
+          <PixelArtAvatar pixels={pixels} size={96}/>
         </div>
+        <h2 className="bc" style={{fontSize:'2rem',fontWeight:800,marginBottom:'0.5rem'}}>{name}</h2>
+        <p style={{color:'var(--muted)',fontSize:'0.85rem',marginBottom:'1.5rem'}}>Bereit für 30 Tage Burpees? 🔥</p>
+        <button onClick={()=>setShowEditor(true)} style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0.7rem 1.5rem',color:'var(--text)',fontSize:'0.9rem',marginBottom:'0.5rem',width:'100%',maxWidth:'300px'}}>
+          🎨 Avatar bearbeiten
+        </button>
       </div>
       <div style={{padding:'1.25rem',paddingBottom:'calc(1.5rem + var(--safe-b))',borderTop:'1px solid var(--border)'}}>
-        <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'0.75rem',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0.75rem 1rem'}}>
-          <div style={{width:'40px',height:'40px',borderRadius:'50%',background:'var(--bg3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.3rem'}}>{avatar}</div>
-          <div>
-            <div style={{fontWeight:600,fontSize:'0.95rem'}}>{name}</div>
-            <div style={{color:'var(--muted)',fontSize:'0.75rem'}}>Bereit für 30 Tage</div>
-          </div>
-        </div>
-        <button onClick={join} disabled={loading}
-          style={{width:'100%',padding:'1rem',background:'var(--red)',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.08em',opacity:loading?0.7:1}}>
+        <button onClick={join} disabled={loading} style={{width:'100%',padding:'1rem',background:'var(--red)',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.08em',opacity:loading?0.7:1}}>
           {loading?'EINEN MOMENT...':'CHALLENGE ANNEHMEN 🔥'}
         </button>
       </div>
@@ -249,18 +457,10 @@ function Onboarding({onJoin}){
         <h1 className="bc" style={{fontWeight:900,fontSize:'clamp(3rem,15vw,5rem)',lineHeight:0.9,textTransform:'uppercase',marginBottom:'0.75rem',animation:'slideUp 0.4s 0.1s ease both'}}>
           BURPEE<br/><span style={{color:'var(--red)'}}>CHALLENGE</span>
         </h1>
-        <p style={{color:'var(--muted)',fontSize:'0.9rem',animation:'slideUp 0.4s 0.2s ease both'}}>50 Burpees · 30 Tage · Gemeinsam 🔥</p>
-        <div style={{display:'flex',gap:'1rem',marginTop:'2rem',animation:'slideUp 0.4s 0.3s ease both'}}>
-          {[['30','Tage'],['50','Burpees'],['1','Ziel']].map(([n,l])=>(
-            <div key={l} style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0.75rem 1.25rem',textAlign:'center'}}>
-              <div className="bc" style={{fontSize:'1.8rem',fontWeight:900,color:'var(--red)',lineHeight:1}}>{n}</div>
-              <div style={{fontSize:'0.72rem',color:'var(--muted)',marginTop:'2px'}}>{l}</div>
-            </div>
-          ))}
-        </div>
-        <div style={{marginTop:'1.5rem',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0.9rem 1.25rem',textAlign:'left',width:'100%',maxWidth:'320px',animation:'slideUp 0.4s 0.4s ease both'}}>
-          <div className="bc" style={{fontSize:'0.68rem',color:'var(--muted)',letterSpacing:'0.12em',marginBottom:'6px'}}>DEIN SAFETY NET</div>
-          <div style={{fontSize:'0.85rem',lineHeight:1.5,color:'#aaa'}}>
+        <p style={{color:'var(--muted)',fontSize:'0.9rem',marginBottom:'2rem',animation:'slideUp 0.4s 0.2s ease both'}}>50 Burpees · 30 Tage · Gemeinsam 🔥</p>
+        <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0.9rem 1.25rem',textAlign:'left',width:'100%',maxWidth:'320px',animation:'slideUp 0.4s 0.3s ease both',marginBottom:'0.5rem'}}>
+          <div className="bc" style={{fontSize:'0.65rem',color:'var(--muted)',letterSpacing:'0.12em',marginBottom:'6px'}}>DEIN SAFETY NET</div>
+          <div style={{fontSize:'0.85rem',lineHeight:1.6,color:'#aaa'}}>
             🃏 <b style={{color:'var(--text)'}}>1 Joker</b> – kompletter Skip<br/>
             🌙 <b style={{color:'var(--text)'}}>2 Halbe</b> – halbe Portion reicht<br/>
             ⚡ <b style={{color:'var(--text)'}}>Swap</b> – Joker → extra Halbe tauschen
@@ -269,42 +469,30 @@ function Onboarding({onJoin}){
       </div>
       <div style={{padding:'1.25rem',paddingBottom:'calc(1.5rem + var(--safe-b))',background:'var(--bg)',borderTop:'1px solid var(--border)',animation:'slideUp 0.4s 0.35s ease both'}}>
         <p style={{fontSize:'0.72rem',color:'var(--muted)',letterSpacing:'0.12em',marginBottom:'0.6rem',textTransform:'uppercase'}}>Dein Name</p>
-        <input ref={ref} value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&goAvatar()} placeholder="z.B. Stefano, Lisa, Max..."
+        <input ref={ref} value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&name.trim()&&setStep('preview')} placeholder="z.B. Stefano, Lisa, Max..."
           style={{width:'100%',padding:'1rem',background:'var(--bg3)',border:'2px solid var(--border)',borderRadius:'14px',color:'var(--text)',fontSize:'1.05rem',marginBottom:'0.75rem',outline:'none'}}/>
-        <button onClick={goAvatar} disabled={!name.trim()}
+        <button onClick={()=>name.trim()&&setStep('preview')} disabled={!name.trim()}
           style={{width:'100%',padding:'1rem',background:name.trim()?'var(--red)':'var(--bg3)',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.08em',opacity:name.trim()?1:0.4}}>
-          WEITER → AVATAR WÄHLEN
+          WEITER → AVATAR ERSTELLEN 🎨
         </button>
       </div>
     </div>
   );
 }
 
-// ── Toast ─────────────────────────────────────────────────
-function Toast({msg}){
-  if(!msg)return null;
-  return <div style={{position:'fixed',top:'calc(var(--safe-t) + 12px)',left:'50%',transform:'translateX(-50%)',background:'var(--red)',color:'#fff',padding:'10px 20px',borderRadius:'100px',fontSize:'0.85rem',fontWeight:600,zIndex:9999,whiteSpace:'nowrap',boxShadow:'0 4px 24px rgba(230,57,70,0.5)',animation:'slideDown 0.3s ease both'}}>{msg}</div>;
-}
-
 // ── Home Tab ──────────────────────────────────────────────
-function HomeTab({user,completed,completionTypes,onOpenDay,leaders,profile}){
+function HomeTab({user,completed,completionTypes,onOpenDay,leaders,profile,onNudge}){
   const [motto,setMotto]=useState(()=>rnd(MOTIVATIONS));
   const done=completed.size,pct=Math.round((done/30)*100),cur=getChallengeDay();
-  const totalBurpees=DAYS.reduce((a,d)=>{
-    const t=completionTypes[d.day];
-    if(!t)return a;
-    const b=tot(d);
-    return a+(t==='half'?Math.ceil(b/2):t==='joker'?0:b);
-  },0);
+  const totalBurpees=DAYS.reduce((a,d)=>{const t=completionTypes[d.day];if(!t)return a;const b=tot(d);return a+(t==='half'?Math.ceil(b/2):t==='joker'?0:b);},0);
   const curDay=DAYS[Math.max(cur-1,0)];
 
   return(
     <div style={{flex:1,overflowY:'auto',paddingBottom:'0.5rem'}}>
       <div style={{padding:'1.25rem 1.25rem 0'}}>
-        {/* Header */}
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.25rem'}}>
           <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
-            <Avatar profile={profile} size={44}/>
+            <Avatar profile={profile} size={46}/>
             <div>
               <div className="bc" style={{fontSize:'1.5rem',fontWeight:800,lineHeight:1.1}}>Hey, <span style={{color:'var(--red)'}}>{user}</span> 👊</div>
               <div style={{color:'var(--muted)',fontSize:'0.75rem'}}>#BurpeeChallenge</div>
@@ -315,22 +503,21 @@ function HomeTab({user,completed,completionTypes,onOpenDay,leaders,profile}){
             <div style={{color:'var(--muted)',fontSize:'0.65rem'}}>Burpees gesamt</div>
           </div>
         </div>
-        {/* Progress */}
         <div style={{marginBottom:'1rem'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:'6px'}}>
             <span className="bc" style={{fontSize:'1rem',fontWeight:700,letterSpacing:'0.05em'}}>{done} / 30 TAGE</span>
             <span className="bc" style={{fontSize:'1.4rem',fontWeight:900,color:'var(--red)'}}>{pct}%</span>
           </div>
-          <div style={{height:'8px',background:'var(--bg3)',borderRadius:'8px',overflow:'hidden',position:'relative'}}>
+          <div style={{height:'8px',background:'var(--bg3)',borderRadius:'8px',overflow:'hidden'}}>
             <div style={{height:'100%',background:'linear-gradient(90deg,var(--red),#ff6b6b)',borderRadius:'8px',width:`${pct}%`,transition:'width 0.8s cubic-bezier(.25,.46,.45,.94)'}}/>
           </div>
         </div>
       </div>
 
-      {/* Token Bar */}
       <TokenBar profile={profile}/>
+      <Countdown/>
+      <InviteButton groupSize={leaders.length} maxSize={12}/>
 
-      {/* Today CTA */}
       <div style={{padding:'0 1.25rem',marginBottom:'1rem'}}>
         {cur===0?(
           <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'20px',padding:'1.5rem',textAlign:'center'}}>
@@ -341,21 +528,12 @@ function HomeTab({user,completed,completionTypes,onOpenDay,leaders,profile}){
         ):done<30?(()=>{
           const type=completionTypes[cur];
           const isDone=completed.has(cur);
-          const bgStyle=isDone
-            ?type==='joker'?'linear-gradient(135deg,#1a1a1a,#222)':type==='half'?'linear-gradient(135deg,#0a1a2a,#0f2035)':'linear-gradient(135deg,#0a1f0a,#0f2a0f)'
-            :'linear-gradient(135deg,var(--red),var(--red2))';
-          const borderStyle=isDone
-            ?type==='joker'?'2px solid #444':type==='half'?'2px solid #1e3a5f':'2px solid #2d5a2d'
-            :'2px solid transparent';
+          const bgS=isDone?(type==='joker'?'linear-gradient(135deg,#1a1a1a,#222)':type==='half'?'linear-gradient(135deg,#0a1a2a,#0f2035)':'linear-gradient(135deg,#0a1f0a,#0f2a0f)'):'linear-gradient(135deg,var(--red),var(--red2))';
+          const brdS=isDone?(type==='joker'?'2px solid #444':type==='half'?'2px solid #1e3a5f':'2px solid #2d5a2d'):'2px solid transparent';
           return(
-            <button onClick={()=>onOpenDay(cur)}
-              style={{width:'100%',background:bgStyle,border:borderStyle,borderRadius:'20px',padding:'1.5rem',textAlign:'left',boxShadow:isDone?'none':'0 8px 32px rgba(230,57,70,0.35)'}}>
-              <div style={{fontSize:'0.68rem',color:'rgba(255,255,255,0.6)',letterSpacing:'0.15em',marginBottom:'6px'}}>
-                {isDone?(type==='joker'?'🃏 JOKER EINGESETZT':type==='half'?'🌙 HALBE PORTION':'✓ HEUTE ERLEDIGT'):'HEUTE · TAG '+cur+' VON 30'}
-              </div>
-              <div className="bc" style={{fontSize:'clamp(2rem,10vw,3rem)',fontWeight:900,color:'#fff',lineHeight:1,marginBottom:'4px'}}>
-                {type==='joker'?'SKIP':type==='half'?Math.ceil(tot(curDay)/2)+' BURPEES 🌙':tot(curDay)+' BURPEES'}
-              </div>
+            <button onClick={()=>onOpenDay(cur)} style={{width:'100%',background:bgS,border:brdS,borderRadius:'20px',padding:'1.5rem',textAlign:'left',boxShadow:isDone?'none':'0 8px 32px rgba(230,57,70,0.35)'}}>
+              <div style={{fontSize:'0.68rem',color:'rgba(255,255,255,0.6)',letterSpacing:'0.15em',marginBottom:'6px'}}>{isDone?(type==='joker'?'🃏 JOKER EINGESETZT':type==='half'?'🌙 HALBE PORTION':'✓ HEUTE ERLEDIGT'):'HEUTE · TAG '+cur+' VON 30'}</div>
+              <div className="bc" style={{fontSize:'clamp(2rem,10vw,3rem)',fontWeight:900,color:'#fff',lineHeight:1,marginBottom:'4px'}}>{type==='joker'?'SKIP':type==='half'?Math.ceil(tot(curDay)/2)+' BURPEES 🌙':tot(curDay)+' BURPEES'}</div>
               {curDay.oneGo&&type!=='joker'&&<span style={{display:'inline-block',background:'rgba(0,0,0,0.25)',color:'rgba(255,255,255,0.85)',fontSize:'0.65rem',padding:'3px 10px',borderRadius:'100px',letterSpacing:'0.12em',marginBottom:'6px'}}>IN ONE GO</span>}
               <div style={{fontSize:'0.82rem',color:'rgba(255,255,255,0.65)',marginTop:'4px'}}>{isDone?'Tap für Details':'Workout starten →'}</div>
             </button>
@@ -365,29 +543,37 @@ function HomeTab({user,completed,completionTypes,onOpenDay,leaders,profile}){
         )}
       </div>
 
-      {/* Motivation */}
       <div style={{margin:'0 1.25rem 1.5rem',display:'flex',alignItems:'center',gap:'0.75rem',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'14px',padding:'0.9rem 1rem'}}>
         <p style={{flex:1,fontSize:'0.87rem',color:'#888',fontStyle:'italic',lineHeight:1.45}}>{motto}</p>
         <button onClick={()=>setMotto(rnd(MOTIVATIONS))} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:'8px',padding:'6px 8px',color:'var(--muted)',fontSize:'0.9rem',flexShrink:0}}>↻</button>
       </div>
 
-      {/* Leaderboard */}
       {leaders.length>1&&(
-        <div style={{padding:'0 1.25rem'}}>
+        <div style={{padding:'0 1.25rem 1rem'}}>
           <div className="bc" style={{fontSize:'0.68rem',color:'var(--muted)',letterSpacing:'0.15em',marginBottom:'0.65rem'}}>🏅 RANGLISTE</div>
           <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'16px',overflow:'hidden'}}>
-            {leaders.slice(0,5).map((u,i)=>(
-              <div key={u.name} style={{display:'flex',alignItems:'center',padding:'0.85rem 1rem',borderBottom:i<Math.min(leaders.length,5)-1?'1px solid var(--border)':'none',background:u.name===user?'rgba(230,57,70,0.07)':'transparent',gap:'10px'}}>
-                <span style={{width:'1.75rem',fontSize:'1rem',flexShrink:0}}>{i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`}</span>
-                <Avatar profile={u} size={32}/>
-                <span style={{flex:1,fontSize:'0.92rem',fontWeight:u.name===user?600:400}}>{u.name}{u.name===user&&<span style={{color:'var(--red)',fontSize:'0.72rem',marginLeft:'5px'}}> (du)</span>}</span>
-                <div style={{textAlign:'right'}}>
-                  <span className="bc" style={{fontSize:'1.3rem',fontWeight:900,color:'var(--red)'}}>{u.completed_days}</span>
-                  <span style={{color:'var(--muted)',fontSize:'0.7rem'}}>/30</span>
+            {leaders.slice(0,8).map((u,i)=>(
+              <div key={u.name} style={{display:'flex',alignItems:'center',padding:'0.75rem 1rem',borderBottom:i<Math.min(leaders.length,8)-1?'1px solid var(--border)':'none',background:u.name===user?'rgba(230,57,70,0.07)':'transparent',gap:'10px'}}>
+                <span style={{width:'1.6rem',fontSize:'0.95rem',flexShrink:0}}>{i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`}</span>
+                <Avatar profile={u} size={34}/>
+                <span style={{flex:1,fontSize:'0.88rem',fontWeight:u.name===user?600:400,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{u.name}{u.name===user&&<span style={{color:'var(--red)',fontSize:'0.7rem',marginLeft:'4px'}}>(du)</span>}</span>
+                <div style={{display:'flex',alignItems:'center',gap:'8px',flexShrink:0}}>
+                  <div style={{textAlign:'right'}}>
+                    <span className="bc" style={{fontSize:'1.2rem',fontWeight:900,color:'var(--red)'}}>{u.completed_days}</span>
+                    <span style={{color:'var(--muted)',fontSize:'0.65rem'}}>/30</span>
+                  </div>
+                  {u.name!==user&&(
+                    <button onClick={()=>onNudge(u.name)}
+                      style={{background:'rgba(230,57,70,0.1)',border:'1px solid rgba(230,57,70,0.3)',borderRadius:'8px',padding:'5px 9px',fontSize:'0.82rem',color:'var(--red)',flexShrink:0,fontFamily:"Barlow Condensed,sans-serif",fontWeight:700,letterSpacing:'0.05em'}}
+                      title="Feuer machen!">
+                      🔥
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
           </div>
+          <p style={{fontSize:'0.68rem',color:'var(--muted)',marginTop:'6px',textAlign:'center'}}>🔥 = Feuer machen</p>
         </div>
       )}
     </div>
@@ -402,25 +588,17 @@ function CalendarTab({completed,completionTypes,onOpenDay}){
       <div className="bc" style={{fontSize:'1.6rem',fontWeight:800,letterSpacing:'0.05em',marginBottom:'1rem'}}>30-TAGE PLAN</div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:'8px'}}>
         {DAYS.map(d=>{
-          const isDone=completed.has(d.day);
-          const type=completionTypes[d.day];
-          const isToday=d.day===cur&&!isDone;
-          const t=tot(d);
+          const isDone=completed.has(d.day),type=completionTypes[d.day],isToday=d.day===cur&&!isDone,t=tot(d);
           let bg='var(--bg2)',border='1.5px solid var(--border)',color='var(--text)';
           if(isDone){
-            if(type==='joker'){bg='rgba(100,100,100,0.1)';border='1.5px solid #333';color='#555';}
+            if(type==='joker'){bg='rgba(100,100,100,0.1)';border='1.5px solid #333';color='#444';}
             else if(type==='half'){bg='rgba(30,58,95,0.3)';border='1.5px solid #1e3a5f';color='#60a5fa';}
             else{bg='rgba(74,222,128,0.1)';border='1.5px solid #2d5a2d';color='var(--green)';}
-          } else if(isToday){bg='rgba(230,57,70,0.12)';border='1.5px solid var(--red)';color='var(--red)';}
+          }else if(isToday){bg='rgba(230,57,70,0.12)';border='1.5px solid var(--red)';color='var(--red)';}
           return(
-            <button key={d.day} onClick={()=>onOpenDay(d.day)}
-              style={{background:bg,border,borderRadius:'12px',padding:'10px 6px',display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',minHeight:'68px'}}>
-              <span style={{fontSize:'0.58rem',color:isDone?color:isToday?'var(--red)':'var(--muted)',fontWeight:600}}>
-                {isDone?(type==='joker'?'🃏':type==='half'?'🌙':'✓'):isToday?'●':d.day}
-              </span>
-              <span className="bc" style={{fontSize:'1.15rem',fontWeight:800,color,lineHeight:1}}>
-                {type==='joker'?'–':type==='half'?Math.ceil(t/2):t}
-              </span>
+            <button key={d.day} onClick={()=>onOpenDay(d.day)} style={{background:bg,border,borderRadius:'12px',padding:'10px 6px',display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',minHeight:'68px'}}>
+              <span style={{fontSize:'0.58rem',color:isDone?color:isToday?'var(--red)':'var(--muted)',fontWeight:600}}>{isDone?(type==='joker'?'🃏':type==='half'?'🌙':'✓'):isToday?'●':d.day}</span>
+              <span className="bc" style={{fontSize:'1.15rem',fontWeight:800,color,lineHeight:1}}>{type==='joker'?'–':type==='half'?Math.ceil(t/2):t}</span>
               {d.oneGo&&type!=='joker'&&<span style={{fontSize:'0.45rem',color:isDone?color:'#8b1a1a',fontWeight:700}}>1GO</span>}
             </button>
           );
@@ -428,10 +606,7 @@ function CalendarTab({completed,completionTypes,onOpenDay}){
       </div>
       <div style={{display:'flex',gap:'0.75rem',marginTop:'1.25rem',flexWrap:'wrap'}}>
         {[['var(--green)','✓ Voll'],['#60a5fa','🌙 Halb'],['#555','🃏 Joker'],['var(--red)','Heute']].map(([c,l])=>(
-          <div key={l} style={{display:'flex',alignItems:'center',gap:'5px'}}>
-            <div style={{width:'10px',height:'10px',borderRadius:'3px',background:c}}/>
-            <span style={{fontSize:'0.75rem',color:'var(--muted)'}}>{l}</span>
-          </div>
+          <div key={l} style={{display:'flex',alignItems:'center',gap:'5px'}}><div style={{width:'10px',height:'10px',borderRadius:'3px',background:c}}/><span style={{fontSize:'0.75rem',color:'var(--muted)'}}>{l}</span></div>
         ))}
       </div>
     </div>
@@ -439,31 +614,62 @@ function CalendarTab({completed,completionTypes,onOpenDay}){
 }
 
 // ── Wall Tab ──────────────────────────────────────────────
-function WallTab({user,profile,completed,wall,onPost,onReact}){
+function WallTab({user,profile,completed,wall,onPost,onReact,onOpenCommunity}){
   const [text,setText]=useState('');
   const [posting,setPosting]=useState(false);
-  const submit=async()=>{if(!text.trim()||posting)return;setPosting(true);await onPost(text.trim());setText('');setPosting(false);};
-  const profileMap=Object.fromEntries(wall.map(p=>[p.name,p]));
+  const [uploading,setUploading]=useState(false);
+  const fileRef=useRef();
+
+  const submit=async(imageUrl=null)=>{
+    if((!text.trim()&&!imageUrl)||posting)return;
+    setPosting(true);
+    await onPost(text.trim()||'📸',imageUrl);
+    setText('');setPosting(false);
+  };
+
+  const handlePhoto=async(e)=>{
+    const file=e.target.files[0];if(!file)return;
+    setUploading(true);
+    try{
+      const ext=file.name.split('.').pop();
+      const path=`${user}_${Date.now()}.${ext}`;
+      const{data,error}=await db.storage.from('wall-photos').upload(path,file,{contentType:file.type});
+      if(error)throw error;
+      const{data:{publicUrl}}=db.storage.from('wall-photos').getPublicUrl(path);
+      await submit(publicUrl);
+    }catch(err){console.error(err);alert('Foto-Upload fehlgeschlagen. Wurde der wall-photos Bucket angelegt?');}
+    setUploading(false);
+    e.target.value='';
+  };
 
   return(
     <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
       <div style={{padding:'1.25rem 1.25rem 0.75rem',borderBottom:'1px solid var(--border)',flexShrink:0}}>
-        <div className="bc" style={{fontSize:'1.6rem',fontWeight:800,letterSpacing:'0.05em',marginBottom:'0.9rem'}}>🔥 MOTIVATION WALL</div>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.9rem'}}>
+          <div className="bc" style={{fontSize:'1.6rem',fontWeight:800,letterSpacing:'0.05em'}}>🔥 MOTIVATION WALL</div>
+          <button onClick={onOpenCommunity} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:'10px',padding:'6px 12px',color:'var(--text)',fontSize:'0.8rem',fontFamily:"Barlow Condensed,sans-serif",fontWeight:700,letterSpacing:'0.05em'}}>💬 SPRÜCHE</button>
+        </div>
         <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
           <Avatar profile={profile} size={36}/>
           <input value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()} placeholder="Motiviere dein Team..."
             style={{flex:1,padding:'0.8rem 1rem',background:'var(--bg3)',border:'2px solid var(--border)',borderRadius:'12px',color:'var(--text)',fontSize:'0.9rem',outline:'none'}}/>
-          <button onClick={submit} disabled={!text.trim()||posting}
-            style={{background:'var(--red)',border:'none',borderRadius:'12px',padding:'0 1.1rem',color:'#fff',fontSize:'1.3rem',height:'44px',opacity:(!text.trim()||posting)?0.4:1,flexShrink:0}}>→</button>
+          <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={handlePhoto} style={{display:'none'}}/>
+          <button onClick={()=>fileRef.current.click()} disabled={uploading}
+            style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0 0.7rem',color:uploading?'var(--muted)':'var(--text)',fontSize:'1.2rem',height:'44px',flexShrink:0}}>
+            {uploading?'⏳':'📸'}
+          </button>
+          <button onClick={()=>submit()} disabled={!text.trim()||posting}
+            style={{background:'var(--red)',border:'none',borderRadius:'12px',padding:'0 1rem',color:'#fff',fontSize:'1.2rem',height:'44px',opacity:(!text.trim()||posting)?0.4:1,flexShrink:0}}>→</button>
         </div>
       </div>
+
       <div style={{flex:1,overflowY:'auto',padding:'0.75rem 1.25rem'}}>
         {wall.length===0&&<div style={{textAlign:'center',padding:'4rem 1rem'}}><div style={{fontSize:'3rem',marginBottom:'0.75rem'}}>💬</div><p style={{color:'var(--muted)',fontSize:'0.9rem'}}>Noch keine Posts!</p></div>}
         {wall.map((p,i)=>(
           <div key={p.id} style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'16px',padding:'1rem',marginBottom:'10px',animation:`slideUp 0.3s ${i*0.04}s ease both`}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'8px'}}>
               <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-                <Avatar profile={p.profile||{avatar:p.avatar||'💪'}} size={34}/>
+                <Avatar profile={{avatar:p.avatar,avatar_pixels:p.avatar_pixels}} size={34}/>
                 <div>
                   <div style={{fontSize:'0.85rem',fontWeight:600,color:p.name===user?'var(--red)':'var(--text)'}}>{p.name}</div>
                   <div style={{fontSize:'0.68rem',color:'var(--muted)'}}>Tag {p.day}</div>
@@ -471,16 +677,14 @@ function WallTab({user,profile,completed,wall,onPost,onReact}){
               </div>
               <span style={{fontSize:'0.68rem',color:'var(--muted)',flexShrink:0}}>{new Date(p.created_at).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}</span>
             </div>
-            <p style={{fontSize:'0.92rem',lineHeight:1.5,margin:'0 0 0.75rem',color:'#ddd'}}>{p.message}</p>
+            {p.image_url&&<img src={p.image_url} alt="wall photo" style={{width:'100%',borderRadius:'10px',marginBottom:'8px',maxHeight:'280px',objectFit:'cover'}}/>}
+            {p.message&&p.message!=='📸'&&<p style={{fontSize:'0.92rem',lineHeight:1.5,margin:'0 0 0.75rem',color:'#ddd'}}>{p.message}</p>}
             <div style={{display:'flex',flexWrap:'wrap',gap:'5px'}}>
               {EMOJIS.map(e=>{
                 const count=p.reactions?.[e]||0;
-                return(
-                  <button key={e} onClick={()=>onReact(p.id,e)}
-                    style={{background:count>0?'rgba(230,57,70,0.12)':'var(--bg3)',border:`1px solid ${count>0?'rgba(230,57,70,0.3)':'var(--border)'}`,borderRadius:'8px',padding:'4px 8px',fontSize:'0.85rem',display:'flex',alignItems:'center',gap:'4px'}}>
-                    {e}{count>0&&<span style={{color:'var(--muted)',fontSize:'0.7rem'}}>{count}</span>}
-                  </button>
-                );
+                return <button key={e} onClick={()=>onReact(p.id,e)} style={{background:count>0?'rgba(230,57,70,0.12)':'var(--bg3)',border:`1px solid ${count>0?'rgba(230,57,70,0.3)':'var(--border)'}`,borderRadius:'8px',padding:'4px 8px',fontSize:'0.85rem',display:'flex',alignItems:'center',gap:'4px'}}>
+                  {e}{count>0&&<span style={{color:'var(--muted)',fontSize:'0.7rem'}}>{count}</span>}
+                </button>;
               })}
             </div>
           </div>
@@ -491,17 +695,13 @@ function WallTab({user,profile,completed,wall,onPost,onReact}){
 }
 
 // ── Workout Screen ────────────────────────────────────────
-function WorkoutScreen({dayNum,completed,completionTypes,profile,onComplete,onHalf,onJoker,onUndo,onBack}){
-  const [showJokerModal,setShowJokerModal]=useState(false);
-  const d=DAYS[dayNum-1],t=tot(d),isDone=completed.has(dayNum);
-  const type=completionTypes[dayNum];
+function WorkoutScreen({dayNum,completed,completionTypes,profile,legends,onComplete,onHalf,onJoker,onUndo,onBack}){
+  const jokerQuote=useRef(getJokerQuote(legends)).current;
+  const [showJoker,setShowJoker]=useState(false);
+  const d=DAYS[dayNum-1],t=tot(d),isDone=completed.has(dayNum),type=completionTypes[dayNum];
   const halfT=Math.ceil(t/2);
-
   const jokersLeft=1-(profile?.jokers_used||0)-(profile?.joker_swapped?1:0);
   const halfLeft=2+(profile?.joker_swapped?1:0)-(profile?.half_used||0);
-
-  const handleJokerConfirm=async()=>{setShowJokerModal(false);await onJoker(dayNum);};
-  const handleSwap=async()=>{setShowJokerModal(false);await onJoker(dayNum,'swap');};
 
   return(
     <>
@@ -509,23 +709,17 @@ function WorkoutScreen({dayNum,completed,completionTypes,profile,onComplete,onHa
         <div style={{padding:'calc(var(--safe-t) + 1rem) 1.25rem 0.75rem',display:'flex',alignItems:'center',gap:'1rem',borderBottom:'1px solid var(--border)',flexShrink:0}}>
           <button onClick={onBack} style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'10px',padding:'8px 14px',color:'var(--text)',fontSize:'0.9rem'}}>←</button>
           <div className="bc" style={{fontSize:'1rem',fontWeight:700,letterSpacing:'0.1em',color:'var(--muted)'}}>TAG {dayNum} VON 30</div>
-          {isDone&&(
-            <div style={{marginLeft:'auto',borderRadius:'100px',padding:'4px 12px',fontSize:'0.72rem',fontWeight:600,
-              background:type==='joker'?'rgba(80,80,80,0.2)':type==='half'?'rgba(30,58,95,0.3)':'rgba(74,222,128,0.15)',
-              border:type==='joker'?'1px solid #444':type==='half'?'1px solid #1e3a5f':'1px solid #2d5a2d',
-              color:type==='joker'?'#888':type==='half'?'#60a5fa':'var(--green)'}}>
-              {type==='joker'?'🃏 Joker':type==='half'?'🌙 Halbe':'✓ Erledigt'}
-            </div>
-          )}
+          {isDone&&<div style={{marginLeft:'auto',borderRadius:'100px',padding:'4px 12px',fontSize:'0.72rem',fontWeight:600,
+            background:type==='joker'?'rgba(80,80,80,0.2)':type==='half'?'rgba(30,58,95,0.3)':'rgba(74,222,128,0.15)',
+            border:type==='joker'?'1px solid #444':type==='half'?'1px solid #1e3a5f':'1px solid #2d5a2d',
+            color:type==='joker'?'#888':type==='half'?'#60a5fa':'var(--green)'}}>
+            {type==='joker'?'🃏 Joker':type==='half'?'🌙 Halbe':'✓ Erledigt'}
+          </div>}
         </div>
-
         <div style={{textAlign:'center',padding:'1.75rem 1.25rem 1.25rem',flexShrink:0}}>
           <div className="bc" style={{fontWeight:900,fontSize:'min(28vw,7rem)',color:'var(--red)',lineHeight:0.9}}>{type==='joker'?'🃏':type==='half'?halfT:t}</div>
-          <div className="bc" style={{fontWeight:700,fontSize:'1.4rem',letterSpacing:'0.2em',color:'var(--muted)',marginTop:'4px'}}>
-            {type==='joker'?'SKIP TAG':'BURPEES'}{type==='half'&&<span style={{color:'#60a5fa'}}> (HALBE)</span>}
-          </div>
+          <div className="bc" style={{fontWeight:700,fontSize:'1.4rem',letterSpacing:'0.2em',color:'var(--muted)',marginTop:'4px'}}>{type==='joker'?'SKIP TAG':'BURPEES'}{type==='half'&&<span style={{color:'#60a5fa'}}> (HALBE)</span>}</div>
         </div>
-
         <div style={{flex:1,overflowY:'auto',padding:'0 1.25rem'}}>
           {type!=='joker'&&(d.oneGo?(
             <div style={{background:'rgba(230,57,70,0.08)',border:'2px solid rgba(230,57,70,0.35)',borderRadius:'18px',padding:'1.75rem',textAlign:'center',marginBottom:'1rem'}}>
@@ -535,74 +729,166 @@ function WorkoutScreen({dayNum,completed,completionTypes,profile,onComplete,onHa
             </div>
           ):(
             <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'18px',padding:'1.25rem',marginBottom:'1rem'}}>
-              {d.sets.map((s,i)=>{
-                const hs=Math.ceil(s/2);
-                return(
-                  <div key={i}>
-                    <div style={{display:'flex',alignItems:'center',padding:'0.6rem 0',gap:'1rem'}}>
-                      <div style={{width:'28px',height:'28px',borderRadius:'50%',background:'var(--bg3)',border:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.72rem',color:'var(--muted)',flexShrink:0}}>{i+1}</div>
-                      <span className="bc" style={{flex:1,fontSize:'1.3rem',fontWeight:700}}>{type==='half'?hs:s} Burpees</span>
-                      {type==='half'&&<span style={{fontSize:'0.7rem',color:'#60a5fa'}}>🌙 ½</span>}
-                    </div>
-                    {i<d.sets.length-1&&<div style={{textAlign:'center',fontSize:'0.72rem',color:'var(--muted)',padding:'3px 0',borderTop:'1px dashed var(--border)',borderBottom:'1px dashed var(--border)',margin:'0 2rem'}}>↓ &nbsp;20 Sek. Pause</div>}
+              {d.sets.map((s,i)=>{const hs=Math.ceil(s/2);return(
+                <div key={i}>
+                  <div style={{display:'flex',alignItems:'center',padding:'0.6rem 0',gap:'1rem'}}>
+                    <div style={{width:'28px',height:'28px',borderRadius:'50%',background:'var(--bg3)',border:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.72rem',color:'var(--muted)',flexShrink:0}}>{i+1}</div>
+                    <span className="bc" style={{flex:1,fontSize:'1.3rem',fontWeight:700}}>{type==='half'?hs:s} Burpees</span>
+                    {type==='half'&&<span style={{fontSize:'0.7rem',color:'#60a5fa'}}>🌙</span>}
                   </div>
-                );
-              })}
+                  {i<d.sets.length-1&&<div style={{textAlign:'center',fontSize:'0.72rem',color:'var(--muted)',padding:'3px 0',borderTop:'1px dashed var(--border)',borderBottom:'1px dashed var(--border)',margin:'0 2rem'}}>↓ &nbsp;20 Sek. Pause</div>}
+                </div>
+              );})}
             </div>
           ))}
-          {type==='joker'&&(
-            <div style={{background:'#111',border:'2px solid #333',borderRadius:'18px',padding:'1.75rem',textAlign:'center',marginBottom:'1rem'}}>
-              <div style={{fontSize:'3rem',marginBottom:'0.5rem'}}>🃏</div>
-              <div className="bc" style={{fontSize:'1.2rem',fontWeight:800,color:'#888'}}>JOKER EINGESETZT</div>
-              <div style={{color:'var(--muted)',fontSize:'0.8rem',marginTop:'0.5rem'}}>Dieser Tag ist übersprungen</div>
-            </div>
-          )}
+          {type==='joker'&&<div style={{background:'#111',border:'2px solid #333',borderRadius:'18px',padding:'1.75rem',textAlign:'center',marginBottom:'1rem'}}><div style={{fontSize:'3rem',marginBottom:'0.5rem'}}>🃏</div><div className="bc" style={{fontSize:'1.2rem',fontWeight:800,color:'#888'}}>JOKER EINGESETZT</div></div>}
         </div>
-
         <div style={{padding:'1rem 1.25rem',paddingBottom:'calc(1rem + var(--safe-b))',flexShrink:0,borderTop:'1px solid var(--border)'}}>
           {!isDone?(
             <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
-              <button onClick={()=>onComplete(dayNum)}
-                style={{width:'100%',padding:'1.1rem',background:'var(--red)',border:'none',borderRadius:'16px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.4rem',fontWeight:800,letterSpacing:'0.08em',boxShadow:'0 6px 28px rgba(230,57,70,0.4)'}}>
-                ✓ GESCHAFFT!
-              </button>
+              <button onClick={()=>onComplete(dayNum)} style={{width:'100%',padding:'1.1rem',background:'var(--red)',border:'none',borderRadius:'16px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.4rem',fontWeight:800,letterSpacing:'0.08em',boxShadow:'0 6px 28px rgba(230,57,70,0.4)'}}>✓ GESCHAFFT!</button>
               <div style={{display:'flex',gap:'8px'}}>
-                {halfLeft>0&&(
-                  <button onClick={()=>onHalf(dayNum)}
-                    style={{flex:1,padding:'0.85rem',background:'rgba(30,58,95,0.3)',border:'2px solid #1e3a5f',borderRadius:'14px',color:'#60a5fa',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.95rem',fontWeight:700,letterSpacing:'0.05em'}}>
-                    🌙 Halbe ({halfLeft}×)
-                  </button>
-                )}
-                <button onClick={()=>setShowJokerModal(true)}
-                  style={{flex:1,padding:'0.85rem',background:'rgba(100,100,100,0.1)',border:'2px solid #2a2a2a',borderRadius:'14px',color:'var(--muted)',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.95rem',fontWeight:700,letterSpacing:'0.05em'}}>
-                  🃏 Joker {jokersLeft>0?'(1×)':'(0×)'}
-                </button>
+                {halfLeft>0&&<button onClick={()=>onHalf(dayNum)} style={{flex:1,padding:'0.85rem',background:'rgba(30,58,95,0.3)',border:'2px solid #1e3a5f',borderRadius:'14px',color:'#60a5fa',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.95rem',fontWeight:700,letterSpacing:'0.05em'}}>🌙 Halbe ({halfLeft}×)</button>}
+                <button onClick={()=>setShowJoker(true)} style={{flex:1,padding:'0.85rem',background:'rgba(100,100,100,0.1)',border:'2px solid #2a2a2a',borderRadius:'14px',color:'var(--muted)',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.95rem',fontWeight:700,letterSpacing:'0.05em'}}>🃏 Joker {jokersLeft>0?'(1×)':'(0×)'}</button>
               </div>
             </div>
           ):(
             <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
-              <div className="bc" style={{
-                background:type==='joker'?'rgba(60,60,60,0.2)':type==='half'?'rgba(30,58,95,0.2)':'rgba(74,222,128,0.1)',
-                border:type==='joker'?'2px solid #333':type==='half'?'2px solid #1e3a5f':'2px solid #2d5a2d',
-                borderRadius:'16px',padding:'1.1rem',textAlign:'center',fontSize:'1.3rem',fontWeight:800,letterSpacing:'0.05em',
-                color:type==='joker'?'#666':type==='half'?'#60a5fa':'var(--green)'}}>
-                {type==='joker'?'🃏 JOKER EINGESETZT':type==='half'?'🌙 HALBE PORTION DONE':'✓ TAG '+dayNum+' ABGESCHLOSSEN!'}
+              <div className="bc" style={{background:type==='joker'?'rgba(60,60,60,0.2)':type==='half'?'rgba(30,58,95,0.2)':'rgba(74,222,128,0.1)',border:type==='joker'?'2px solid #333':type==='half'?'2px solid #1e3a5f':'2px solid #2d5a2d',borderRadius:'16px',padding:'1.1rem',textAlign:'center',fontSize:'1.3rem',fontWeight:800,letterSpacing:'0.05em',color:type==='joker'?'#666':type==='half'?'#60a5fa':'var(--green)'}}>
+                {type==='joker'?'🃏 JOKER':type==='half'?'🌙 HALBE DONE':'✓ TAG '+dayNum+' DONE!'}
               </div>
               <button onClick={()=>onUndo(dayNum)} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.8rem',padding:'0.5rem'}}>Als unerledigt markieren</button>
             </div>
           )}
         </div>
       </div>
-
-      {showJokerModal&&(
-        <JokerModal
-          profile={profile}
-          onCancel={()=>setShowJokerModal(false)}
-          onConfirm={handleJokerConfirm}
-          onSwap={handleSwap}
-        />
-      )}
+      {showJoker&&<JokerModal profile={profile} jokerQuote={jokerQuote} onCancel={()=>setShowJoker(false)} onConfirm={async()=>{setShowJoker(false);await onJoker(dayNum);}} onSwap={async()=>{setShowJoker(false);await onJoker(dayNum,'swap');}}/>}
     </>
+  );
+}
+
+// ── Community Quotes Screen ──────────────────────────────
+function CommunityQuotes({user,legends,submissions,onSubmit,onVote,onClose}){
+  const [step,setStep]=useState('list'); // list | form
+  const [selLegend,setSelLegend]=useState('');
+  const [anheizer,setAnheizer]=useState('');
+  const [quote,setQuote]=useState('');
+  const [sending,setSending]=useState(false);
+
+  const wordCount=anheizer.trim().split(/\s+/).filter(Boolean).length;
+  const valid=selLegend&&anheizer.trim()&&wordCount<=5&&quote.trim().length>10;
+
+  const submit=async()=>{
+    if(!valid||sending)return;
+    setSending(true);
+    await onSubmit({legend_id:selLegend,anheizer:anheizer.trim(),quote:quote.trim(),submitted_by:user});
+    setSelLegend('');setAnheizer('');setQuote('');setStep('list');setSending(false);
+  };
+
+  const alreadyVoted=(sub)=>{
+    // optimistic: check local storage
+    const key=`vote_${sub.id}`;
+    return localStorage.getItem(key)==='1';
+  };
+
+  return(
+    <div style={{position:'fixed',inset:0,background:'var(--bg)',zIndex:300,display:'flex',flexDirection:'column',animation:'slideUp 0.3s ease both'}}>
+      <div style={{padding:'calc(var(--safe-t) + 1rem) 1.25rem 0.75rem',display:'flex',alignItems:'center',gap:'1rem',borderBottom:'1px solid var(--border)',flexShrink:0}}>
+        <button onClick={step==='form'?()=>setStep('list'):onClose} style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'10px',padding:'8px 14px',color:'var(--text)',fontSize:'0.9rem'}}>←</button>
+        <div className="bc" style={{fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.05em',flex:1}}>
+          {step==='list'?'💬 COMMUNITY SPRÜCHE':'✍️ SPRUCH EINREICHEN'}
+        </div>
+        {step==='list'&&<button onClick={()=>setStep('form')} style={{background:'var(--red)',border:'none',borderRadius:'10px',padding:'8px 14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontWeight:800,fontSize:'0.9rem',letterSpacing:'0.05em'}}>+ NEU</button>}
+      </div>
+
+      {step==='list'&&(
+        <div style={{flex:1,overflowY:'auto',padding:'1rem 1.25rem'}}>
+          <p style={{color:'var(--muted)',fontSize:'0.82rem',marginBottom:'1rem',lineHeight:1.5}}>
+            Stimme für Sprüche ab — ab <b style={{color:'var(--text)'}}>5 Votes</b> kommen sie live in die App 🔥
+          </p>
+          {submissions.length===0&&(
+            <div style={{textAlign:'center',padding:'3rem 1rem'}}>
+              <div style={{fontSize:'3rem',marginBottom:'0.75rem'}}>✍️</div>
+              <p style={{color:'var(--muted)',fontSize:'0.9rem'}}>Noch keine Einreichungen – sei der Erste!</p>
+            </div>
+          )}
+          {submissions.map((sub,i)=>{
+            const leg=legends.find(l=>l.id===sub.legend_id);
+            const voted=alreadyVoted(sub);
+            return(
+              <div key={sub.id} style={{background:'var(--bg2)',border:`1px solid ${sub.approved?'var(--green)':'var(--border)'}`,borderRadius:'14px',padding:'1rem',marginBottom:'10px'}}>
+                <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'6px'}}>
+                  <span style={{fontSize:'1.1rem'}}>{leg?.emoji||'❓'}</span>
+                  <div style={{flex:1}}>
+                    <span className="bc" style={{fontSize:'0.85rem',fontWeight:700,color:leg?.color||'var(--text)'}}>{leg?.char||sub.legend_id}</span>
+                    <span style={{color:'var(--muted)',fontSize:'0.7rem',marginLeft:'6px'}}>von {sub.submitted_by}</span>
+                  </div>
+                  {sub.approved&&<span style={{fontSize:'0.7rem',background:'rgba(74,222,128,0.15)',color:'var(--green)',border:'1px solid #2d5a2d',borderRadius:'100px',padding:'2px 8px'}}>✓ live</span>}
+                </div>
+                <div className="bc" style={{fontSize:'0.8rem',color:'var(--muted)',letterSpacing:'0.08em',marginBottom:'4px'}}>{sub.anheizer}</div>
+                <p style={{fontSize:'0.88rem',lineHeight:1.5,color:'#ccc',fontStyle:'italic',marginBottom:'10px'}}>"{sub.quote}"</p>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                  <span style={{fontSize:'0.75rem',color:'var(--muted)'}}>{sub.votes} / 5 Votes</span>
+                  <button onClick={()=>!voted&&onVote(sub.id)}
+                    style={{background:voted?'rgba(74,222,128,0.1)':'rgba(230,57,70,0.1)',border:`1px solid ${voted?'#2d5a2d':'rgba(230,57,70,0.3)'}`,borderRadius:'8px',padding:'5px 14px',color:voted?'var(--green)':'var(--red)',fontFamily:'Barlow Condensed,sans-serif',fontWeight:700,fontSize:'0.85rem',opacity:voted?0.6:1}}>
+                    {voted?'✓ gevoted':'🔥 +1 Vote'}
+                  </button>
+                </div>
+                {sub.votes>0&&(
+                  <div style={{marginTop:'6px',height:'3px',background:'var(--bg3)',borderRadius:'2px',overflow:'hidden'}}>
+                    <div style={{height:'100%',background:'var(--red)',borderRadius:'2px',width:`${Math.min((sub.votes/5)*100,100)}%`,transition:'width 0.4s ease'}}/>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {step==='form'&&(
+        <div style={{flex:1,overflowY:'auto',padding:'1rem 1.25rem'}}>
+          <p style={{color:'var(--muted)',fontSize:'0.82rem',marginBottom:'1.25rem',lineHeight:1.5}}>
+            Schreib einen Spruch für eine Legende. Nach <b style={{color:'var(--text)'}}>5 Votes</b> der Community geht er live 🔥
+          </p>
+
+          <div style={{marginBottom:'1rem'}}>
+            <p className="bc" style={{fontSize:'0.65rem',color:'var(--muted)',letterSpacing:'0.12em',marginBottom:'0.5rem'}}>LEGENDE WÄHLEN</p>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'8px'}}>
+              {legends.map(l=>(
+                <button key={l.id} onClick={()=>setSelLegend(l.id)}
+                  style={{background:selLegend===l.id?`${l.color}22`:'var(--bg2)',border:`1.5px solid ${selLegend===l.id?l.color:'var(--border)'}`,borderRadius:'12px',padding:'10px',display:'flex',alignItems:'center',gap:'8px',textAlign:'left'}}>
+                  <span style={{fontSize:'1.2rem'}}>{l.emoji}</span>
+                  <div>
+                    <div className="bc" style={{fontSize:'0.85rem',fontWeight:700,color:selLegend===l.id?l.color:'var(--text)'}}>{l.char}</div>
+                    <div style={{fontSize:'0.58rem',color:'var(--muted)'}}>{l.begriff}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{marginBottom:'1rem'}}>
+            <div style={{display:'flex',justifyContent:'space-between',marginBottom:'0.5rem'}}>
+              <p className="bc" style={{fontSize:'0.65rem',color:'var(--muted)',letterSpacing:'0.12em'}}>ANHEIZER (3-5 WÖRTER)</p>
+              <span style={{fontSize:'0.65rem',color:wordCount>5?'var(--red)':'var(--muted)'}}>{wordCount}/5</span>
+            </div>
+            <input value={anheizer} onChange={e=>setAnheizer(e.target.value)} placeholder="z.B. Schwerkraft führt 1:0!"
+              style={{width:'100%',padding:'0.8rem 1rem',background:'var(--bg3)',border:`2px solid ${wordCount>5?'var(--red)':'var(--border)'}`,borderRadius:'12px',color:'var(--text)',fontSize:'0.9rem',outline:'none'}}/>
+          </div>
+
+          <div style={{marginBottom:'1.5rem'}}>
+            <p className="bc" style={{fontSize:'0.65rem',color:'var(--muted)',letterSpacing:'0.12em',marginBottom:'0.5rem'}}>DER SPRUCH</p>
+            <textarea value={quote} onChange={e=>setQuote(e.target.value)} placeholder="Der epische Spruch der Legende..."
+              style={{width:'100%',padding:'0.8rem 1rem',background:'var(--bg3)',border:'2px solid var(--border)',borderRadius:'12px',color:'var(--text)',fontSize:'0.9rem',outline:'none',resize:'none',minHeight:'100px',lineHeight:1.5}}/>
+          </div>
+
+          <button onClick={submit} disabled={!valid||sending}
+            style={{width:'100%',padding:'1rem',background:valid?'var(--red)':'var(--bg3)',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.08em',opacity:(!valid||sending)?0.4:1,marginBottom:'calc(1rem + var(--safe-b))'}}>
+            {sending?'WIRD EINGEREICHT...':'EINREICHEN 🔥'}
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -612,14 +898,11 @@ function BottomNav({tab,setTab}){
     <div style={{flexShrink:0,background:'var(--bg)',borderTop:'1px solid var(--border)',paddingBottom:'var(--safe-b)',display:'flex'}}>
       {[{id:'home',icon:'🏠',label:'HOME'},{id:'calendar',icon:'📅',label:'PLAN'},{id:'wall',icon:'💬',label:'WALL'}].map(item=>{
         const active=tab===item.id;
-        return(
-          <button key={item.id} onClick={()=>setTab(item.id)}
-            style={{flex:1,padding:'0.8rem 0.5rem',background:'none',border:'none',display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',opacity:active?1:0.4,transition:'opacity 0.15s'}}>
-            <span style={{fontSize:'1.3rem'}}>{item.icon}</span>
-            <span className="bc" style={{fontSize:'0.62rem',fontWeight:700,letterSpacing:'0.1em',color:active?'var(--red)':'var(--muted)'}}>{item.label}</span>
-            {active&&<div style={{width:'16px',height:'2px',background:'var(--red)',borderRadius:'1px'}}/>}
-          </button>
-        );
+        return <button key={item.id} onClick={()=>setTab(item.id)} style={{flex:1,padding:'0.8rem 0.5rem',background:'none',border:'none',display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',opacity:active?1:0.4,transition:'opacity 0.15s'}}>
+          <span style={{fontSize:'1.3rem'}}>{item.icon}</span>
+          <span className="bc" style={{fontSize:'0.62rem',fontWeight:700,letterSpacing:'0.1em',color:active?'var(--red)':'var(--muted)'}}>{item.label}</span>
+          {active&&<div style={{width:'16px',height:'2px',background:'var(--red)',borderRadius:'1px'}}/>}
+        </button>;
       })}
     </div>
   );
@@ -627,27 +910,29 @@ function BottomNav({tab,setTab}){
 
 // ── Main App ──────────────────────────────────────────────
 function App(){
-  const [screen,setScreen]       =useState('loading');
-  const [tab,setTab]             =useState('home');
-  const [userName,setUserName]   =useState('');
-  const [completed,setCompleted] =useState(new Set());
-  const [compTypes,setCompTypes] =useState({});  // {dayNum: 'full'|'half'|'joker'}
-  const [profile,setProfile]     =useState(null);
-  const [leaders,setLeaders]     =useState([]);
-  const [wall,setWall]           =useState([]);
+  const [screen,setScreen]=useState('loading');
+  const [tab,setTab]=useState('home');
+  const [userName,setUserName]=useState('');
+  const [completed,setCompleted]=useState(new Set());
+  const [compTypes,setCompTypes]=useState({});
+  const [profile,setProfile]=useState(null);
+  const [leaders,setLeaders]=useState([]);
+  const [wall,setWall]=useState([]);
   const [workoutDay,setWorkoutDay]=useState(null);
-  const [toast,setToast]         =useState('');
+  const [toast,setToast]=useState('');
+  const [showAvatarEditor,setShowAvatarEditor]=useState(false);
+  const [feuerTarget,setFeuerTarget]=useState(null);
+  const [legends,setLegends]=useState([]);
+  const [submissions,setSubmissions]=useState([]);
+  const [showQuoteForm,setShowQuoteForm]=useState(false);
+  const [showCommunity,setShowCommunity]=useState(false);
   const timer=useRef(null);
 
   const showToast=msg=>{setToast(msg);clearTimeout(timer.current);timer.current=setTimeout(()=>setToast(''),3200);};
 
   const loadUser=useCallback(async name=>{
     const{data:comp}=await db.from('day_completions').select('day,type').eq('name',name);
-    if(comp){
-      setCompleted(new Set(comp.map(d=>d.day)));
-      const types={};comp.forEach(d=>{types[d.day]=d.type||'full';});
-      setCompTypes(types);
-    }
+    if(comp){setCompleted(new Set(comp.map(d=>d.day)));const t={};comp.forEach(d=>{t[d.day]=d.type||'full';});setCompTypes(t);}
     const{data:prof}=await db.from('profiles').select('*').eq('name',name).single();
     if(prof)setProfile(prof);
     setScreen('main');
@@ -663,10 +948,24 @@ function App(){
     if(data)setWall(data);
   },[]);
 
+  const loadLegends=useCallback(async()=>{
+    const{data:legs}=await db.from('legends').select('*');
+    const{data:qs}=await db.from('quotes').select('*').eq('approved',true);
+    if(legs&&qs){
+      const grouped=legs.map(l=>({...l,quotes:qs.filter(q=>q.legend_id===l.id)}));
+      setLegends(grouped.filter(l=>l.quotes.length>0));
+    }
+  },[]);
+
+  const loadSubmissions=useCallback(async()=>{
+    const{data}=await db.from('quote_submissions').select('*').order('votes',{ascending:false});
+    if(data)setSubmissions(data);
+  },[]);
+
   useEffect(()=>{
     const saved=localStorage.getItem('burpee_name');
     if(saved){setUserName(saved);loadUser(saved);}else setScreen('onboarding');
-    loadLeaders();loadWall();
+    loadLeaders();loadWall();loadLegends();loadSubmissions();
     const ch=db.channel('live')
       .on('postgres_changes',{event:'*',schema:'public',table:'wall_posts'},loadWall)
       .on('postgres_changes',{event:'*',schema:'public',table:'profiles'},loadLeaders)
@@ -674,23 +973,22 @@ function App(){
     return()=>ch.unsubscribe();
   },[loadUser,loadLeaders,loadWall]);
 
-  const refreshProfile=async(name)=>{
-    const{data}=await db.from('profiles').select('*').eq('name',name).single();
-    if(data){setProfile(data);return data;}
-    return null;
+  const refreshProfile=async name=>{const{data}=await db.from('profiles').select('*').eq('name',name).single();if(data){setProfile(data);return data;}return null;};
+
+  const handleJoin=async(name,pixels)=>{
+    await db.from('profiles').upsert({name,avatar:'💪',avatar_pixels:pixels,completed_days:0,jokers_used:0,half_used:0,joker_swapped:false},{onConflict:'name',ignoreDuplicates:false});
+    localStorage.setItem('burpee_name',name);setUserName(name);await loadUser(name);showToast(`🎉 Willkommen, ${name}!`);
   };
 
-  const handleJoin=async(name,avatar)=>{
-    await db.from('profiles').upsert({name,avatar,completed_days:0,jokers_used:0,half_used:0,joker_swapped:false},{onConflict:'name',ignoreDuplicates:true});
-    localStorage.setItem('burpee_name',name);
-    setUserName(name);await loadUser(name);
-    showToast(`🎉 Willkommen, ${name}!`);
+  const handleSaveAvatar=async(pixels)=>{
+    setShowAvatarEditor(false);
+    await db.from('profiles').update({avatar_pixels:pixels}).eq('name',userName);
+    await refreshProfile(userName);loadLeaders();showToast('🎨 Avatar gespeichert!');
   };
 
   const handleComplete=async dayNum=>{
     const next=new Set(completed);next.add(dayNum);
-    const nextTypes={...compTypes,[dayNum]:'full'};
-    setCompleted(next);setCompTypes(nextTypes);
+    setCompleted(next);setCompTypes({...compTypes,[dayNum]:'full'});
     await db.from('day_completions').upsert({name:userName,day:dayNum,type:'full'},{onConflict:'name,day'});
     await db.from('profiles').update({completed_days:next.size,updated_at:new Date().toISOString()}).eq('name',userName);
     await refreshProfile(userName);loadLeaders();showToast(rnd(MOTIVATIONS));
@@ -698,55 +996,48 @@ function App(){
 
   const handleHalf=async dayNum=>{
     const next=new Set(completed);next.add(dayNum);
-    const nextTypes={...compTypes,[dayNum]:'half'};
-    setCompleted(next);setCompTypes(nextTypes);
-    const newHalfUsed=(profile?.half_used||0)+1;
+    setCompleted(next);setCompTypes({...compTypes,[dayNum]:'half'});
+    const newH=(profile?.half_used||0)+1;
     await db.from('day_completions').upsert({name:userName,day:dayNum,type:'half'},{onConflict:'name,day'});
-    await db.from('profiles').update({completed_days:next.size,half_used:newHalfUsed,updated_at:new Date().toISOString()}).eq('name',userName);
+    await db.from('profiles').update({completed_days:next.size,half_used:newH,updated_at:new Date().toISOString()}).eq('name',userName);
     const p=await refreshProfile(userName);loadLeaders();
-    showToast(`🌙 Halbe Portion – macht man! (${2+(p?.joker_swapped?1:0)-newHalfUsed} übrig)`);
+    showToast(`🌙 Halbe reicht auch! (${2+(p?.joker_swapped?1:0)-newH} übrig)`);
   };
 
   const handleJoker=async(dayNum,action)=>{
     if(action==='swap'){
-      // Swap: joker_swapped=true, gain +1 halbe, use it immediately as halbe
       const next=new Set(completed);next.add(dayNum);
-      const nextTypes={...compTypes,[dayNum]:'half'};
-      setCompleted(next);setCompTypes(nextTypes);
-      const newHalfUsed=(profile?.half_used||0)+1;
+      const newH=(profile?.half_used||0)+1;
+      setCompleted(next);setCompTypes({...compTypes,[dayNum]:'half'});
       await db.from('day_completions').upsert({name:userName,day:dayNum,type:'half'},{onConflict:'name,day'});
-      await db.from('profiles').update({completed_days:next.size,joker_swapped:true,half_used:newHalfUsed,updated_at:new Date().toISOString()}).eq('name',userName);
-      await refreshProfile(userName);loadLeaders();
-      showToast('⚡ Joker getauscht! Avatar upgraded + halbe Portion done!');
-    } else {
+      await db.from('profiles').update({completed_days:next.size,joker_swapped:true,half_used:newH,updated_at:new Date().toISOString()}).eq('name',userName);
+      await refreshProfile(userName);loadLeaders();showToast('⚡ Joker getauscht! Avatar upgraded!');
+    }else{
       const next=new Set(completed);next.add(dayNum);
-      const nextTypes={...compTypes,[dayNum]:'joker'};
-      setCompleted(next);setCompTypes(nextTypes);
-      const newJokersUsed=(profile?.jokers_used||0)+1;
+      const newJ=(profile?.jokers_used||0)+1;
+      setCompleted(next);setCompTypes({...compTypes,[dayNum]:'joker'});
       await db.from('day_completions').upsert({name:userName,day:dayNum,type:'joker'},{onConflict:'name,day'});
-      await db.from('profiles').update({completed_days:next.size,jokers_used:newJokersUsed,updated_at:new Date().toISOString()}).eq('name',userName);
-      await refreshProfile(userName);loadLeaders();
-      showToast('🃏 Joker eingesetzt – morgen wieder voll dabei!');
+      await db.from('profiles').update({completed_days:next.size,jokers_used:newJ,updated_at:new Date().toISOString()}).eq('name',userName);
+      await refreshProfile(userName);loadLeaders();showToast('🃏 Joker eingesetzt – morgen wieder voll!');
     }
   };
 
   const handleUndo=async dayNum=>{
     const type=compTypes[dayNum];
     const next=new Set(completed);next.delete(dayNum);
-    const nextTypes={...compTypes};delete nextTypes[dayNum];
-    setCompleted(next);setCompTypes(nextTypes);
+    const nextT={...compTypes};delete nextT[dayNum];
+    setCompleted(next);setCompTypes(nextT);
     await db.from('day_completions').delete().eq('name',userName).eq('day',dayNum);
-    // Restore token if applicable
     let updates={completed_days:next.size};
-    if(type==='half') updates.half_used=Math.max((profile?.half_used||0)-1,0);
-    if(type==='joker') updates.jokers_used=Math.max((profile?.jokers_used||0)-1,0);
+    if(type==='half')updates.half_used=Math.max((profile?.half_used||0)-1,0);
+    if(type==='joker')updates.jokers_used=Math.max((profile?.jokers_used||0)-1,0);
     await db.from('profiles').update(updates).eq('name',userName);
     await refreshProfile(userName);loadLeaders();
   };
 
-  const handlePost=async text=>{
+  const handlePost=async(text,imageUrl=null)=>{
     const cur=getChallengeDay();
-    await db.from('wall_posts').insert({name:userName,avatar:profile?.avatar||'💪',message:text,day:cur,reactions:{}});
+    await db.from('wall_posts').insert({name:userName,avatar:profile?.avatar||'💪',avatar_pixels:profile?.avatar_pixels||null,message:text,day:cur,reactions:{},image_url:imageUrl});
   };
 
   const handleReact=async(postId,emoji)=>{
@@ -756,27 +1047,53 @@ function App(){
     await db.from('wall_posts').update({reactions}).eq('id',postId);
   };
 
-  if(screen==='loading')return(
-    <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center'}}>
-      <div style={{textAlign:'center'}}>
-        <div style={{fontSize:'2.5rem',marginBottom:'0.75rem',animation:'shimmer 1.2s infinite'}}>💥</div>
-        <div className="bc" style={{fontSize:'0.8rem',color:'var(--muted)',letterSpacing:'0.15em'}}>LÄDT...</div>
-      </div>
-    </div>
-  );
+  const handleNudge=(targetName)=>{setFeuerTarget(targetName);};
+  const handleSubmitQuote=async(sub)=>{
+    await db.from('quote_submissions').insert(sub);
+    await loadSubmissions();
+  };
+  const handleVote=async(subId)=>{
+    const key=`vote_${subId}`;
+    if(localStorage.getItem(key)==='1')return;
+    localStorage.setItem(key,'1');
+    const sub=submissions.find(s=>s.id===subId);
+    if(!sub)return;
+    const newVotes=sub.votes+1;
+    setSubmissions(prev=>prev.map(s=>s.id===subId?{...s,votes:newVotes}:s));
+    await db.from('quote_submissions').update({votes:newVotes}).eq('id',subId);
+    if(newVotes>=5){
+      await db.from('quotes').insert({legend_id:sub.legend_id,anheizer:sub.anheizer,quote:sub.quote,approved:true});
+      await db.from('quote_submissions').update({approved:true}).eq('id',subId);
+      await loadLegends();await loadSubmissions();
+      showToast('🔥 Spruch freigeschaltet! Er ist jetzt live!');
+    }
+  };
+  const handleFeuerSend=async(legend)=>{
+    const target=feuerTarget;setFeuerTarget(null);
+    const msg=`🔥 ${userName} macht Feuer unter ${target}!
 
+${legend.emoji} ${legend.char.toUpperCase()} sagt:
+"${legend.selectedQuote}"`;
+    await handlePost(msg);
+    setTab('wall');showToast(`🔥 ${target} bekommt Feuer von ${legend.char}!`);
+  };
+
+  if(screen==='loading')return<div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{textAlign:'center'}}><div style={{fontSize:'2.5rem',marginBottom:'0.75rem',animation:'shimmer 1.2s infinite'}}>💥</div><div className="bc" style={{fontSize:'0.8rem',color:'var(--muted)',letterSpacing:'0.15em'}}>LÄDT...</div></div></div>;
   if(screen==='onboarding')return<><Toast msg={toast}/><Onboarding onJoin={handleJoin}/></>;
 
   return(
     <>
       <Toast msg={toast}/>
+      {showCommunity&&<CommunityQuotes user={userName} legends={legends} submissions={submissions} onSubmit={handleSubmitQuote} onVote={handleVote} onClose={()=>setShowCommunity(false)}/>}
+      {feuerTarget&&<FeuermachenModal from={userName} to={feuerTarget} onSend={handleFeuerSend} onCancel={()=>setFeuerTarget(null)} legends={legends}/>}
+      {showAvatarEditor&&<PixelArtEditor initialPixels={profile?.avatar_pixels||EMPTY_PIXELS()} onSave={handleSaveAvatar} onCancel={()=>setShowAvatarEditor(false)}/>}
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',paddingTop:'var(--safe-t)'}}>
-        {tab==='home'    &&<HomeTab user={userName} completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay} leaders={leaders} profile={profile}/>}
+        {tab==='home'    &&<HomeTab user={userName} completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay} leaders={leaders} profile={profile} onNudge={handleNudge}/>}
         {tab==='calendar'&&<CalendarTab completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay}/>}
-        {tab==='wall'    &&<WallTab user={userName} profile={profile} completed={completed} wall={wall} onPost={handlePost} onReact={handleReact}/>}
+        {tab==='wall'    &&<WallTab user={userName} profile={profile} completed={completed} wall={wall} onPost={handlePost} onReact={handleReact} onOpenCommunity={()=>setShowCommunity(true)}/>}
         <BottomNav tab={tab} setTab={setTab}/>
       </div>
-      {workoutDay&&<WorkoutScreen dayNum={workoutDay} completed={completed} completionTypes={compTypes} profile={profile} onComplete={handleComplete} onHalf={handleHalf} onJoker={handleJoker} onUndo={handleUndo} onBack={()=>setWorkoutDay(null)}/>}
+      {workoutDay&&<WorkoutScreen dayNum={workoutDay} completed={completed} completionTypes={compTypes} profile={profile} legends={legends} onComplete={handleComplete} onHalf={handleHalf} onJoker={handleJoker} onUndo={handleUndo} onBack={()=>setWorkoutDay(null)}/>}
     </>
   );
 }
