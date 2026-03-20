@@ -15,24 +15,22 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      --red: #e63946; --red2: #c1121f; --green: #4ade80;
-      --bg: #090909; --bg2: #111111; --bg3: #181818; --border: #1f1f1f;
-      --text: #f2f2f2; --muted: #555;
-      --safe-b: env(safe-area-inset-bottom, 0px);
-      --safe-t: env(safe-area-inset-top, 0px);
+      --red:#e63946;--red2:#c1121f;--green:#4ade80;--gold:#f59e0b;
+      --bg:#090909;--bg2:#111111;--bg3:#181818;--border:#1f1f1f;
+      --text:#f2f2f2;--muted:#555;
+      --safe-b:env(safe-area-inset-bottom,0px);--safe-t:env(safe-area-inset-top,0px);
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
     html{height:100%;overflow:hidden;}
     body{height:100%;background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;overscroll-behavior:none;-webkit-font-smoothing:antialiased;}
     #root{height:100%;display:flex;flex-direction:column;}
-    button{cursor:pointer;}
-    input,textarea{font-family:inherit;}
-    input{-webkit-appearance:none;}
+    button{cursor:pointer;}input,textarea{font-family:inherit;}input{-webkit-appearance:none;}
     @keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
-    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
     @keyframes pop{0%{transform:scale(0.85);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
     @keyframes shimmer{0%,100%{opacity:1}50%{opacity:0.35}}
     @keyframes slideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
+    @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+    @keyframes glow{0%,100%{box-shadow:0 0 20px rgba(245,158,11,0.4)}50%{box-shadow:0 0 40px rgba(245,158,11,0.8)}}
     .bc{font-family:'Barlow Condensed',sans-serif;}
   </style>
 </head>
@@ -40,10 +38,17 @@
 <script type="text/babel">
 const SUPABASE_URL  = 'https://csfhunqizwwgxjcdfttp.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzZmh1bnFpend3Z3hqY2RmdHRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MzgzMTAsImV4cCI6MjA4OTQxNDMxMH0.qRLgc7eVaa-njdhbV5hupLCQJHhupY016MqAaLQ0CPc';
+const START_DATE = new Date('2026-03-22');
 
 const {createClient}=window.supabase;
 const db=createClient(SUPABASE_URL,SUPABASE_ANON);
 const {useState,useEffect,useRef,useCallback}=React;
+
+const getChallengeDay=()=>{
+  const t=new Date();t.setHours(0,0,0,0);
+  const s=new Date(START_DATE);s.setHours(0,0,0,0);
+  return Math.min(Math.max(Math.floor((t-s)/86400000)+1,0),30);
+};
 
 const DAYS=[
   {day:1,sets:[6,4,3,3],oneGo:false},{day:2,sets:[10],oneGo:true},
@@ -62,22 +67,181 @@ const DAYS=[
   {day:27,sets:[18,18,9,9],oneGo:false},{day:28,sets:[47],oneGo:true},
   {day:29,sets:[20,18,10,10],oneGo:false},{day:30,sets:[50],oneGo:true},
 ];
+
 const MOTIVATIONS=["Kein Schmerz, kein Gewinn!","Jeder Burpee zählt! 🔥","Du bist stärker als du denkst!","Schweiß ist Fett, das weint ⚡","Heute schmerzt es – morgen stärkst du!","30 Tage. Kein Aufgeben! 🏆","Einmal mehr als gestern!","Dein zukünftiges Ich dankt dir!"];
 const EMOJIS=["🔥","💪","⚡","🎉","👊","🏆","😤","🚀"];
+const AVATARS=["💪","🔥","⚡","🐻","🦊","🐺","🦁","🐯","🐸","🦅","🦊","🐲","👊","🤘","💀","🧠","🏋️","🚀","⚔️","🛡️","🌊","🗻","💎","🎯"];
+
+// Chuck Norris / Yoda / andere Legenden
+const JOKER_QUOTES=[
+  {char:"Chuck Norris",emoji:"🤠",quote:"Chuck Norris hat nie einen Joker benutzt. Er hat einfach die Schwerkraft neu verhandelt. Wähle. Weise."},
+  {char:"Yoda",emoji:"🟢",quote:"Hmmmm. Einen Joker nutzen, willst du? Stark die dunkle Seite ist. Aber stärker bist du. Vielleicht."},
+  {char:"Rocky Balboa",emoji:"🥊",quote:"Yo... ich hab auch mal aufgeben wollen. Dann hab ich trotzdem trainiert. Und du? Was machst du?"},
+  {char:"Yoda",emoji:"🟢",quote:"Ausreden, viele gibt es. Burpees, es gibt nur. Entscheide du musst, junger Padawan."},
+  {char:"Chuck Norris",emoji:"🤠",quote:"Als Chuck Norris schlechte Tage hatte, erfand er den Burpee. Du hast jetzt einen. Nutze ihn weise."},
+  {char:"Gandalf",emoji:"🧙",quote:"Ein Zauberer kommt nie zu spät. Und er überspringt auch kein Training. Wähle weise, Freund."},
+];
+
 const rnd=a=>a[Math.floor(Math.random()*a.length)];
 const tot=d=>d.sets.reduce((a,b)=>a+b,0);
 
-function Toast({msg}){
-  if(!msg)return null;
-  return <div style={{position:'fixed',top:'calc(var(--safe-t) + 12px)',left:'50%',transform:'translateX(-50%)',background:'var(--red)',color:'#fff',padding:'10px 20px',borderRadius:'100px',fontSize:'0.85rem',fontWeight:600,zIndex:9999,whiteSpace:'nowrap',boxShadow:'0 4px 24px rgba(230,57,70,0.5)',animation:'slideDown 0.3s ease both'}}>{msg}</div>;
+// ── Avatar Component ──────────────────────────────────────
+function Avatar({profile,size=40,showGimmick=true}){
+  const av=profile?.avatar||'💪';
+  const jokerSwapped=profile?.joker_swapped;
+  const jokerUsed=(profile?.jokers_used||0)>0;
+  const halfUsed=(profile?.half_used||0)>0;
+
+  // Border gimmick
+  let border='2px solid var(--border)';
+  let glow='none';
+  if(jokerSwapped){border='2px solid #8b5cf6';glow='0 0 12px rgba(139,92,246,0.5)';}
+  else if(jokerUsed){border='2px solid #555';}
+
+  // Badge
+  let badge=null;
+  if(showGimmick){
+    if(jokerSwapped) badge=<span style={{position:'absolute',bottom:-4,right:-4,fontSize:'0.7rem',background:'#8b5cf6',borderRadius:'50%',width:'18px',height:'18px',display:'flex',alignItems:'center',justifyContent:'center'}}>⚡</span>;
+    else if(jokerUsed) badge=<span style={{position:'absolute',bottom:-4,right:-4,fontSize:'0.7rem',background:'#333',borderRadius:'50%',width:'18px',height:'18px',display:'flex',alignItems:'center',justifyContent:'center'}}>💀</span>;
+    else if(halfUsed) badge=<span style={{position:'absolute',bottom:-4,right:-4,fontSize:'0.7rem',background:'#1e3a5f',borderRadius:'50%',width:'18px',height:'18px',display:'flex',alignItems:'center',justifyContent:'center'}}>🌙</span>;
+  }
+
+  return(
+    <div style={{position:'relative',width:size,height:size,flexShrink:0}}>
+      <div style={{width:size,height:size,borderRadius:'50%',background:'var(--bg3)',border,boxShadow:glow,display:'flex',alignItems:'center',justifyContent:'center',fontSize:size*0.5}}>
+        {av}
+      </div>
+      {badge}
+    </div>
+  );
 }
 
+// ── Token Bar ─────────────────────────────────────────────
+function TokenBar({profile}){
+  const jokersLeft = 1-(profile?.jokers_used||0)-(profile?.joker_swapped?1:0);
+  const halfLeft   = 2+(profile?.joker_swapped?1:0)-(profile?.half_used||0);
+  return(
+    <div style={{display:'flex',gap:'8px',margin:'0 1.25rem 1rem'}}>
+      <div style={{flex:1,background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0.65rem 0.85rem',display:'flex',alignItems:'center',gap:'8px'}}>
+        <span style={{fontSize:'1.1rem'}}>🃏</span>
+        <div>
+          <div className="bc" style={{fontSize:'0.65rem',color:'var(--muted)',letterSpacing:'0.1em'}}>JOKER</div>
+          <div className="bc" style={{fontSize:'1.1rem',fontWeight:800,color:jokersLeft>0?'var(--gold)':'var(--muted)'}}>{jokersLeft > 0 ? '1× verfügbar' : 'verbraucht'}</div>
+        </div>
+      </div>
+      <div style={{flex:1,background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0.65rem 0.85rem',display:'flex',alignItems:'center',gap:'8px'}}>
+        <span style={{fontSize:'1.1rem'}}>🌙</span>
+        <div>
+          <div className="bc" style={{fontSize:'0.65rem',color:'var(--muted)',letterSpacing:'0.1em'}}>HALBE</div>
+          <div className="bc" style={{fontSize:'1.1rem',fontWeight:800,color:halfLeft>0?'#60a5fa':'var(--muted)'}}>
+            {halfLeft > 0 ? `${halfLeft}× verfügbar` : 'verbraucht'}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Joker Modal ───────────────────────────────────────────
+function JokerModal({onCancel,onConfirm,onSwap,profile}){
+  const q=useRef(rnd(JOKER_QUOTES)).current;
+  const jokersLeft=1-(profile?.jokers_used||0)-(profile?.joker_swapped?1:0);
+  const halfLeft=2+(profile?.joker_swapped?1:0)-(profile?.half_used||0);
+  const [shaking,setShaking]=useState(false);
+
+  const handleConfirm=()=>{
+    setShaking(true);
+    setTimeout(()=>{setShaking(false);onConfirm();},600);
+  };
+
+  return(
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:200,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',animation:'fadeIn 0.2s ease'}}>
+      <div style={{width:'100%',maxWidth:'480px',background:'var(--bg)',borderRadius:'24px 24px 0 0',padding:'2rem 1.5rem',paddingBottom:'calc(2rem + var(--safe-b))'}}>
+        {/* Character */}
+        <div style={{textAlign:'center',marginBottom:'1.25rem'}}>
+          <div style={{fontSize:'4rem',marginBottom:'0.5rem',animation:shaking?'shake 0.5s ease':'pop 0.4s ease both'}}>{q.emoji}</div>
+          <div className="bc" style={{fontSize:'1rem',fontWeight:700,color:'var(--gold)',letterSpacing:'0.1em',marginBottom:'0.75rem'}}>{q.char.toUpperCase()} SPRICHT:</div>
+          <p style={{fontSize:'0.95rem',lineHeight:1.55,color:'#ccc',fontStyle:'italic'}}>"{q.quote}"</p>
+        </div>
+
+        <div style={{height:'1px',background:'var(--border)',margin:'1.25rem 0'}}/>
+
+        {/* Buttons */}
+        <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+          <button onClick={()=>{}} style={{width:'100%',padding:'1rem',background:'linear-gradient(135deg,var(--red),var(--red2))',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.1rem',fontWeight:800,letterSpacing:'0.08em',boxShadow:'0 4px 20px rgba(230,57,70,0.4)'}}
+            onClick={onCancel}>
+            💪 TROTZDEM MACHEN!
+          </button>
+
+          {jokersLeft>0&&(
+            <button onClick={handleConfirm}
+              style={{width:'100%',padding:'0.9rem',background:'#1a1a1a',border:'2px solid #444',borderRadius:'14px',color:'#aaa',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1rem',fontWeight:700,letterSpacing:'0.05em'}}>
+              🃏 Joker einsetzen ({jokersLeft} verbleibend)
+            </button>
+          )}
+
+          {jokersLeft>0&&!profile?.joker_swapped&&(
+            <button onClick={onSwap}
+              style={{width:'100%',padding:'0.9rem',background:'rgba(139,92,246,0.1)',border:'2px solid rgba(139,92,246,0.4)',borderRadius:'14px',color:'#a78bfa',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.95rem',fontWeight:700,letterSpacing:'0.05em'}}>
+              ⚡ Joker → Halbe tauschen (+1 Halbe, Avatar-Upgrade)
+            </button>
+          )}
+
+          <button onClick={onCancel} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.82rem',padding:'0.5rem'}}>
+            Abbrechen
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Onboarding ────────────────────────────────────────────
 function Onboarding({onJoin}){
+  const [step,setStep]=useState('name'); // name | avatar
   const [name,setName]=useState('');
+  const [avatar,setAvatar]=useState('💪');
   const [loading,setLoading]=useState(false);
   const ref=useRef();
-  useEffect(()=>{setTimeout(()=>ref.current?.focus(),400);},[]);
-  const join=async()=>{const n=name.trim();if(!n||loading)return;setLoading(true);await onJoin(n);setLoading(false);};
+  useEffect(()=>{if(step==='name')setTimeout(()=>ref.current?.focus(),400);},[step]);
+
+  const goAvatar=()=>{if(name.trim())setStep('avatar');};
+  const join=async()=>{
+    if(loading)return;setLoading(true);
+    await onJoin(name.trim(),avatar);setLoading(false);
+  };
+
+  if(step==='avatar') return(
+    <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      <div style={{flex:1,overflowY:'auto',padding:'2rem 1.5rem 1rem',textAlign:'center'}}>
+        <div style={{fontSize:'3rem',marginBottom:'0.5rem',animation:'pop 0.4s ease both'}}>{avatar}</div>
+        <h2 className="bc" style={{fontSize:'2rem',fontWeight:800,marginBottom:'0.5rem',animation:'slideUp 0.3s ease both'}}>WÄHLE DEINEN AVATAR</h2>
+        <p style={{color:'var(--muted)',fontSize:'0.85rem',marginBottom:'1.5rem',animation:'slideUp 0.3s 0.05s ease both'}}>Du kannst ihn später nicht ändern 😈</p>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:'10px',animation:'slideUp 0.3s 0.1s ease both'}}>
+          {AVATARS.map(a=>(
+            <button key={a} onClick={()=>setAvatar(a)}
+              style={{background:avatar===a?'rgba(230,57,70,0.2)':'var(--bg2)',border:`2px solid ${avatar===a?'var(--red)':'var(--border)'}`,borderRadius:'12px',padding:'10px',fontSize:'1.6rem',transition:'all 0.15s',transform:avatar===a?'scale(1.1)':'scale(1)'}}>
+              {a}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div style={{padding:'1.25rem',paddingBottom:'calc(1.5rem + var(--safe-b))',borderTop:'1px solid var(--border)'}}>
+        <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'0.75rem',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0.75rem 1rem'}}>
+          <div style={{width:'40px',height:'40px',borderRadius:'50%',background:'var(--bg3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.3rem'}}>{avatar}</div>
+          <div>
+            <div style={{fontWeight:600,fontSize:'0.95rem'}}>{name}</div>
+            <div style={{color:'var(--muted)',fontSize:'0.75rem'}}>Bereit für 30 Tage</div>
+          </div>
+        </div>
+        <button onClick={join} disabled={loading}
+          style={{width:'100%',padding:'1rem',background:'var(--red)',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.08em',opacity:loading?0.7:1}}>
+          {loading?'EINEN MOMENT...':'CHALLENGE ANNEHMEN 🔥'}
+        </button>
+      </div>
+    </div>
+  );
+
   return(
     <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
       <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'2rem 1.5rem 1rem',textAlign:'center'}}>
@@ -94,72 +258,128 @@ function Onboarding({onJoin}){
             </div>
           ))}
         </div>
+        <div style={{marginTop:'1.5rem',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0.9rem 1.25rem',textAlign:'left',width:'100%',maxWidth:'320px',animation:'slideUp 0.4s 0.4s ease both'}}>
+          <div className="bc" style={{fontSize:'0.68rem',color:'var(--muted)',letterSpacing:'0.12em',marginBottom:'6px'}}>DEIN SAFETY NET</div>
+          <div style={{fontSize:'0.85rem',lineHeight:1.5,color:'#aaa'}}>
+            🃏 <b style={{color:'var(--text)'}}>1 Joker</b> – kompletter Skip<br/>
+            🌙 <b style={{color:'var(--text)'}}>2 Halbe</b> – halbe Portion reicht<br/>
+            ⚡ <b style={{color:'var(--text)'}}>Swap</b> – Joker → extra Halbe tauschen
+          </div>
+        </div>
       </div>
       <div style={{padding:'1.25rem',paddingBottom:'calc(1.5rem + var(--safe-b))',background:'var(--bg)',borderTop:'1px solid var(--border)',animation:'slideUp 0.4s 0.35s ease both'}}>
         <p style={{fontSize:'0.72rem',color:'var(--muted)',letterSpacing:'0.12em',marginBottom:'0.6rem',textTransform:'uppercase'}}>Dein Name</p>
-        <input ref={ref} value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&join()} placeholder="z.B. Stefano, Lisa, Max..."
+        <input ref={ref} value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&goAvatar()} placeholder="z.B. Stefano, Lisa, Max..."
           style={{width:'100%',padding:'1rem',background:'var(--bg3)',border:'2px solid var(--border)',borderRadius:'14px',color:'var(--text)',fontSize:'1.05rem',marginBottom:'0.75rem',outline:'none'}}/>
-        <button onClick={join} disabled={!name.trim()||loading}
-          style={{width:'100%',padding:'1rem',background:name.trim()?'var(--red)':'var(--bg3)',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.08em',opacity:loading?0.7:1}}>
-          {loading?'EINEN MOMENT...':'LOS GEHT\'S →'}
+        <button onClick={goAvatar} disabled={!name.trim()}
+          style={{width:'100%',padding:'1rem',background:name.trim()?'var(--red)':'var(--bg3)',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.08em',opacity:name.trim()?1:0.4}}>
+          WEITER → AVATAR WÄHLEN
         </button>
       </div>
     </div>
   );
 }
 
-function HomeTab({user,completed,onOpenDay,leaders}){
+// ── Toast ─────────────────────────────────────────────────
+function Toast({msg}){
+  if(!msg)return null;
+  return <div style={{position:'fixed',top:'calc(var(--safe-t) + 12px)',left:'50%',transform:'translateX(-50%)',background:'var(--red)',color:'#fff',padding:'10px 20px',borderRadius:'100px',fontSize:'0.85rem',fontWeight:600,zIndex:9999,whiteSpace:'nowrap',boxShadow:'0 4px 24px rgba(230,57,70,0.5)',animation:'slideDown 0.3s ease both'}}>{msg}</div>;
+}
+
+// ── Home Tab ──────────────────────────────────────────────
+function HomeTab({user,completed,completionTypes,onOpenDay,leaders,profile}){
   const [motto,setMotto]=useState(()=>rnd(MOTIVATIONS));
-  const done=completed.size,pct=Math.round((done/30)*100),cur=Math.min(done+1,30);
-  const totalBurpees=DAYS.reduce((a,d)=>a+(completed.has(d.day)?tot(d):0),0);
-  const curDay=DAYS[cur-1];
+  const done=completed.size,pct=Math.round((done/30)*100),cur=getChallengeDay();
+  const totalBurpees=DAYS.reduce((a,d)=>{
+    const t=completionTypes[d.day];
+    if(!t)return a;
+    const b=tot(d);
+    return a+(t==='half'?Math.ceil(b/2):t==='joker'?0:b);
+  },0);
+  const curDay=DAYS[Math.max(cur-1,0)];
+
   return(
     <div style={{flex:1,overflowY:'auto',paddingBottom:'0.5rem'}}>
       <div style={{padding:'1.25rem 1.25rem 0'}}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'1.25rem'}}>
-          <div>
-            <div className="bc" style={{fontSize:'1.7rem',fontWeight:800,lineHeight:1.1}}>Hey, <span style={{color:'var(--red)'}}>{user}</span> 👊</div>
-            <div style={{color:'var(--muted)',fontSize:'0.78rem',marginTop:'3px'}}>#BurpeeChallenge</div>
+        {/* Header */}
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.25rem'}}>
+          <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
+            <Avatar profile={profile} size={44}/>
+            <div>
+              <div className="bc" style={{fontSize:'1.5rem',fontWeight:800,lineHeight:1.1}}>Hey, <span style={{color:'var(--red)'}}>{user}</span> 👊</div>
+              <div style={{color:'var(--muted)',fontSize:'0.75rem'}}>#BurpeeChallenge</div>
+            </div>
           </div>
           <div style={{textAlign:'right'}}>
-            <div className="bc" style={{fontSize:'2rem',fontWeight:900,color:'var(--red)',lineHeight:1}}>{totalBurpees}</div>
+            <div className="bc" style={{fontSize:'1.8rem',fontWeight:900,color:'var(--red)',lineHeight:1}}>{totalBurpees}</div>
             <div style={{color:'var(--muted)',fontSize:'0.65rem'}}>Burpees gesamt</div>
           </div>
         </div>
-        <div style={{marginBottom:'1.5rem'}}>
+        {/* Progress */}
+        <div style={{marginBottom:'1rem'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:'6px'}}>
             <span className="bc" style={{fontSize:'1rem',fontWeight:700,letterSpacing:'0.05em'}}>{done} / 30 TAGE</span>
             <span className="bc" style={{fontSize:'1.4rem',fontWeight:900,color:'var(--red)'}}>{pct}%</span>
           </div>
-          <div style={{height:'8px',background:'var(--bg3)',borderRadius:'8px',overflow:'hidden'}}>
+          <div style={{height:'8px',background:'var(--bg3)',borderRadius:'8px',overflow:'hidden',position:'relative'}}>
             <div style={{height:'100%',background:'linear-gradient(90deg,var(--red),#ff6b6b)',borderRadius:'8px',width:`${pct}%`,transition:'width 0.8s cubic-bezier(.25,.46,.45,.94)'}}/>
           </div>
         </div>
       </div>
+
+      {/* Token Bar */}
+      <TokenBar profile={profile}/>
+
+      {/* Today CTA */}
       <div style={{padding:'0 1.25rem',marginBottom:'1rem'}}>
-        {done<30?(
-          <button onClick={()=>onOpenDay(cur)}
-            style={{width:'100%',background:completed.has(cur)?'linear-gradient(135deg,#0a1f0a,#0f2a0f)':'linear-gradient(135deg,var(--red),var(--red2))',border:`2px solid ${completed.has(cur)?'#2d5a2d':'transparent'}`,borderRadius:'20px',padding:'1.5rem',textAlign:'left',boxShadow:completed.has(cur)?'none':'0 8px 32px rgba(230,57,70,0.35)'}}>
-            <div style={{fontSize:'0.68rem',color:'rgba(255,255,255,0.6)',letterSpacing:'0.15em',marginBottom:'6px'}}>{completed.has(cur)?'✓ HEUTE ERLEDIGT':'HEUTE · TAG '+cur+' VON 30'}</div>
-            <div className="bc" style={{fontSize:'clamp(2rem,10vw,3rem)',fontWeight:900,color:'#fff',lineHeight:1,marginBottom:'4px'}}>{tot(curDay)} BURPEES</div>
-            {curDay.oneGo&&<span style={{display:'inline-block',background:'rgba(0,0,0,0.25)',color:'rgba(255,255,255,0.85)',fontSize:'0.65rem',padding:'3px 10px',borderRadius:'100px',letterSpacing:'0.12em',marginBottom:'6px'}}>IN ONE GO</span>}
-            <div style={{fontSize:'0.82rem',color:'rgba(255,255,255,0.65)',marginTop:'4px'}}>{completed.has(cur)?'Tap für Details':'Workout starten →'}</div>
-          </button>
-        ):(
+        {cur===0?(
+          <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'20px',padding:'1.5rem',textAlign:'center'}}>
+            <div style={{fontSize:'2.5rem',marginBottom:'0.75rem'}}>⏳</div>
+            <div className="bc" style={{fontSize:'1.4rem',fontWeight:800,letterSpacing:'0.05em',marginBottom:'6px'}}>STARTET SONNTAG</div>
+            <div style={{color:'var(--muted)',fontSize:'0.85rem'}}>22. März · Tag 1 wartet auf dich!</div>
+          </div>
+        ):done<30?(()=>{
+          const type=completionTypes[cur];
+          const isDone=completed.has(cur);
+          const bgStyle=isDone
+            ?type==='joker'?'linear-gradient(135deg,#1a1a1a,#222)':type==='half'?'linear-gradient(135deg,#0a1a2a,#0f2035)':'linear-gradient(135deg,#0a1f0a,#0f2a0f)'
+            :'linear-gradient(135deg,var(--red),var(--red2))';
+          const borderStyle=isDone
+            ?type==='joker'?'2px solid #444':type==='half'?'2px solid #1e3a5f':'2px solid #2d5a2d'
+            :'2px solid transparent';
+          return(
+            <button onClick={()=>onOpenDay(cur)}
+              style={{width:'100%',background:bgStyle,border:borderStyle,borderRadius:'20px',padding:'1.5rem',textAlign:'left',boxShadow:isDone?'none':'0 8px 32px rgba(230,57,70,0.35)'}}>
+              <div style={{fontSize:'0.68rem',color:'rgba(255,255,255,0.6)',letterSpacing:'0.15em',marginBottom:'6px'}}>
+                {isDone?(type==='joker'?'🃏 JOKER EINGESETZT':type==='half'?'🌙 HALBE PORTION':'✓ HEUTE ERLEDIGT'):'HEUTE · TAG '+cur+' VON 30'}
+              </div>
+              <div className="bc" style={{fontSize:'clamp(2rem,10vw,3rem)',fontWeight:900,color:'#fff',lineHeight:1,marginBottom:'4px'}}>
+                {type==='joker'?'SKIP':type==='half'?Math.ceil(tot(curDay)/2)+' BURPEES 🌙':tot(curDay)+' BURPEES'}
+              </div>
+              {curDay.oneGo&&type!=='joker'&&<span style={{display:'inline-block',background:'rgba(0,0,0,0.25)',color:'rgba(255,255,255,0.85)',fontSize:'0.65rem',padding:'3px 10px',borderRadius:'100px',letterSpacing:'0.12em',marginBottom:'6px'}}>IN ONE GO</span>}
+              <div style={{fontSize:'0.82rem',color:'rgba(255,255,255,0.65)',marginTop:'4px'}}>{isDone?'Tap für Details':'Workout starten →'}</div>
+            </button>
+          );
+        })():(
           <div className="bc" style={{background:'linear-gradient(135deg,#7c5c00,#b8860b)',borderRadius:'20px',padding:'1.5rem',textAlign:'center',fontSize:'1.8rem',fontWeight:900,letterSpacing:'0.03em'}}>🏆 CHALLENGE ABGESCHLOSSEN!</div>
         )}
       </div>
+
+      {/* Motivation */}
       <div style={{margin:'0 1.25rem 1.5rem',display:'flex',alignItems:'center',gap:'0.75rem',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'14px',padding:'0.9rem 1rem'}}>
         <p style={{flex:1,fontSize:'0.87rem',color:'#888',fontStyle:'italic',lineHeight:1.45}}>{motto}</p>
         <button onClick={()=>setMotto(rnd(MOTIVATIONS))} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:'8px',padding:'6px 8px',color:'var(--muted)',fontSize:'0.9rem',flexShrink:0}}>↻</button>
       </div>
+
+      {/* Leaderboard */}
       {leaders.length>1&&(
         <div style={{padding:'0 1.25rem'}}>
           <div className="bc" style={{fontSize:'0.68rem',color:'var(--muted)',letterSpacing:'0.15em',marginBottom:'0.65rem'}}>🏅 RANGLISTE</div>
           <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'16px',overflow:'hidden'}}>
             {leaders.slice(0,5).map((u,i)=>(
-              <div key={u.name} style={{display:'flex',alignItems:'center',padding:'0.85rem 1rem',borderBottom:i<Math.min(leaders.length,5)-1?'1px solid var(--border)':'none',background:u.name===user?'rgba(230,57,70,0.07)':'transparent'}}>
-                <span style={{width:'2rem',fontSize:'1rem',flexShrink:0}}>{i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`}</span>
+              <div key={u.name} style={{display:'flex',alignItems:'center',padding:'0.85rem 1rem',borderBottom:i<Math.min(leaders.length,5)-1?'1px solid var(--border)':'none',background:u.name===user?'rgba(230,57,70,0.07)':'transparent',gap:'10px'}}>
+                <span style={{width:'1.75rem',fontSize:'1rem',flexShrink:0}}>{i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`}</span>
+                <Avatar profile={u} size={32}/>
                 <span style={{flex:1,fontSize:'0.92rem',fontWeight:u.name===user?600:400}}>{u.name}{u.name===user&&<span style={{color:'var(--red)',fontSize:'0.72rem',marginLeft:'5px'}}> (du)</span>}</span>
                 <div style={{textAlign:'right'}}>
                   <span className="bc" style={{fontSize:'1.3rem',fontWeight:900,color:'var(--red)'}}>{u.completed_days}</span>
@@ -174,27 +394,41 @@ function HomeTab({user,completed,onOpenDay,leaders}){
   );
 }
 
-function CalendarTab({completed,onOpenDay}){
-  const cur=Math.min(completed.size+1,30);
+// ── Calendar Tab ──────────────────────────────────────────
+function CalendarTab({completed,completionTypes,onOpenDay}){
+  const cur=getChallengeDay();
   return(
     <div style={{flex:1,overflowY:'auto',padding:'1.25rem'}}>
       <div className="bc" style={{fontSize:'1.6rem',fontWeight:800,letterSpacing:'0.05em',marginBottom:'1rem'}}>30-TAGE PLAN</div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:'8px'}}>
         {DAYS.map(d=>{
-          const isDone=completed.has(d.day),isToday=d.day===cur&&!isDone,t=tot(d);
+          const isDone=completed.has(d.day);
+          const type=completionTypes[d.day];
+          const isToday=d.day===cur&&!isDone;
+          const t=tot(d);
+          let bg='var(--bg2)',border='1.5px solid var(--border)',color='var(--text)';
+          if(isDone){
+            if(type==='joker'){bg='rgba(100,100,100,0.1)';border='1.5px solid #333';color='#555';}
+            else if(type==='half'){bg='rgba(30,58,95,0.3)';border='1.5px solid #1e3a5f';color='#60a5fa';}
+            else{bg='rgba(74,222,128,0.1)';border='1.5px solid #2d5a2d';color='var(--green)';}
+          } else if(isToday){bg='rgba(230,57,70,0.12)';border='1.5px solid var(--red)';color='var(--red)';}
           return(
             <button key={d.day} onClick={()=>onOpenDay(d.day)}
-              style={{background:isDone?'rgba(74,222,128,0.1)':isToday?'rgba(230,57,70,0.12)':'var(--bg2)',border:`1.5px solid ${isDone?'#2d5a2d':isToday?'var(--red)':'var(--border)'}`,borderRadius:'12px',padding:'10px 6px',display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',minHeight:'64px'}}>
-              <span style={{fontSize:'0.58rem',color:isDone?'var(--green)':isToday?'var(--red)':'var(--muted)',fontWeight:600}}>{isDone?'✓':isToday?'●':d.day}</span>
-              <span className="bc" style={{fontSize:'1.15rem',fontWeight:800,color:isDone?'var(--green)':isToday?'var(--red)':'var(--text)',lineHeight:1}}>{t}</span>
-              {d.oneGo&&<span style={{fontSize:'0.48rem',color:isDone?'#2d8050':'#8b1a1a',fontWeight:700}}>1GO</span>}
+              style={{background:bg,border,borderRadius:'12px',padding:'10px 6px',display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',minHeight:'68px'}}>
+              <span style={{fontSize:'0.58rem',color:isDone?color:isToday?'var(--red)':'var(--muted)',fontWeight:600}}>
+                {isDone?(type==='joker'?'🃏':type==='half'?'🌙':'✓'):isToday?'●':d.day}
+              </span>
+              <span className="bc" style={{fontSize:'1.15rem',fontWeight:800,color,lineHeight:1}}>
+                {type==='joker'?'–':type==='half'?Math.ceil(t/2):t}
+              </span>
+              {d.oneGo&&type!=='joker'&&<span style={{fontSize:'0.45rem',color:isDone?color:'#8b1a1a',fontWeight:700}}>1GO</span>}
             </button>
           );
         })}
       </div>
-      <div style={{display:'flex',gap:'1rem',marginTop:'1.25rem',flexWrap:'wrap'}}>
-        {[['var(--green)','Erledigt'],['var(--red)','Heute'],['var(--muted)','Offen']].map(([c,l])=>(
-          <div key={l} style={{display:'flex',alignItems:'center',gap:'6px'}}>
+      <div style={{display:'flex',gap:'0.75rem',marginTop:'1.25rem',flexWrap:'wrap'}}>
+        {[['var(--green)','✓ Voll'],['#60a5fa','🌙 Halb'],['#555','🃏 Joker'],['var(--red)','Heute']].map(([c,l])=>(
+          <div key={l} style={{display:'flex',alignItems:'center',gap:'5px'}}>
             <div style={{width:'10px',height:'10px',borderRadius:'3px',background:c}}/>
             <span style={{fontSize:'0.75rem',color:'var(--muted)'}}>{l}</span>
           </div>
@@ -204,28 +438,32 @@ function CalendarTab({completed,onOpenDay}){
   );
 }
 
-function WallTab({user,completed,wall,onPost,onReact}){
+// ── Wall Tab ──────────────────────────────────────────────
+function WallTab({user,profile,completed,wall,onPost,onReact}){
   const [text,setText]=useState('');
   const [posting,setPosting]=useState(false);
   const submit=async()=>{if(!text.trim()||posting)return;setPosting(true);await onPost(text.trim());setText('');setPosting(false);};
+  const profileMap=Object.fromEntries(wall.map(p=>[p.name,p]));
+
   return(
     <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
       <div style={{padding:'1.25rem 1.25rem 0.75rem',borderBottom:'1px solid var(--border)',flexShrink:0}}>
         <div className="bc" style={{fontSize:'1.6rem',fontWeight:800,letterSpacing:'0.05em',marginBottom:'0.9rem'}}>🔥 MOTIVATION WALL</div>
-        <div style={{display:'flex',gap:'8px'}}>
+        <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
+          <Avatar profile={profile} size={36}/>
           <input value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()} placeholder="Motiviere dein Team..."
             style={{flex:1,padding:'0.8rem 1rem',background:'var(--bg3)',border:'2px solid var(--border)',borderRadius:'12px',color:'var(--text)',fontSize:'0.9rem',outline:'none'}}/>
           <button onClick={submit} disabled={!text.trim()||posting}
-            style={{background:'var(--red)',border:'none',borderRadius:'12px',padding:'0 1.1rem',color:'#fff',fontSize:'1.3rem',opacity:(!text.trim()||posting)?0.4:1,flexShrink:0}}>→</button>
+            style={{background:'var(--red)',border:'none',borderRadius:'12px',padding:'0 1.1rem',color:'#fff',fontSize:'1.3rem',height:'44px',opacity:(!text.trim()||posting)?0.4:1,flexShrink:0}}>→</button>
         </div>
       </div>
       <div style={{flex:1,overflowY:'auto',padding:'0.75rem 1.25rem'}}>
-        {wall.length===0&&<div style={{textAlign:'center',padding:'4rem 1rem'}}><div style={{fontSize:'3rem',marginBottom:'0.75rem'}}>💬</div><p style={{color:'var(--muted)',fontSize:'0.9rem'}}>Noch keine Posts – starte die Konversation!</p></div>}
+        {wall.length===0&&<div style={{textAlign:'center',padding:'4rem 1rem'}}><div style={{fontSize:'3rem',marginBottom:'0.75rem'}}>💬</div><p style={{color:'var(--muted)',fontSize:'0.9rem'}}>Noch keine Posts!</p></div>}
         {wall.map((p,i)=>(
           <div key={p.id} style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'16px',padding:'1rem',marginBottom:'10px',animation:`slideUp 0.3s ${i*0.04}s ease both`}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'6px'}}>
-              <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                <div style={{width:'32px',height:'32px',borderRadius:'50%',background:'var(--red)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'Barlow Condensed,sans-serif',fontWeight:800,fontSize:'0.9rem',flexShrink:0}}>{p.name[0].toUpperCase()}</div>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'8px'}}>
+              <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                <Avatar profile={p.profile||{avatar:p.avatar||'💪'}} size={34}/>
                 <div>
                   <div style={{fontSize:'0.85rem',fontWeight:600,color:p.name===user?'var(--red)':'var(--text)'}}>{p.name}</div>
                   <div style={{fontSize:'0.68rem',color:'var(--muted)'}}>Tag {p.day}</div>
@@ -233,7 +471,7 @@ function WallTab({user,completed,wall,onPost,onReact}){
               </div>
               <span style={{fontSize:'0.68rem',color:'var(--muted)',flexShrink:0}}>{new Date(p.created_at).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}</span>
             </div>
-            <p style={{fontSize:'0.92rem',lineHeight:1.5,margin:'0.5rem 0 0.75rem',color:'#ddd'}}>{p.message}</p>
+            <p style={{fontSize:'0.92rem',lineHeight:1.5,margin:'0 0 0.75rem',color:'#ddd'}}>{p.message}</p>
             <div style={{display:'flex',flexWrap:'wrap',gap:'5px'}}>
               {EMOJIS.map(e=>{
                 const count=p.reactions?.[e]||0;
@@ -252,58 +490,123 @@ function WallTab({user,completed,wall,onPost,onReact}){
   );
 }
 
-function WorkoutScreen({dayNum,completed,onComplete,onUndo,onBack}){
+// ── Workout Screen ────────────────────────────────────────
+function WorkoutScreen({dayNum,completed,completionTypes,profile,onComplete,onHalf,onJoker,onUndo,onBack}){
+  const [showJokerModal,setShowJokerModal]=useState(false);
   const d=DAYS[dayNum-1],t=tot(d),isDone=completed.has(dayNum);
+  const type=completionTypes[dayNum];
+  const halfT=Math.ceil(t/2);
+
+  const jokersLeft=1-(profile?.jokers_used||0)-(profile?.joker_swapped?1:0);
+  const halfLeft=2+(profile?.joker_swapped?1:0)-(profile?.half_used||0);
+
+  const handleJokerConfirm=async()=>{setShowJokerModal(false);await onJoker(dayNum);};
+  const handleSwap=async()=>{setShowJokerModal(false);await onJoker(dayNum,'swap');};
+
   return(
-    <div style={{position:'fixed',inset:0,background:'var(--bg)',zIndex:100,display:'flex',flexDirection:'column',animation:'slideUp 0.3s ease both'}}>
-      <div style={{padding:'calc(var(--safe-t) + 1rem) 1.25rem 0.75rem',display:'flex',alignItems:'center',gap:'1rem',borderBottom:'1px solid var(--border)',flexShrink:0}}>
-        <button onClick={onBack} style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'10px',padding:'8px 14px',color:'var(--text)',fontSize:'0.9rem'}}>←</button>
-        <div className="bc" style={{fontSize:'1rem',fontWeight:700,letterSpacing:'0.1em',color:'var(--muted)'}}>TAG {dayNum} VON 30</div>
-        {isDone&&<div style={{marginLeft:'auto',background:'rgba(74,222,128,0.15)',border:'1px solid #2d5a2d',borderRadius:'100px',padding:'4px 12px',fontSize:'0.72rem',color:'var(--green)',fontWeight:600}}>✓ ERLEDIGT</div>}
-      </div>
-      <div style={{textAlign:'center',padding:'2rem 1.25rem 1.5rem',flexShrink:0}}>
-        <div className="bc" style={{fontWeight:900,fontSize:'min(28vw,7rem)',color:'var(--red)',lineHeight:0.9}}>{t}</div>
-        <div className="bc" style={{fontWeight:700,fontSize:'1.4rem',letterSpacing:'0.2em',color:'var(--muted)',marginTop:'4px'}}>BURPEES</div>
-      </div>
-      <div style={{flex:1,overflowY:'auto',padding:'0 1.25rem'}}>
-        {d.oneGo?(
-          <div style={{background:'rgba(230,57,70,0.08)',border:'2px solid rgba(230,57,70,0.35)',borderRadius:'18px',padding:'1.75rem',textAlign:'center',marginBottom:'1rem'}}>
-            <div className="bc" style={{fontSize:'2rem',fontWeight:900,color:'var(--red)',letterSpacing:'0.05em'}}>IN ONE GO</div>
-            <div style={{color:'var(--muted)',fontSize:'0.8rem',marginTop:'0.5rem'}}>Alle {t} Burpees am Stück</div>
-            <div style={{display:'inline-block',background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:'8px',padding:'6px 14px',fontSize:'0.75rem',color:'var(--muted)',marginTop:'0.75rem'}}>20 Sek. Pause zwischen Sätzen</div>
-          </div>
-        ):(
-          <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'18px',padding:'1.25rem',marginBottom:'1rem'}}>
-            {d.sets.map((s,i)=>(
-              <div key={i}>
-                <div style={{display:'flex',alignItems:'center',padding:'0.6rem 0',gap:'1rem'}}>
-                  <div style={{width:'28px',height:'28px',borderRadius:'50%',background:'var(--bg3)',border:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.72rem',color:'var(--muted)',flexShrink:0}}>{i+1}</div>
-                  <span className="bc" style={{flex:1,fontSize:'1.3rem',fontWeight:700}}>{s} Burpees</span>
-                </div>
-                {i<d.sets.length-1&&<div style={{textAlign:'center',fontSize:'0.72rem',color:'var(--muted)',padding:'3px 0',borderTop:'1px dashed var(--border)',borderBottom:'1px dashed var(--border)',margin:'0 2rem'}}>↓ &nbsp;20 Sek. Pause</div>}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-      <div style={{padding:'1rem 1.25rem',paddingBottom:'calc(1rem + var(--safe-b))',flexShrink:0,borderTop:'1px solid var(--border)'}}>
-        {!isDone?(
-          <button onClick={()=>onComplete(dayNum)} style={{width:'100%',padding:'1.1rem',background:'var(--red)',border:'none',borderRadius:'16px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.4rem',fontWeight:800,letterSpacing:'0.08em',boxShadow:'0 6px 28px rgba(230,57,70,0.4)'}}>
-            ✓ GESCHAFFT!
-          </button>
-        ):(
-          <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
-            <div className="bc" style={{background:'rgba(74,222,128,0.1)',border:'2px solid #2d5a2d',borderRadius:'16px',padding:'1.1rem',textAlign:'center',fontSize:'1.3rem',fontWeight:800,color:'var(--green)',letterSpacing:'0.05em'}}>
-              ✓ TAG {dayNum} ABGESCHLOSSEN!
+    <>
+      <div style={{position:'fixed',inset:0,background:'var(--bg)',zIndex:100,display:'flex',flexDirection:'column',animation:'slideUp 0.3s ease both'}}>
+        <div style={{padding:'calc(var(--safe-t) + 1rem) 1.25rem 0.75rem',display:'flex',alignItems:'center',gap:'1rem',borderBottom:'1px solid var(--border)',flexShrink:0}}>
+          <button onClick={onBack} style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'10px',padding:'8px 14px',color:'var(--text)',fontSize:'0.9rem'}}>←</button>
+          <div className="bc" style={{fontSize:'1rem',fontWeight:700,letterSpacing:'0.1em',color:'var(--muted)'}}>TAG {dayNum} VON 30</div>
+          {isDone&&(
+            <div style={{marginLeft:'auto',borderRadius:'100px',padding:'4px 12px',fontSize:'0.72rem',fontWeight:600,
+              background:type==='joker'?'rgba(80,80,80,0.2)':type==='half'?'rgba(30,58,95,0.3)':'rgba(74,222,128,0.15)',
+              border:type==='joker'?'1px solid #444':type==='half'?'1px solid #1e3a5f':'1px solid #2d5a2d',
+              color:type==='joker'?'#888':type==='half'?'#60a5fa':'var(--green)'}}>
+              {type==='joker'?'🃏 Joker':type==='half'?'🌙 Halbe':'✓ Erledigt'}
             </div>
-            <button onClick={()=>onUndo(dayNum)} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.8rem',padding:'0.5rem'}}>Als unerledigt markieren</button>
+          )}
+        </div>
+
+        <div style={{textAlign:'center',padding:'1.75rem 1.25rem 1.25rem',flexShrink:0}}>
+          <div className="bc" style={{fontWeight:900,fontSize:'min(28vw,7rem)',color:'var(--red)',lineHeight:0.9}}>{type==='joker'?'🃏':type==='half'?halfT:t}</div>
+          <div className="bc" style={{fontWeight:700,fontSize:'1.4rem',letterSpacing:'0.2em',color:'var(--muted)',marginTop:'4px'}}>
+            {type==='joker'?'SKIP TAG':'BURPEES'}{type==='half'&&<span style={{color:'#60a5fa'}}> (HALBE)</span>}
           </div>
-        )}
+        </div>
+
+        <div style={{flex:1,overflowY:'auto',padding:'0 1.25rem'}}>
+          {type!=='joker'&&(d.oneGo?(
+            <div style={{background:'rgba(230,57,70,0.08)',border:'2px solid rgba(230,57,70,0.35)',borderRadius:'18px',padding:'1.75rem',textAlign:'center',marginBottom:'1rem'}}>
+              <div className="bc" style={{fontSize:'2rem',fontWeight:900,color:'var(--red)',letterSpacing:'0.05em'}}>IN ONE GO</div>
+              <div style={{color:'var(--muted)',fontSize:'0.8rem',marginTop:'0.5rem'}}>Alle {type==='half'?halfT:t} Burpees am Stück</div>
+              <div style={{display:'inline-block',background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:'8px',padding:'6px 14px',fontSize:'0.75rem',color:'var(--muted)',marginTop:'0.75rem'}}>20 Sek. Pause zwischen Sätzen</div>
+            </div>
+          ):(
+            <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'18px',padding:'1.25rem',marginBottom:'1rem'}}>
+              {d.sets.map((s,i)=>{
+                const hs=Math.ceil(s/2);
+                return(
+                  <div key={i}>
+                    <div style={{display:'flex',alignItems:'center',padding:'0.6rem 0',gap:'1rem'}}>
+                      <div style={{width:'28px',height:'28px',borderRadius:'50%',background:'var(--bg3)',border:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.72rem',color:'var(--muted)',flexShrink:0}}>{i+1}</div>
+                      <span className="bc" style={{flex:1,fontSize:'1.3rem',fontWeight:700}}>{type==='half'?hs:s} Burpees</span>
+                      {type==='half'&&<span style={{fontSize:'0.7rem',color:'#60a5fa'}}>🌙 ½</span>}
+                    </div>
+                    {i<d.sets.length-1&&<div style={{textAlign:'center',fontSize:'0.72rem',color:'var(--muted)',padding:'3px 0',borderTop:'1px dashed var(--border)',borderBottom:'1px dashed var(--border)',margin:'0 2rem'}}>↓ &nbsp;20 Sek. Pause</div>}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+          {type==='joker'&&(
+            <div style={{background:'#111',border:'2px solid #333',borderRadius:'18px',padding:'1.75rem',textAlign:'center',marginBottom:'1rem'}}>
+              <div style={{fontSize:'3rem',marginBottom:'0.5rem'}}>🃏</div>
+              <div className="bc" style={{fontSize:'1.2rem',fontWeight:800,color:'#888'}}>JOKER EINGESETZT</div>
+              <div style={{color:'var(--muted)',fontSize:'0.8rem',marginTop:'0.5rem'}}>Dieser Tag ist übersprungen</div>
+            </div>
+          )}
+        </div>
+
+        <div style={{padding:'1rem 1.25rem',paddingBottom:'calc(1rem + var(--safe-b))',flexShrink:0,borderTop:'1px solid var(--border)'}}>
+          {!isDone?(
+            <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+              <button onClick={()=>onComplete(dayNum)}
+                style={{width:'100%',padding:'1.1rem',background:'var(--red)',border:'none',borderRadius:'16px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.4rem',fontWeight:800,letterSpacing:'0.08em',boxShadow:'0 6px 28px rgba(230,57,70,0.4)'}}>
+                ✓ GESCHAFFT!
+              </button>
+              <div style={{display:'flex',gap:'8px'}}>
+                {halfLeft>0&&(
+                  <button onClick={()=>onHalf(dayNum)}
+                    style={{flex:1,padding:'0.85rem',background:'rgba(30,58,95,0.3)',border:'2px solid #1e3a5f',borderRadius:'14px',color:'#60a5fa',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.95rem',fontWeight:700,letterSpacing:'0.05em'}}>
+                    🌙 Halbe ({halfLeft}×)
+                  </button>
+                )}
+                <button onClick={()=>setShowJokerModal(true)}
+                  style={{flex:1,padding:'0.85rem',background:'rgba(100,100,100,0.1)',border:'2px solid #2a2a2a',borderRadius:'14px',color:'var(--muted)',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.95rem',fontWeight:700,letterSpacing:'0.05em'}}>
+                  🃏 Joker {jokersLeft>0?'(1×)':'(0×)'}
+                </button>
+              </div>
+            </div>
+          ):(
+            <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+              <div className="bc" style={{
+                background:type==='joker'?'rgba(60,60,60,0.2)':type==='half'?'rgba(30,58,95,0.2)':'rgba(74,222,128,0.1)',
+                border:type==='joker'?'2px solid #333':type==='half'?'2px solid #1e3a5f':'2px solid #2d5a2d',
+                borderRadius:'16px',padding:'1.1rem',textAlign:'center',fontSize:'1.3rem',fontWeight:800,letterSpacing:'0.05em',
+                color:type==='joker'?'#666':type==='half'?'#60a5fa':'var(--green)'}}>
+                {type==='joker'?'🃏 JOKER EINGESETZT':type==='half'?'🌙 HALBE PORTION DONE':'✓ TAG '+dayNum+' ABGESCHLOSSEN!'}
+              </div>
+              <button onClick={()=>onUndo(dayNum)} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.8rem',padding:'0.5rem'}}>Als unerledigt markieren</button>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+
+      {showJokerModal&&(
+        <JokerModal
+          profile={profile}
+          onCancel={()=>setShowJokerModal(false)}
+          onConfirm={handleJokerConfirm}
+          onSwap={handleSwap}
+        />
+      )}
+    </>
   );
 }
 
+// ── Bottom Nav ────────────────────────────────────────────
 function BottomNav({tab,setTab}){
   return(
     <div style={{flexShrink:0,background:'var(--bg)',borderTop:'1px solid var(--border)',paddingBottom:'var(--safe-b)',display:'flex'}}>
@@ -322,38 +625,39 @@ function BottomNav({tab,setTab}){
   );
 }
 
+// ── Main App ──────────────────────────────────────────────
 function App(){
-  if(SUPABASE_URL==='DEINE_SUPABASE_URL') return(
-    <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'2rem'}}>
-      <div style={{background:'var(--bg2)',border:'2px solid var(--red)',borderRadius:'20px',padding:'2rem',textAlign:'center',maxWidth:'340px'}}>
-        <div style={{fontSize:'3rem',marginBottom:'1rem'}}>⚙️</div>
-        <div className="bc" style={{fontSize:'1.6rem',fontWeight:800,color:'var(--red)',marginBottom:'0.75rem',letterSpacing:'0.05em'}}>SETUP FEHLT</div>
-        <p style={{color:'var(--muted)',fontSize:'0.88rem',lineHeight:1.6}}>Trage <b style={{color:'var(--text)'}}>SUPABASE_URL</b> und <b style={{color:'var(--text)'}}>SUPABASE_ANON</b> in die <code style={{color:'var(--red)'}}>index.html</code> ein.<br/><br/>Lies die <b style={{color:'var(--text)'}}>ANLEITUNG.md</b> für alle Schritte.</p>
-      </div>
-    </div>
-  );
-
-  const [screen,setScreen]=useState('loading');
-  const [tab,setTab]=useState('home');
-  const [userName,setUserName]=useState('');
-  const [completed,setCompleted]=useState(new Set());
-  const [leaders,setLeaders]=useState([]);
-  const [wall,setWall]=useState([]);
+  const [screen,setScreen]       =useState('loading');
+  const [tab,setTab]             =useState('home');
+  const [userName,setUserName]   =useState('');
+  const [completed,setCompleted] =useState(new Set());
+  const [compTypes,setCompTypes] =useState({});  // {dayNum: 'full'|'half'|'joker'}
+  const [profile,setProfile]     =useState(null);
+  const [leaders,setLeaders]     =useState([]);
+  const [wall,setWall]           =useState([]);
   const [workoutDay,setWorkoutDay]=useState(null);
-  const [toast,setToast]=useState('');
+  const [toast,setToast]         =useState('');
   const timer=useRef(null);
 
-  const showToast=msg=>{setToast(msg);clearTimeout(timer.current);timer.current=setTimeout(()=>setToast(''),3000);};
+  const showToast=msg=>{setToast(msg);clearTimeout(timer.current);timer.current=setTimeout(()=>setToast(''),3200);};
 
   const loadUser=useCallback(async name=>{
-    const{data}=await db.from('day_completions').select('day').eq('name',name);
-    if(data)setCompleted(new Set(data.map(d=>d.day)));
+    const{data:comp}=await db.from('day_completions').select('day,type').eq('name',name);
+    if(comp){
+      setCompleted(new Set(comp.map(d=>d.day)));
+      const types={};comp.forEach(d=>{types[d.day]=d.type||'full';});
+      setCompTypes(types);
+    }
+    const{data:prof}=await db.from('profiles').select('*').eq('name',name).single();
+    if(prof)setProfile(prof);
     setScreen('main');
   },[]);
+
   const loadLeaders=useCallback(async()=>{
-    const{data}=await db.from('profiles').select('name,completed_days').order('completed_days',{ascending:false}).limit(15);
+    const{data}=await db.from('profiles').select('*').order('completed_days',{ascending:false}).limit(15);
     if(data)setLeaders(data);
   },[]);
+
   const loadWall=useCallback(async()=>{
     const{data}=await db.from('wall_posts').select('*').order('created_at',{ascending:false}).limit(60);
     if(data)setWall(data);
@@ -370,27 +674,81 @@ function App(){
     return()=>ch.unsubscribe();
   },[loadUser,loadLeaders,loadWall]);
 
-  const handleJoin=async name=>{
-    await db.from('profiles').upsert({name,completed_days:0},{onConflict:'name',ignoreDuplicates:true});
+  const refreshProfile=async(name)=>{
+    const{data}=await db.from('profiles').select('*').eq('name',name).single();
+    if(data){setProfile(data);return data;}
+    return null;
+  };
+
+  const handleJoin=async(name,avatar)=>{
+    await db.from('profiles').upsert({name,avatar,completed_days:0,jokers_used:0,half_used:0,joker_swapped:false},{onConflict:'name',ignoreDuplicates:true});
     localStorage.setItem('burpee_name',name);
-    setUserName(name);await loadUser(name);showToast(`🎉 Willkommen, ${name}!`);
+    setUserName(name);await loadUser(name);
+    showToast(`🎉 Willkommen, ${name}!`);
   };
+
   const handleComplete=async dayNum=>{
-    const next=new Set(completed);next.add(dayNum);setCompleted(next);
-    await db.from('day_completions').insert({name:userName,day:dayNum});
+    const next=new Set(completed);next.add(dayNum);
+    const nextTypes={...compTypes,[dayNum]:'full'};
+    setCompleted(next);setCompTypes(nextTypes);
+    await db.from('day_completions').upsert({name:userName,day:dayNum,type:'full'},{onConflict:'name,day'});
     await db.from('profiles').update({completed_days:next.size,updated_at:new Date().toISOString()}).eq('name',userName);
-    loadLeaders();showToast(rnd(MOTIVATIONS));
+    await refreshProfile(userName);loadLeaders();showToast(rnd(MOTIVATIONS));
   };
+
+  const handleHalf=async dayNum=>{
+    const next=new Set(completed);next.add(dayNum);
+    const nextTypes={...compTypes,[dayNum]:'half'};
+    setCompleted(next);setCompTypes(nextTypes);
+    const newHalfUsed=(profile?.half_used||0)+1;
+    await db.from('day_completions').upsert({name:userName,day:dayNum,type:'half'},{onConflict:'name,day'});
+    await db.from('profiles').update({completed_days:next.size,half_used:newHalfUsed,updated_at:new Date().toISOString()}).eq('name',userName);
+    const p=await refreshProfile(userName);loadLeaders();
+    showToast(`🌙 Halbe Portion – macht man! (${2+(p?.joker_swapped?1:0)-newHalfUsed} übrig)`);
+  };
+
+  const handleJoker=async(dayNum,action)=>{
+    if(action==='swap'){
+      // Swap: joker_swapped=true, gain +1 halbe, use it immediately as halbe
+      const next=new Set(completed);next.add(dayNum);
+      const nextTypes={...compTypes,[dayNum]:'half'};
+      setCompleted(next);setCompTypes(nextTypes);
+      const newHalfUsed=(profile?.half_used||0)+1;
+      await db.from('day_completions').upsert({name:userName,day:dayNum,type:'half'},{onConflict:'name,day'});
+      await db.from('profiles').update({completed_days:next.size,joker_swapped:true,half_used:newHalfUsed,updated_at:new Date().toISOString()}).eq('name',userName);
+      await refreshProfile(userName);loadLeaders();
+      showToast('⚡ Joker getauscht! Avatar upgraded + halbe Portion done!');
+    } else {
+      const next=new Set(completed);next.add(dayNum);
+      const nextTypes={...compTypes,[dayNum]:'joker'};
+      setCompleted(next);setCompTypes(nextTypes);
+      const newJokersUsed=(profile?.jokers_used||0)+1;
+      await db.from('day_completions').upsert({name:userName,day:dayNum,type:'joker'},{onConflict:'name,day'});
+      await db.from('profiles').update({completed_days:next.size,jokers_used:newJokersUsed,updated_at:new Date().toISOString()}).eq('name',userName);
+      await refreshProfile(userName);loadLeaders();
+      showToast('🃏 Joker eingesetzt – morgen wieder voll dabei!');
+    }
+  };
+
   const handleUndo=async dayNum=>{
-    const next=new Set(completed);next.delete(dayNum);setCompleted(next);
+    const type=compTypes[dayNum];
+    const next=new Set(completed);next.delete(dayNum);
+    const nextTypes={...compTypes};delete nextTypes[dayNum];
+    setCompleted(next);setCompTypes(nextTypes);
     await db.from('day_completions').delete().eq('name',userName).eq('day',dayNum);
-    await db.from('profiles').update({completed_days:next.size}).eq('name',userName);
-    loadLeaders();
+    // Restore token if applicable
+    let updates={completed_days:next.size};
+    if(type==='half') updates.half_used=Math.max((profile?.half_used||0)-1,0);
+    if(type==='joker') updates.jokers_used=Math.max((profile?.jokers_used||0)-1,0);
+    await db.from('profiles').update(updates).eq('name',userName);
+    await refreshProfile(userName);loadLeaders();
   };
+
   const handlePost=async text=>{
-    const cur=Math.min(completed.size+1,30);
-    await db.from('wall_posts').insert({name:userName,message:text,day:cur,reactions:{}});
+    const cur=getChallengeDay();
+    await db.from('wall_posts').insert({name:userName,avatar:profile?.avatar||'💪',message:text,day:cur,reactions:{}});
   };
+
   const handleReact=async(postId,emoji)=>{
     const post=wall.find(p=>p.id===postId);if(!post)return;
     const reactions={...(post.reactions||{}),[emoji]:((post.reactions||{})[emoji]||0)+1};
@@ -398,7 +756,7 @@ function App(){
     await db.from('wall_posts').update({reactions}).eq('id',postId);
   };
 
-  if(screen==='loading') return(
+  if(screen==='loading')return(
     <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center'}}>
       <div style={{textAlign:'center'}}>
         <div style={{fontSize:'2.5rem',marginBottom:'0.75rem',animation:'shimmer 1.2s infinite'}}>💥</div>
@@ -407,18 +765,18 @@ function App(){
     </div>
   );
 
-  if(screen==='onboarding') return <><Toast msg={toast}/><Onboarding onJoin={handleJoin}/></>;
+  if(screen==='onboarding')return<><Toast msg={toast}/><Onboarding onJoin={handleJoin}/></>;
 
   return(
     <>
       <Toast msg={toast}/>
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',paddingTop:'var(--safe-t)'}}>
-        {tab==='home'    &&<HomeTab user={userName} completed={completed} onOpenDay={setWorkoutDay} leaders={leaders}/>}
-        {tab==='calendar'&&<CalendarTab completed={completed} onOpenDay={setWorkoutDay}/>}
-        {tab==='wall'    &&<WallTab user={userName} completed={completed} wall={wall} onPost={handlePost} onReact={handleReact}/>}
+        {tab==='home'    &&<HomeTab user={userName} completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay} leaders={leaders} profile={profile}/>}
+        {tab==='calendar'&&<CalendarTab completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay}/>}
+        {tab==='wall'    &&<WallTab user={userName} profile={profile} completed={completed} wall={wall} onPost={handlePost} onReact={handleReact}/>}
         <BottomNav tab={tab} setTab={setTab}/>
       </div>
-      {workoutDay&&<WorkoutScreen dayNum={workoutDay} completed={completed} onComplete={handleComplete} onUndo={handleUndo} onBack={()=>setWorkoutDay(null)}/>}
+      {workoutDay&&<WorkoutScreen dayNum={workoutDay} completed={completed} completionTypes={compTypes} profile={profile} onComplete={handleComplete} onHalf={handleHalf} onJoker={handleJoker} onUndo={handleUndo} onBack={()=>setWorkoutDay(null)}/>}
     </>
   );
 }
