@@ -473,11 +473,6 @@ function Onboarding({onJoin, legends}){
 }
 
 
-// ── Toast ─────────────────────────────────────────────────
-function Toast({msg}){
-  if(!msg)return null;
-  return <div style={{position:'fixed',top:'calc(var(--safe-t) + 12px)',left:'50%',transform:'translateX(-50%)',background:'var(--red)',color:'#fff',padding:'10px 20px',borderRadius:'100px',fontSize:'0.85rem',fontWeight:600,zIndex:9999,whiteSpace:'nowrap',boxShadow:'0 4px 24px rgba(230,57,70,0.5)',animation:'slideDown 0.3s ease both',maxWidth:'90vw',textAlign:'center'}}>{msg}</div>;
-}
 
 // ── Onboarding ────────────────────────────────────────────
 // ── Home Tab ──────────────────────────────────────────────
@@ -1149,5 +1144,31 @@ ${legend.emoji} ${legend.char.toUpperCase()} sagt:
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+class ErrorBoundary extends React.Component {
+  constructor(props){super(props);this.state={error:null};}
+  static getDerivedStateFromError(e){return{error:e};}
+  componentDidCatch(e,info){console.error('CRASH:',e,info);}
+  render(){
+    if(this.state.error){
+      return(
+        <div style={{padding:'2rem',background:'#1a0000',color:'#ff6b6b',fontFamily:'monospace',fontSize:'0.85rem',minHeight:'100vh',overflowY:'auto'}}>
+          <div style={{fontSize:'1.5rem',marginBottom:'1rem'}}>💥 JavaScript Fehler</div>
+          <div style={{background:'#2a0000',padding:'1rem',borderRadius:'8px',marginBottom:'1rem',wordBreak:'break-all'}}>
+            <b>{this.state.error.toString()}</b>
+          </div>
+          <pre style={{whiteSpace:'pre-wrap',opacity:0.7,fontSize:'0.75rem'}}>{this.state.error.stack}</pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+try {
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    <ErrorBoundary><App/></ErrorBoundary>
+  );
+} catch(e) {
+  document.getElementById('root').innerHTML = '<div style="padding:2rem;color:#ff6b6b;background:#1a0000;font-family:monospace;min-height:100vh"><div style="font-size:1.5rem;margin-bottom:1rem">💥 Mount Fehler</div><pre style="white-space:pre-wrap">'+e.toString()+'\n\n'+e.stack+'</pre></div>';
+}
 </script></body></html>
