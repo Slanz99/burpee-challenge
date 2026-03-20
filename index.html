@@ -66,8 +66,34 @@ const EMOJIS=["🔥","💪","⚡","🎉","👊","🏆","😤","🚀"];
 // ══ LEGENDEN DATENBANK ══════════════════════════════════
 // ── Legenden werden aus Supabase geladen ─────────────────
 const LEGENDS_FALLBACK=[
-  {id:'chuck',char:'Chuck Norris',emoji:'🤠',abteilung:'Chuck Norris Abteilung',begriff:'Die Erdrotations-Eichung',color:'#d35400',quotes:[{anheizer:'Schwerkraft führt 1:0!',quote:'Die Schwerkraft hat heute 1:0 Führung. Geh runter und mach den Ausgleich, du weiche Nudel!'}]},
-  {id:'goggins',char:'David Goggins',emoji:'⚓',abteilung:'David Goggins Abteilung',begriff:'Die Seelen-Ernte',color:'#2c3e50',quotes:[{anheizer:'Stay Hard!',quote:'Stay Hard! Deine Couch ist eine Lüge. Der Schmerz ist die einzige Wahrheit. Beweg dich!'}]},
+  // Männer
+  {id:'rocky',      char:'Rocky Balboa',   emoji:'🥊',color:'#c0392b',gender:'male',  quotes:[{anheizer:'Boden ist dein Gegner!',       quote:'Der Boden ist dein Gegner, Adrian! Schlag ihn mit deiner Brust!'}]},
+  {id:'chuck',      char:'Chuck Norris',   emoji:'🤠',color:'#d35400',gender:'male',  quotes:[{anheizer:'Drück die Erde weg!',           quote:'Chuck Norris macht keine Burpees. Er drückt die Erde von der Sonne weg. Und jetzt du.'}]},
+  {id:'gandalf',    char:'Gandalf',        emoji:'🧙',color:'#7f8c8d',gender:'male',  quotes:[{anheizer:'Krieger landet perfekt!',        quote:'Ein Burpee-Krieger kommt nie zu spät. Er landet genau dann, wenn er es beabsichtigt!'}]},
+  {id:'vader',      char:'Darth Vader',    emoji:'🎭',color:'#8e44ad',gender:'male',  quotes:[{anheizer:'Ergib dich der Schwerkraft!',   quote:'Ich finde deinen Mangel an Burpees beklagenswert. Ergib dich der Schwerkraft!'}]},
+  {id:'leonidas',   char:'König Leonidas', emoji:'🛡️',color:'#c0390b',gender:'male',  quotes:[{anheizer:'Liegestütz-Position, runter!', quote:'Dies ist nicht Sparta, dies ist die Liegestütz-Position! Runter mit dir!'}]},
+  {id:'indy',       char:'Indiana Jones',  emoji:'🎩',color:'#8B6914',gender:'male',  quotes:[{anheizer:'Jahre zählen nicht, Reps schon!',quote:'Es sind nicht die Jahre, Schätzchen, es sind die Wiederholungen!'}]},
+  {id:'thor',       char:'Thor',           emoji:'⚡',color:'#1a5e9a',gender:'male',  quotes:[{anheizer:'Arsch ist zu schwer!',          quote:'Mein Hammer ist schwer, aber dein Arsch ist heute schwerer! Beweg ihn!'}]},
+  {id:'rambo',      char:'John Rambo',     emoji:'💪',color:'#2d5a27',gender:'male',  quotes:[{anheizer:'Werde ein Burpee!',             quote:'Um die Burpees zu überleben, musst du zu einem Burpee werden!'}]},
+  {id:'yoda',       char:'Yoda',           emoji:'🟢',color:'#27ae60',gender:'male',  quotes:[{anheizer:'Flach wie Flunder springen!',  quote:'Flach wie eine Flunder du sein musst, um hoch wie ein X-Wing zu fliegen!'}]},
+  {id:'bond',       char:'James Bond',     emoji:'🍸',color:'#1a1a2e',gender:'male',  quotes:[{anheizer:'Quantum Liegestütz reicht nicht!',quote:'Ein Quantum Liegestütz reicht nicht. Ich erwarte, dass Sie springen, Goldfinger!'}]},
+  {id:'terminator', char:'Terminator',     emoji:'🤖',color:'#333333',gender:'male',  quotes:[{anheizer:'Muskeln aus Metall!',           quote:'Sprung mit mir, wenn du leben willst. Deine Muskeln sind aus Metall, also bieg sie!'}]},
+  {id:'madmax',     char:'Mad Max',        emoji:'🚙',color:'#5a3e00',gender:'male',  quotes:[{anheizer:'Glänzend und verschwitzt!',    quote:'Wir reiten in die Fitness-Walhalla! Glänzend und verschwitzt!'}]},
+  {id:'goggins',    char:'David Goggins',  emoji:'⚓', color:'#2c3e50',gender:'male',  quotes:[{anheizer:'Erstick sie mit Schweiß!',     quote:'Ich höre da eine kleine Bitch-Voice in deinem Kopf. Erstick sie mit Schweiß!'}]},
+  // Frauen
+  {id:'wonder',     char:'Wonder Woman',       emoji:'🦅',color:'#1a5e9a',gender:'female',quotes:[{anheizer:'Lasso der Wahrheit spricht!',  quote:'Mein Lasso der Wahrheit sagt: Du bist eine faule Socke! Runter jetzt!'}]},
+  {id:'furiosa',    char:'Imperator Furiosa',  emoji:'🚗',color:'#c0680a',gender:'female',quotes:[{anheizer:'Witness me!',                  quote:'WITNESS ME! Furiosa hat mit einem Arm die Citadel zurückerobert. Du hast zwei. Keine Ausreden.'}]},
+  {id:'xena',       char:'Xena',               emoji:'⚔️', color:'#9b2335',gender:'female',quotes:[{anheizer:'Krieger weinen erst danach!',  quote:'Ein echter Krieger weint erst, wenn der 50. Burpee vorbei ist! AYALALALALA!'}]},
+  {id:'lara',       char:'Lara Croft',         emoji:'🏹',color:'#8B6914',gender:'female',quotes:[{anheizer:'Gräber waren lebendiger!',     quote:'Ich habe Gräber gefunden, die lebendiger waren als dein Workout heute!'}]},
+  {id:'ripley',     char:'Ellen Ripley',       emoji:'🚀',color:'#2d5a27',gender:'female',quotes:[{anheizer:'Weltraum hört dich nicht!',    quote:'Im Weltraum hört dich niemand fluchen, wenn die Oberschenkel brennen!'}]},
+  {id:'katniss',    char:'Katniss Everdeen',   emoji:'🏹',color:'#2d6e2d',gender:'female',quotes:[{anheizer:'Nächste Runde geht los!',      quote:'Ich melde mich freiwillig als Tribut für... die nächste Runde Burpees!'}]},
+  {id:'galadriel',  char:'Galadriel',          emoji:'✨',color:'#8B7536',gender:'female',quotes:[{anheizer:'Schrecklich und muskulös!',    quote:'Anstelle eines dunklen Lords hättest du eine Trainerin! Schrecklich und muskulös!'}]},
+  {id:'beatrix',    char:'Beatrix Kiddo',      emoji:'🗡️',color:'#c0a000',gender:'female',quotes:[{anheizer:'10 Burpees? Peinlich.',        quote:'Ich habe 88 Verrückte besiegt. Du schaffst nicht mal 10 Burpees? Peinlich.'}]},
+  {id:'widow',      char:'Black Widow',        emoji:'🕷️',color:'#1a1a2e',gender:'female',quotes:[{anheizer:'Tilge mit Schweiß!',           quote:'Dein Register ist voll mit Chips-Tüten. Zeit, das mit Schweiß zu tilgen!'}]},
+  {id:'daenerys',   char:'Daenerys',           emoji:'🐉',color:'#8B0000',gender:'female',quotes:[{anheizer:'Brenne, Fettgewebe, brenne!',  quote:'Ich bin die Mutter der Burpees und ich befehle dir: Brenne, Fettgewebe, brenne!'}]},
+  {id:'leia',       char:'Prinzessin Leia',    emoji:'👑',color:'#4a0080',gender:'female',quotes:[{anheizer:'Hör auf zu jammern!',          quote:'Hör auf zu jammern, du wandelnder Teppich! Runter auf den Boden!'}]},
+  {id:'trinity',    char:'Trinity',            emoji:'💊',color:'#1a1a1a',gender:'female',quotes:[{anheizer:'Matte existiert nicht!',       quote:'Was ist, wenn ich dir sage, dass die Matte gar nicht existiert? Also leg dich flach!'}]},
+  {id:'boudica',    char:'Boudica',            emoji:'🛡️',color:'#8B2500',gender:'female',quotes:[{anheizer:'Lieber springend sterben!',   quote:'Lieber sterbe ich beim Springen, als kniend vor meiner Couch zu versauern!'}]},
 ];
 const rndItem=a=>a[Math.floor(Math.random()*a.length)];
 const rnd=a=>a[Math.floor(Math.random()*a.length)];
@@ -140,7 +166,7 @@ function PoseAvatar({legendId, pose=1, size=40, legends}){
 // ── Avatar with Gimmick Badge ─────────────────────────────
 function Avatar({profile, size=40, showGimmick=true, legends}){
   const legendId = profile?.avatar_legend || profile?.avatar || 'chuck';
-  const pose = profile?.avatar_pose || 1;
+  const pose = profile?.avatar_pose || (Math.floor(Math.random()*3)+1);
   const leg = legends ? legends.find(l=>l.id===legendId) : null;
   const color = leg?.color || '#e63946';
 
@@ -267,6 +293,144 @@ function FeuermachenModal({from,to,onSend,onCancel,legends}){
     </div>
   );
 }
+
+// ── Countdown ─────────────────────────────────────────────
+function Countdown(){
+  const [time,setTime]=useState(null);
+  useEffect(()=>{
+    const calc=()=>{
+      const now=new Date();
+      const start=new Date(START_DATE);
+      start.setHours(0,0,0,0);
+      const diff=start-now;
+      if(diff<=0){setTime(null);return;}
+      const d=Math.floor(diff/86400000);
+      const h=Math.floor((diff%86400000)/3600000);
+      const m=Math.floor((diff%3600000)/60000);
+      const s=Math.floor((diff%60000)/1000);
+      setTime({d,h,m,s});
+    };
+    calc();
+    const iv=setInterval(calc,1000);
+    return()=>clearInterval(iv);
+  },[]);
+  if(!time)return null;
+  return(
+    <div style={{margin:'0 1.25rem 1rem',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'16px',padding:'1rem',textAlign:'center'}}>
+      <div className="bc" style={{fontSize:'0.65rem',color:'var(--muted)',letterSpacing:'0.15em',marginBottom:'8px'}}>⏳ CHALLENGE STARTET IN</div>
+      <div style={{display:'flex',justifyContent:'center',gap:'8px'}}>
+        {[[time.d,'TAGE'],[time.h,'STD'],[time.m,'MIN'],[time.s,'SEK']].map(([v,l])=>(
+          <div key={l} style={{background:'var(--bg3)',borderRadius:'10px',padding:'8px 10px',minWidth:'48px'}}>
+            <div className="bc" style={{fontSize:'1.6rem',fontWeight:900,color:'var(--red)',lineHeight:1}}>{String(v).padStart(2,'0')}</div>
+            <div style={{fontSize:'0.55rem',color:'var(--muted)',marginTop:'2px',letterSpacing:'0.1em'}}>{l}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{fontSize:'0.75rem',color:'var(--muted)',marginTop:'8px'}}>22. März 2026 · Tag 1</div>
+    </div>
+  );
+}
+
+// ── Invite Card ───────────────────────────────────────────
+function InviteCard({groupSize, maxSize=12, leaders, user}){
+  const [copied, setCopied] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const spotsLeft = maxSize - groupSize;
+  const isFull = spotsLeft <= 0;
+
+  const share = async () => {
+    const url = window.location.href;
+    const text = `💥 Burpee Challenge – 30 Tage, 50 Burpees, gemeinsam stark!\n${groupSize} Leute sind schon dabei${spotsLeft>0?`, noch ${spotsLeft} Plätze frei`:' – Gruppe voll'}.\n👉 ${url}`;
+    if(navigator.share){
+      try{ await navigator.share({title:'Burpee Challenge 🔥', text, url}); return; }catch(e){}
+    }
+    try{ await navigator.clipboard.writeText(url); setCopied(true); setTimeout(()=>setCopied(false),2500); }catch(e){}
+  };
+
+  return(
+    <div style={{margin:'0 1.25rem 1rem'}}>
+      {/* Collapsed state — tap to expand */}
+      {!expanded ? (
+        <button onClick={()=>setExpanded(true)}
+          style={{width:'100%',background:'var(--bg2)',border:`1px solid ${isFull?'#2d5a2d':'rgba(230,57,70,0.3)'}`,borderRadius:'14px',padding:'0.85rem 1rem',display:'flex',alignItems:'center',gap:'12px',transition:'all 0.2s'}}>
+          <div style={{width:38,height:38,borderRadius:'50%',background:isFull?'rgba(74,222,128,0.15)':'rgba(230,57,70,0.15)',border:`1px solid ${isFull?'#2d5a2d':'rgba(230,57,70,0.3)'}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.2rem',flexShrink:0}}>
+            {isFull ? '✅' : '🔗'}
+          </div>
+          <div style={{flex:1,textAlign:'left'}}>
+            <div className="bc" style={{fontSize:'1rem',fontWeight:700,letterSpacing:'0.05em',color:isFull?'var(--green)':'var(--text)'}}>
+              {isFull ? 'GRUPPE VOLL' : 'FREUNDE EINLADEN'}
+            </div>
+            <div style={{fontSize:'0.72rem',color:'var(--muted)',marginTop:'2px'}}>
+              {groupSize}/{maxSize} dabei{spotsLeft>0?` · noch ${spotsLeft} Plätze frei`:' · niemand mehr aufnehmen'}
+            </div>
+          </div>
+          {/* Mini avatars */}
+          <div style={{display:'flex',marginRight:'4px'}}>
+            {leaders.slice(0,3).map((l,i)=>(
+              <div key={l.name} style={{width:24,height:24,borderRadius:'50%',background:'var(--bg3)',border:'1.5px solid var(--bg)',marginLeft:i>0?'-6px':0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.7rem',zIndex:3-i}}>
+                {l.name[0].toUpperCase()}
+              </div>
+            ))}
+            {groupSize>3&&<div style={{width:24,height:24,borderRadius:'50%',background:'var(--bg3)',border:'1.5px solid var(--bg)',marginLeft:'-6px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.55rem',color:'var(--muted)'}}>+{groupSize-3}</div>}
+          </div>
+          <span style={{color:'var(--muted)',fontSize:'0.9rem'}}>›</span>
+        </button>
+      ) : (
+        /* Expanded invite card */
+        <div style={{background:'var(--bg2)',border:'1px solid rgba(230,57,70,0.3)',borderRadius:'16px',overflow:'hidden'}}>
+          {/* Header */}
+          <div style={{background:'linear-gradient(135deg,#1a0508,#2a0a10)',padding:'1.25rem',borderBottom:'1px solid var(--border)'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'8px'}}>
+              <div>
+                <div className="bc" style={{fontSize:'1.3rem',fontWeight:900,letterSpacing:'0.05em'}}>💥 BURPEE CHALLENGE</div>
+                <div style={{fontSize:'0.75rem',color:'rgba(255,255,255,0.6)',marginTop:'2px'}}>30 Tage · 50 Burpees · Gemeinsam</div>
+              </div>
+              <button onClick={()=>setExpanded(false)} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'1.2rem',padding:'0'}}>✕</button>
+            </div>
+            <div style={{display:'flex',gap:'12px',marginTop:'4px'}}>
+              <div style={{textAlign:'center'}}>
+                <div className="bc" style={{fontSize:'1.5rem',fontWeight:900,color:'var(--red)'}}>{groupSize}</div>
+                <div style={{fontSize:'0.6rem',color:'var(--muted)'}}>dabei</div>
+              </div>
+              <div style={{textAlign:'center'}}>
+                <div className="bc" style={{fontSize:'1.5rem',fontWeight:900,color:isFull?'var(--green)':'var(--gold)'}}>{spotsLeft}</div>
+                <div style={{fontSize:'0.6rem',color:'var(--muted)'}}>frei</div>
+              </div>
+              <div style={{textAlign:'center'}}>
+                <div className="bc" style={{fontSize:'1.5rem',fontWeight:900,color:'#60a5fa'}}>{maxSize}</div>
+                <div style={{fontSize:'0.6rem',color:'var(--muted)'}}>max</div>
+              </div>
+            </div>
+          </div>
+          {/* Team list */}
+          <div style={{padding:'0.75rem 1rem',borderBottom:'1px solid var(--border)'}}>
+            <div className="bc" style={{fontSize:'0.6rem',color:'var(--muted)',letterSpacing:'0.15em',marginBottom:'6px'}}>DEIN TEAM</div>
+            <div style={{display:'flex',flexWrap:'wrap',gap:'6px'}}>
+              {leaders.map(l=>(
+                <div key={l.name} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:'8px',padding:'4px 10px',fontSize:'0.78rem',display:'flex',alignItems:'center',gap:'5px',color:l.name===user?'var(--red)':'var(--text)',fontWeight:l.name===user?600:400}}>
+                  <span style={{fontSize:'0.9rem'}}>{l.emoji||'💪'}</span>{l.name}
+                </div>
+              ))}
+              {Array.from({length:spotsLeft}).map((_,i)=>(
+                <div key={i} style={{background:'rgba(230,57,70,0.05)',border:'1px dashed rgba(230,57,70,0.3)',borderRadius:'8px',padding:'4px 10px',fontSize:'0.78rem',color:'rgba(230,57,70,0.5)',display:'flex',alignItems:'center',gap:'5px'}}>
+                  <span style={{fontSize:'0.9rem'}}>❓</span>noch frei
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Share button */}
+          <div style={{padding:'0.85rem 1rem'}}>
+            <button onClick={share}
+              style={{width:'100%',padding:'0.9rem',background:copied?'rgba(74,222,128,0.15)':'var(--red)',border:copied?'2px solid #2d5a2d':'2px solid transparent',borderRadius:'12px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.1rem',fontWeight:800,letterSpacing:'0.08em',boxShadow:copied?'none':'0 4px 16px rgba(230,57,70,0.35)',transition:'all 0.2s'}}>
+              {copied ? '✅ LINK KOPIERT!' : isFull ? '🔗 LINK TEILEN' : `🔥 ${spotsLeft} PLÄTZE VERSCHENKEN`}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 // ── Countdown ─────────────────────────────────────────────
 function Countdown(){
@@ -511,7 +675,7 @@ function HomeTab({user,completed,completionTypes,onOpenDay,leaders,profile,onNud
 
       <TokenBar profile={profile}/>
       <Countdown/>
-      <InviteButton groupSize={leaders.length} maxSize={12}/>
+      <InviteCard groupSize={leaders.length} maxSize={12} leaders={leaders} user={user}/>
 
       <div style={{padding:'0 1.25rem',marginBottom:'1rem'}}>
         {cur===0?(
@@ -998,8 +1162,14 @@ function App(){
     const{data:legs}=await db.from('legends').select('*');
     const{data:qs}=await db.from('quotes').select('*').eq('approved',true);
     if(legs&&qs){
-      const grouped=legs.map(l=>({...l,quotes:qs.filter(q=>q.legend_id===l.id)}));
-      setLegends(grouped.filter(l=>l.quotes.length>0));
+      const grouped=legs.map(l=>({...l,quotes:qs.filter(q=>q.legend_id===l.id)})).filter(l=>l.quotes.length>0);
+      // 50/50 sort: alternate male/female
+      const males=grouped.filter(l=>l.gender!=='female');
+      const females=grouped.filter(l=>l.gender==='female');
+      const balanced=[];
+      const max=Math.max(males.length,females.length);
+      for(let i=0;i<max;i++){if(i<males.length)balanced.push(males[i]);if(i<females.length)balanced.push(females[i]);}
+      setLegends(balanced);
     }
   },[]);
 
