@@ -70,6 +70,8 @@ const LEGENDS_FALLBACK=[
   {id:'goggins',char:'David Goggins',emoji:'⚓',abteilung:'David Goggins Abteilung',begriff:'Die Seelen-Ernte',color:'#2c3e50',quotes:[{anheizer:'Stay Hard!',quote:'Stay Hard! Deine Couch ist eine Lüge. Der Schmerz ist die einzige Wahrheit. Beweg dich!'}]},
 ];
 const rndItem=a=>a[Math.floor(Math.random()*a.length)];
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const tot=d=>d.sets.reduce((a,b)=>a+b,0);
 const getTwoLegends=(legends)=>{
   const pool=(legends&&legends.length>=2)?legends:LEGENDS_FALLBACK;
   const s=[...pool].sort(()=>Math.random()-0.5);
