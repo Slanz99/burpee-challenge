@@ -89,7 +89,6 @@ const getJokerQuote=(legends)=>{
 
 const POSE_SVGS = {
   1: (color) => `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-    <!-- Squat: Die Tiefe Beuge -->
     <circle cx="20" cy="8" r="4.5" fill="${color}"/>
     <line x1="20" y1="12.5" x2="20" y2="22" stroke="${color}" stroke-width="2.8" stroke-linecap="round"/>
     <line x1="20" y1="22" x2="10" y2="30" stroke="${color}" stroke-width="2.8" stroke-linecap="round"/>
@@ -101,7 +100,6 @@ const POSE_SVGS = {
   </svg>`,
 
   2: (color) => `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-    <!-- Plank: Die Bergpaß-Plank -->
     <circle cx="9" cy="17" r="4.5" fill="${color}"/>
     <line x1="13" y1="17" x2="36" y2="21" stroke="${color}" stroke-width="2.8" stroke-linecap="round"/>
     <line x1="18" y1="18" x2="14" y2="29" stroke="${color}" stroke-width="2.5" stroke-linecap="round"/>
@@ -112,7 +110,6 @@ const POSE_SVGS = {
   </svg>`,
 
   3: (color) => `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-    <!-- Sprung: Der Funkensprung -->
     <circle cx="20" cy="5" r="4.5" fill="${color}"/>
     <line x1="20" y1="9.5" x2="20" y2="22" stroke="${color}" stroke-width="2.8" stroke-linecap="round"/>
     <line x1="20" y1="13" x2="9" y2="8" stroke="${color}" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
@@ -617,7 +614,7 @@ function CalendarTab({completed,completionTypes,onOpenDay}){
 }
 
 // ── Wall Tab ──────────────────────────────────────────────
-function WallTab({user,profile,completed,wall,onPost,onReact,onOpenCommunity}){
+function WallTab({user,profile,completed,wall,onPost,onReact,onOpenCommunity,legends}){
   const [text,setText]=useState('');
   const [posting,setPosting]=useState(false);
   const [uploading,setUploading]=useState(false);
@@ -672,7 +669,7 @@ function WallTab({user,profile,completed,wall,onPost,onReact,onOpenCommunity}){
           <div key={p.id} style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'16px',padding:'1rem',marginBottom:'10px',animation:`slideUp 0.3s ${i*0.04}s ease both`}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'8px'}}>
               <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-                <Avatar profile={{avatar:p.avatar,avatar_pixels:p.avatar_pixels}} size={34}/>
+                <Avatar profile={{avatar:p.avatar,avatar_legend:p.avatar_legend,avatar_pose:p.avatar_pose}} size={34} legends={legends}/>
                 <div>
                   <div style={{fontSize:'0.85rem',fontWeight:600,color:p.name===user?'var(--red)':'var(--text)'}}>{p.name}</div>
                   <div style={{fontSize:'0.68rem',color:'var(--muted)'}}>Tag {p.day}</div>
@@ -1091,7 +1088,7 @@ function App(){
 
   const handlePost=async(text,imageUrl=null)=>{
     const cur=getChallengeDay();
-    await db.from('wall_posts').insert({name:userName,avatar:profile?.avatar||'💪',avatar_pixels:profile?.avatar_pixels||null,message:text,day:cur,reactions:{},image_url:imageUrl});
+    await db.from('wall_posts').insert({name:userName,avatar:profile?.avatar||'chuck',avatar_legend:profile?.avatar_legend||'chuck',avatar_pose:profile?.avatar_pose||1,message:text,day:cur,reactions:{},image_url:imageUrl});
   };
 
   const handleReact=async(postId,emoji)=>{
@@ -1144,7 +1141,7 @@ ${legend.emoji} ${legend.char.toUpperCase()} sagt:
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',paddingTop:'var(--safe-t)'}}>
         {tab==='home'    &&<HomeTab user={userName} completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay} leaders={leaders} profile={profile} onNudge={handleNudge} legends={legends}/>}
         {tab==='calendar'&&<CalendarTab completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay}/>}
-        {tab==='wall'    &&<WallTab user={userName} profile={profile} completed={completed} wall={wall} onPost={handlePost} onReact={handleReact} onOpenCommunity={()=>setShowCommunity(true)}/>}
+        {tab==='wall'    &&<WallTab user={userName} profile={profile} completed={completed} wall={wall} onPost={handlePost} onReact={handleReact} onOpenCommunity={()=>setShowCommunity(true)} legends={legends}/>}
         <BottomNav tab={tab} setTab={setTab}/>
       </div>
       {workoutDay&&<WorkoutScreen dayNum={workoutDay} completed={completed} completionTypes={compTypes} profile={profile} legends={legends} onComplete={handleComplete} onHalf={handleHalf} onJoker={handleJoker} onUndo={handleUndo} onBack={()=>setWorkoutDay(null)}/>}
