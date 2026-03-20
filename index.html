@@ -1,515 +1,427 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>🔥 Burpee Challenge</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="theme-color" content="#090909"/>
+  <title>Burpee Challenge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { background: #0a0a0a; color: #f0f0f0; font-family: 'Inter', sans-serif; min-height: 100vh; }
-    input, button, textarea { font-family: inherit; }
-    input:focus { border-color: #e63946 !important; }
-    button:active { opacity: 0.85; }
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: #111; }
-    ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+    :root {
+      --red: #e63946; --red2: #c1121f; --green: #4ade80;
+      --bg: #090909; --bg2: #111111; --bg3: #181818; --border: #1f1f1f;
+      --text: #f2f2f2; --muted: #555;
+      --safe-b: env(safe-area-inset-bottom, 0px);
+      --safe-t: env(safe-area-inset-top, 0px);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+    html{height:100%;overflow:hidden;}
+    body{height:100%;background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;overscroll-behavior:none;-webkit-font-smoothing:antialiased;}
+    #root{height:100%;display:flex;flex-direction:column;}
+    button{cursor:pointer;}
+    input,textarea{font-family:inherit;}
+    input{-webkit-appearance:none;}
+    @keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes pop{0%{transform:scale(0.85);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+    @keyframes shimmer{0%,100%{opacity:1}50%{opacity:0.35}}
+    @keyframes slideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
+    .bc{font-family:'Barlow Condensed',sans-serif;}
   </style>
 </head>
-<body>
-  <div id="root"></div>
+<body><div id="root"></div>
+<script type="text/babel">
+const SUPABASE_URL  = 'https://csfhunqizwwgxjcdfttp.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzZmh1bnFpend3Z3hqY2RmdHRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MzgzMTAsImV4cCI6MjA4OTQxNDMxMH0.qRLgc7eVaa-njdhbV5hupLCQJHhupY016MqAaLQ0CPc';
 
-  <script type="text/babel">
-    // ══════════════════════════════════════════════════════════════
-    //  🔧  KONFIGURATION  –  NUR DIESE ZWEI ZEILEN ANPASSEN
-    // ══════════════════════════════════════════════════════════════
-    const SUPABASE_URL  = 'https://csfhunqizwwgxjcdfttp.supabase.co';   // z.B. https://xyz.supabase.co
-    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzZmh1bnFpend3Z3hqY2RmdHRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MzgzMTAsImV4cCI6MjA4OTQxNDMxMH0.qRLgc7eVaa-njdhbV5hupLCQJHhupY016MqAaLQ0CPc';
-    // ══════════════════════════════════════════════════════════════
+const {createClient}=window.supabase;
+const db=createClient(SUPABASE_URL,SUPABASE_ANON);
+const {useState,useEffect,useRef,useCallback}=React;
 
-    const { createClient } = window.supabase;
-    const db = createClient(SUPABASE_URL, SUPABASE_ANON);
+const DAYS=[
+  {day:1,sets:[6,4,3,3],oneGo:false},{day:2,sets:[10],oneGo:true},
+  {day:3,sets:[6,6,3,3],oneGo:false},{day:4,sets:[14],oneGo:true},
+  {day:5,sets:[8,6,4,4],oneGo:false},{day:6,sets:[17],oneGo:true},
+  {day:7,sets:[8,8,4,4],oneGo:false},{day:8,sets:[20],oneGo:true},
+  {day:9,sets:[10,8,5,5],oneGo:false},{day:10,sets:[24],oneGo:true},
+  {day:11,sets:[10,10,5,5],oneGo:false},{day:12,sets:[26],oneGo:true},
+  {day:13,sets:[12,10,6,6],oneGo:false},{day:14,sets:[30],oneGo:true},
+  {day:15,sets:[12,12,6,6],oneGo:false},{day:16,sets:[33],oneGo:true},
+  {day:17,sets:[14,12,7,7],oneGo:false},{day:18,sets:[35],oneGo:true},
+  {day:19,sets:[14,14,7,7],oneGo:false},{day:20,sets:[37],oneGo:true},
+  {day:21,sets:[16,14,8,8],oneGo:false},{day:22,sets:[40],oneGo:true},
+  {day:23,sets:[16,16,8,8],oneGo:false},{day:24,sets:[42],oneGo:true},
+  {day:25,sets:[18,16,9,9],oneGo:false},{day:26,sets:[44],oneGo:true},
+  {day:27,sets:[18,18,9,9],oneGo:false},{day:28,sets:[47],oneGo:true},
+  {day:29,sets:[20,18,10,10],oneGo:false},{day:30,sets:[50],oneGo:true},
+];
+const MOTIVATIONS=["Kein Schmerz, kein Gewinn!","Jeder Burpee zählt! 🔥","Du bist stärker als du denkst!","Schweiß ist Fett, das weint ⚡","Heute schmerzt es – morgen stärkst du!","30 Tage. Kein Aufgeben! 🏆","Einmal mehr als gestern!","Dein zukünftiges Ich dankt dir!"];
+const EMOJIS=["🔥","💪","⚡","🎉","👊","🏆","😤","🚀"];
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const tot=d=>d.sets.reduce((a,b)=>a+b,0);
 
-    const { useState, useEffect, useRef, useCallback } = React;
+function Toast({msg}){
+  if(!msg)return null;
+  return <div style={{position:'fixed',top:'calc(var(--safe-t) + 12px)',left:'50%',transform:'translateX(-50%)',background:'var(--red)',color:'#fff',padding:'10px 20px',borderRadius:'100px',fontSize:'0.85rem',fontWeight:600,zIndex:9999,whiteSpace:'nowrap',boxShadow:'0 4px 24px rgba(230,57,70,0.5)',animation:'slideDown 0.3s ease both'}}>{msg}</div>;
+}
 
-    // ─── Challenge Data ───────────────────────────────────────────
-    const DAYS = [
-      { day:1,  sets:[6,4,3,3],       oneGo:false },
-      { day:2,  sets:[10],             oneGo:true  },
-      { day:3,  sets:[6,6,3,3],        oneGo:false },
-      { day:4,  sets:[14],             oneGo:true  },
-      { day:5,  sets:[8,6,4,4],        oneGo:false },
-      { day:6,  sets:[17],             oneGo:true  },
-      { day:7,  sets:[8,8,4,4],        oneGo:false },
-      { day:8,  sets:[20],             oneGo:true  },
-      { day:9,  sets:[10,8,5,5],       oneGo:false },
-      { day:10, sets:[24],             oneGo:true  },
-      { day:11, sets:[10,10,5,5],      oneGo:false },
-      { day:12, sets:[26],             oneGo:true  },
-      { day:13, sets:[12,10,6,6],      oneGo:false },
-      { day:14, sets:[30],             oneGo:true  },
-      { day:15, sets:[12,12,6,6],      oneGo:false },
-      { day:16, sets:[33],             oneGo:true  },
-      { day:17, sets:[14,12,7,7],      oneGo:false },
-      { day:18, sets:[35],             oneGo:true  },
-      { day:19, sets:[14,14,7,7],      oneGo:false },
-      { day:20, sets:[37],             oneGo:true  },
-      { day:21, sets:[16,14,8,8],      oneGo:false },
-      { day:22, sets:[40],             oneGo:true  },
-      { day:23, sets:[16,16,8,8],      oneGo:false },
-      { day:24, sets:[42],             oneGo:true  },
-      { day:25, sets:[18,16,9,9],      oneGo:false },
-      { day:26, sets:[44],             oneGo:true  },
-      { day:27, sets:[18,18,9,9],      oneGo:false },
-      { day:28, sets:[47],             oneGo:true  },
-      { day:29, sets:[20,18,10,10],    oneGo:false },
-      { day:30, sets:[50],             oneGo:true  },
-    ];
-
-    const MOTIVATIONS = [
-      "Kein Schmerz, kein Gewinn – du schaffst das! 💪",
-      "Jeder Burpee bringt dich näher ans Ziel! 🔥",
-      "Schweiß ist nur Fett, das weint. Weiter! ⚡",
-      "Du bist stärker als du denkst! 👊",
-      "Heute schmerzt es, morgen stärkst du! 🚀",
-      "Einmal mehr als gestern – immer! 😤",
-      "30 Tage. 1 Ziel. Kein Aufgeben! 🎯",
-      "Die härteste Übung macht die stärkste Person! 🏆",
-      "Dein zukünftiges Ich wird dir danken! ⭐",
-      "Jeder Tropfen Schweiß zählt! 🌊",
-    ];
-
-    const EMOJIS = ["🔥","💪","🎉","⚡","👊","🏆","😤","🚀"];
-    const rnd = (arr) => arr[Math.floor(Math.random() * arr.length)];
-    const total = (d) => d.sets.reduce((a,b) => a+b, 0);
-
-    // ─── Setup Guard ─────────────────────────────────────────────
-    function SetupMissing() {
-      return (
-        <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:'2rem'}}>
-          <div style={{background:'#111',border:'2px solid #e63946',borderRadius:'16px',padding:'2rem',maxWidth:'400px',textAlign:'center'}}>
-            <div style={{fontSize:'3rem',marginBottom:'1rem'}}>⚙️</div>
-            <h2 style={{fontFamily:'Oswald,sans-serif',fontSize:'1.5rem',marginBottom:'1rem',color:'#e63946'}}>KONFIGURATION FEHLT</h2>
-            <p style={{color:'#aaa',fontSize:'0.9rem',lineHeight:1.6}}>
-              Bitte trage deine <strong style={{color:'#f0f0f0'}}>Supabase URL</strong> und den
-              <strong style={{color:'#f0f0f0'}}> Anon Key</strong> in der <code style={{background:'#1e1e1e',padding:'2px 6px',borderRadius:'4px',color:'#e63946'}}>index.html</code> ein.
-              <br/><br/>
-              Lies die <strong style={{color:'#f0f0f0'}}>ANLEITUNG.md</strong> für alle Schritte.
-            </p>
-          </div>
-        </div>
-      );
-    }
-
-    // ─── Main App ────────────────────────────────────────────────
-    function App() {
-      if (SUPABASE_URL === 'DEINE_SUPABASE_URL') return <SetupMissing />;
-
-      const [screen,      setScreen]      = useState('loading');
-      const [userName,    setUserName]    = useState('');
-      const [inputName,   setInputName]   = useState('');
-      const [completed,   setCompleted]   = useState(new Set());
-      const [leaders,     setLeaders]     = useState([]);
-      const [wall,        setWall]        = useState([]);
-      const [selDay,      setSelDay]      = useState(null);
-      const [newPost,     setNewPost]     = useState('');
-      const [motto,       setMotto]       = useState(() => rnd(MOTIVATIONS));
-      const [toast,       setToast]       = useState('');
-      const [justDone,    setJustDone]    = useState(false);
-      const [posting,     setPosting]     = useState(false);
-      const channelRef = useRef(null);
-
-      const showToast = (msg, duration = 3500) => {
-        setToast(msg);
-        setTimeout(() => setToast(''), duration);
-      };
-
-      // ── Loaders ──
-      const loadUser = useCallback(async (name) => {
-        const { data, error } = await db.from('day_completions').select('day').eq('name', name);
-        if (!error && data) setCompleted(new Set(data.map(d => d.day)));
-        setScreen('main');
-      }, []);
-
-      const loadLeaders = useCallback(async () => {
-        const { data } = await db.from('profiles')
-          .select('name, completed_days')
-          .order('completed_days', { ascending: false })
-          .limit(15);
-        if (data) setLeaders(data);
-      }, []);
-
-      const loadWall = useCallback(async () => {
-        const { data } = await db.from('wall_posts')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(60);
-        if (data) setWall(data);
-      }, []);
-
-      // ── Init ──
-      useEffect(() => {
-        const saved = localStorage.getItem('burpee_name');
-        if (saved) { setUserName(saved); loadUser(saved); }
-        else setScreen('onboarding');
-        loadLeaders();
-        loadWall();
-
-        channelRef.current = db.channel('burpee_live')
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'wall_posts' }, loadWall)
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, loadLeaders)
-          .subscribe();
-
-        return () => { channelRef.current?.unsubscribe(); };
-      }, [loadUser, loadLeaders, loadWall]);
-
-      // ── Join ──
-      const handleJoin = async () => {
-        const name = inputName.trim();
-        if (!name) return;
-        const { error } = await db.from('profiles')
-          .upsert({ name, completed_days: 0 }, { onConflict: 'name', ignoreDuplicates: true });
-        if (error && error.code !== '23505') {
-          showToast('❌ Fehler beim Beitreten – prüfe deine Supabase-Einstellungen');
-          return;
-        }
-        localStorage.setItem('burpee_name', name);
-        setUserName(name);
-        await loadUser(name);
-        showToast(`🎉 Willkommen, ${name}! Auf geht's!`);
-      };
-
-      // ── Toggle Day ──
-      const toggleDay = async (dayNum) => {
-        const isDone = completed.has(dayNum);
-        const next = new Set(completed);
-        if (isDone) {
-          next.delete(dayNum);
-          await db.from('day_completions').delete().eq('name', userName).eq('day', dayNum);
-        } else {
-          next.add(dayNum);
-          await db.from('day_completions').insert({ name: userName, day: dayNum });
-          setJustDone(true);
-          showToast(rnd(MOTIVATIONS));
-        }
-        setCompleted(next);
-        await db.from('profiles')
-          .update({ completed_days: next.size, updated_at: new Date().toISOString() })
-          .eq('name', userName);
-        loadLeaders();
-      };
-
-      // ── Wall Post ──
-      const postToWall = async () => {
-        if (!newPost.trim() || posting) return;
-        setPosting(true);
-        const curDay = Math.min(completed.size + 1, 30);
-        await db.from('wall_posts').insert({
-          name: userName,
-          message: newPost.trim(),
-          day: curDay,
-          reactions: {}
-        });
-        setNewPost('');
-        setPosting(false);
-      };
-
-      // ── Reaction ──
-      const addReaction = async (postId, emoji) => {
-        const post = wall.find(p => p.id === postId);
-        if (!post) return;
-        const reactions = { ...(post.reactions || {}), [emoji]: ((post.reactions || {})[emoji] || 0) + 1 };
-        setWall(prev => prev.map(p => p.id === postId ? { ...p, reactions } : p));
-        await db.from('wall_posts').update({ reactions }).eq('id', postId);
-      };
-
-      // ── Logout ──
-      const logout = () => {
-        localStorage.removeItem('burpee_name');
-        setUserName(''); setInputName(''); setCompleted(new Set()); setScreen('onboarding');
-      };
-
-      // ═════════════════════════════════════════
-      //  SCREENS
-      // ═════════════════════════════════════════
-
-      // ── Loading ──
-      if (screen === 'loading') return (
-        <div style={S.center}>
-          <div style={{textAlign:'center'}}>
-            <div style={{fontSize:'3rem',marginBottom:'1rem'}}>⏳</div>
-            <div style={{color:'#555',fontFamily:'Oswald,sans-serif',letterSpacing:'0.15em',fontSize:'0.8rem'}}>LADE CHALLENGE...</div>
-          </div>
-        </div>
-      );
-
-      // ── Onboarding ──
-      if (screen === 'onboarding') return (
-        <div style={S.center}>
-          <div style={{display:'flex',flexDirection:'column',alignItems:'center',textAlign:'center',padding:'2rem',maxWidth:'400px',width:'100%'}}>
-            <div style={{fontSize:'4rem',marginBottom:'0.75rem'}}>💥</div>
-            <h1 style={{...S.oswald,fontSize:'3.5rem',lineHeight:1,marginBottom:'0.5rem',letterSpacing:'0.05em',textTransform:'uppercase'}}>
-              BURPEE<br/><span style={{color:'#e63946'}}>CHALLENGE</span>
-            </h1>
-            <p style={{color:'#555',fontSize:'0.9rem',marginBottom:'2rem'}}>50 Burpees · 30 Tage · Gemeinsam stark 🔥</p>
-            <div style={{background:'#0f0f0f',border:'1px solid #1e1e1e',borderRadius:'14px',padding:'1.75rem',width:'100%'}}>
-              <p style={{color:'#555',fontSize:'0.7rem',letterSpacing:'0.12em',marginBottom:'0.5rem'}}>DEIN NAME</p>
-              <input
-                style={{...S.input,marginBottom:'1rem'}}
-                placeholder="z.B. Stefano, Lisa, Max..."
-                value={inputName}
-                onChange={e => setInputName(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleJoin()}
-                autoFocus
-              />
-              <button style={S.bigBtn} onClick={handleJoin}>JETZT MITMACHEN →</button>
-            </div>
-            <p style={{marginTop:'1.5rem',color:'#333',fontSize:'0.78rem'}}>📅 Start: 1. August · Täglich 1 Workout</p>
-          </div>
-        </div>
-      );
-
-      // ── Workout Detail ──
-      if (screen === 'workout' && selDay) {
-        const d = DAYS[selDay - 1];
-        const tot = total(d);
-        const isDone = completed.has(selDay);
-        return (
-          <div style={S.page}>
-            <button style={S.back} onClick={() => { setScreen('main'); setJustDone(false); }}>← Zurück</button>
-            <div style={{textAlign:'center',marginBottom:'1.5rem'}}>
-              <div style={{color:'#e63946',fontSize:'0.7rem',letterSpacing:'0.2em',marginBottom:'0.5rem'}}>TAG {selDay} VON 30</div>
-              <div style={{...S.oswald,fontSize:'5.5rem',fontWeight:900,lineHeight:1,color:'#e63946'}}>{tot}</div>
-              <div style={{...S.oswald,fontSize:'1.2rem',letterSpacing:'0.2em',color:'#555'}}>BURPEES</div>
-            </div>
-
-            {d.oneGo ? (
-              <div style={{background:'#130508',border:'2px solid #e63946',borderRadius:'14px',padding:'1.75rem',textAlign:'center',marginBottom:'1.5rem'}}>
-                <div style={{...S.oswald,color:'#e63946',fontSize:'2.5rem',fontWeight:900}}>{tot} IN ONE GO</div>
-                <div style={{color:'#555',fontSize:'0.78rem',marginTop:'0.75rem'}}>20 Sek. Pause zwischen Sätzen</div>
-              </div>
-            ) : (
-              <div style={{background:'#0d0d0d',border:'1px solid #1a1a1a',borderRadius:'14px',padding:'1.25rem',marginBottom:'1.5rem'}}>
-                {d.sets.map((s, i) => (
-                  <div key={i}>
-                    <div style={{display:'flex',alignItems:'center',gap:'1rem',padding:'0.45rem 0'}}>
-                      <span style={{color:'#555',fontSize:'0.8rem',width:'4.5rem'}}>Satz {i+1}</span>
-                      <span style={{flex:1,fontSize:'1.1rem',fontWeight:600,fontFamily:'Oswald,sans-serif'}}>{s} Burpees</span>
-                    </div>
-                    {i < d.sets.length - 1 && (
-                      <div style={{textAlign:'center',color:'#2a2a2a',fontSize:'0.75rem',padding:'3px 0'}}>↓ 20 Sek. Pause</div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {justDone && toast && (
-              <div style={{background:'#0a1a0a',border:'1px solid #2d5a2d',borderRadius:'12px',padding:'1rem',marginBottom:'1.25rem',color:'#7ec87e',fontSize:'0.9rem',lineHeight:1.5,textAlign:'center'}}>
-                {toast}
-              </div>
-            )}
-
-            {!isDone ? (
-              <button style={{...S.bigBtn,fontSize:'1.2rem',padding:'1.1rem',letterSpacing:'0.1em'}} onClick={() => toggleDay(selDay)}>
-                ✓ GESCHAFFT!
-              </button>
-            ) : (
-              <div style={{textAlign:'center',background:'#0a1a0a',border:'2px solid #4caf50',borderRadius:'12px',padding:'1.1rem',color:'#4caf50',fontSize:'1rem',fontWeight:700,fontFamily:'Oswald,sans-serif',letterSpacing:'0.05em'}}>
-                ✓ TAG {selDay} ABGESCHLOSSEN!
-              </div>
-            )}
-
-            {isDone && (
-              <button style={{...S.back,marginTop:'1rem',textAlign:'center',width:'100%',color:'#444',fontSize:'0.78rem'}}
-                onClick={() => toggleDay(selDay)}>
-                ↩ Als unerledigt markieren
-              </button>
-            )}
-          </div>
-        );
-      }
-
-      // ── Motivation Wall ──
-      if (screen === 'wall') return (
-        <div style={S.page}>
-          <div style={{display:'flex',alignItems:'center',gap:'1rem',marginBottom:'1.25rem'}}>
-            <button style={S.back} onClick={() => setScreen('main')}>←</button>
-            <h2 style={{...S.oswald,fontSize:'1.2rem',letterSpacing:'0.05em'}}>🔥 MOTIVATION WALL</h2>
-          </div>
-
-          <div style={{display:'flex',gap:'0.5rem',marginBottom:'1.25rem'}}>
-            <input
-              style={{...S.input,flex:1,marginBottom:0}}
-              placeholder="Motiviere dein Team..."
-              value={newPost}
-              onChange={e => setNewPost(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && postToWall()}
-            />
-            <button
-              style={{background:'#e63946',border:'none',borderRadius:'8px',padding:'0 1.1rem',color:'#fff',fontSize:'1.2rem',cursor:'pointer',opacity:posting?0.6:1}}
-              onClick={postToWall}
-            >→</button>
-          </div>
-
-          {wall.length === 0 && (
-            <div style={{textAlign:'center',padding:'3rem 1rem'}}>
-              <div style={{fontSize:'2.5rem',marginBottom:'0.75rem'}}>💬</div>
-              <p style={{color:'#444',fontSize:'0.9rem'}}>Noch keine Posts – sei der Erste! 💪</p>
-            </div>
-          )}
-
-          {wall.map(p => (
-            <div key={p.id} style={{background:'#0d0d0d',border:'1px solid #1a1a1a',borderRadius:'12px',padding:'1rem',marginBottom:'0.75rem'}}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'0.5rem'}}>
-                <div>
-                  <span style={{color:'#e63946',fontSize:'0.85rem',fontWeight:600}}>{p.name}</span>
-                  <span style={{color:'#333',fontSize:'0.75rem',marginLeft:'0.5rem'}}>· Tag {p.day}</span>
-                </div>
-                <span style={{color:'#333',fontSize:'0.7rem'}}>{new Date(p.created_at).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}</span>
-              </div>
-              <p style={{color:'#ddd',fontSize:'0.9rem',lineHeight:1.5,marginBottom:'0.75rem'}}>{p.message}</p>
-              <div style={{display:'flex',gap:'4px',flexWrap:'wrap'}}>
-                {EMOJIS.map(e => (
-                  <button key={e} style={{background:'#141414',border:'1px solid #1e1e1e',borderRadius:'6px',padding:'3px 8px',cursor:'pointer',fontSize:'0.8rem',display:'flex',alignItems:'center',gap:'3px'}}
-                    onClick={() => addReaction(p.id, e)}>
-                    {e}
-                    {(p.reactions?.[e] || 0) > 0 && <span style={{color:'#666',fontSize:'0.7rem'}}>{p.reactions[e]}</span>}
-                  </button>
-                ))}
-              </div>
+function Onboarding({onJoin}){
+  const [name,setName]=useState('');
+  const [loading,setLoading]=useState(false);
+  const ref=useRef();
+  useEffect(()=>{setTimeout(()=>ref.current?.focus(),400);},[]);
+  const join=async()=>{const n=name.trim();if(!n||loading)return;setLoading(true);await onJoin(n);setLoading(false);};
+  return(
+    <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'2rem 1.5rem 1rem',textAlign:'center'}}>
+        <div style={{fontSize:'4.5rem',marginBottom:'0.5rem',animation:'pop 0.5s ease both'}}>💥</div>
+        <h1 className="bc" style={{fontWeight:900,fontSize:'clamp(3rem,15vw,5rem)',lineHeight:0.9,textTransform:'uppercase',marginBottom:'0.75rem',animation:'slideUp 0.4s 0.1s ease both'}}>
+          BURPEE<br/><span style={{color:'var(--red)'}}>CHALLENGE</span>
+        </h1>
+        <p style={{color:'var(--muted)',fontSize:'0.9rem',animation:'slideUp 0.4s 0.2s ease both'}}>50 Burpees · 30 Tage · Gemeinsam 🔥</p>
+        <div style={{display:'flex',gap:'1rem',marginTop:'2rem',animation:'slideUp 0.4s 0.3s ease both'}}>
+          {[['30','Tage'],['50','Burpees'],['1','Ziel']].map(([n,l])=>(
+            <div key={l} style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0.75rem 1.25rem',textAlign:'center'}}>
+              <div className="bc" style={{fontSize:'1.8rem',fontWeight:900,color:'var(--red)',lineHeight:1}}>{n}</div>
+              <div style={{fontSize:'0.72rem',color:'var(--muted)',marginTop:'2px'}}>{l}</div>
             </div>
           ))}
         </div>
-      );
+      </div>
+      <div style={{padding:'1.25rem',paddingBottom:'calc(1.5rem + var(--safe-b))',background:'var(--bg)',borderTop:'1px solid var(--border)',animation:'slideUp 0.4s 0.35s ease both'}}>
+        <p style={{fontSize:'0.72rem',color:'var(--muted)',letterSpacing:'0.12em',marginBottom:'0.6rem',textTransform:'uppercase'}}>Dein Name</p>
+        <input ref={ref} value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&join()} placeholder="z.B. Stefano, Lisa, Max..."
+          style={{width:'100%',padding:'1rem',background:'var(--bg3)',border:'2px solid var(--border)',borderRadius:'14px',color:'var(--text)',fontSize:'1.05rem',marginBottom:'0.75rem',outline:'none'}}/>
+        <button onClick={join} disabled={!name.trim()||loading}
+          style={{width:'100%',padding:'1rem',background:name.trim()?'var(--red)':'var(--bg3)',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.08em',opacity:loading?0.7:1}}>
+          {loading?'EINEN MOMENT...':'LOS GEHT\'S →'}
+        </button>
+      </div>
+    </div>
+  );
+}
 
-      // ══ MAIN DASHBOARD ══
-      const cur  = Math.min(completed.size + 1, 30);
-      const pct  = Math.round((completed.size / 30) * 100);
-      const done = completed.size;
-
-      return (
-        <div style={S.page}>
-          {toast && !justDone && (
-            <div style={{position:'fixed',top:'1rem',left:'50%',transform:'translateX(-50%)',background:'#e63946',color:'#fff',padding:'0.6rem 1.25rem',borderRadius:'20px',fontSize:'0.85rem',zIndex:1000,fontWeight:600,maxWidth:'90vw',textAlign:'center',boxShadow:'0 4px 20px rgba(230,57,70,0.4)'}}>
-              {toast}
-            </div>
-          )}
-
-          {/* ── Header ── */}
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'1.5rem'}}>
-            <div>
-              <div style={{...S.oswald,fontSize:'1.5rem',fontWeight:700}}>
-                Hey, <span style={{color:'#e63946'}}>{userName}</span> 👊
-              </div>
-              <div style={{color:'#444',fontSize:'0.78rem',marginTop:'2px'}}>#BurpeeChallenge · 30-Day</div>
-            </div>
-            <div style={{display:'flex',gap:'6px'}}>
-              <button style={S.iconBtn} onClick={() => setScreen('wall')} title="Motivation Wall">💬</button>
-              <button style={S.iconBtn} onClick={logout} title="Abmelden">↩</button>
-            </div>
+function HomeTab({user,completed,onOpenDay,leaders}){
+  const [motto,setMotto]=useState(()=>rnd(MOTIVATIONS));
+  const done=completed.size,pct=Math.round((done/30)*100),cur=Math.min(done+1,30);
+  const totalBurpees=DAYS.reduce((a,d)=>a+(completed.has(d.day)?tot(d):0),0);
+  const curDay=DAYS[cur-1];
+  return(
+    <div style={{flex:1,overflowY:'auto',paddingBottom:'0.5rem'}}>
+      <div style={{padding:'1.25rem 1.25rem 0'}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'1.25rem'}}>
+          <div>
+            <div className="bc" style={{fontSize:'1.7rem',fontWeight:800,lineHeight:1.1}}>Hey, <span style={{color:'var(--red)'}}>{user}</span> 👊</div>
+            <div style={{color:'var(--muted)',fontSize:'0.78rem',marginTop:'3px'}}>#BurpeeChallenge</div>
           </div>
-
-          {/* ── Progress Bar ── */}
-          <div style={{marginBottom:'1.5rem'}}>
-            <div style={{display:'flex',justifyContent:'space-between',marginBottom:'0.4rem'}}>
-              <span style={{fontSize:'0.78rem',color:'#555'}}>{done} / 30 Tage abgeschlossen</span>
-              <span style={{fontSize:'0.78rem',color:'#e63946',fontWeight:600,fontFamily:'Oswald,sans-serif'}}>{pct}%</span>
-            </div>
-            <div style={{height:'7px',background:'#141414',borderRadius:'4px',overflow:'hidden'}}>
-              <div style={{height:'100%',background:'linear-gradient(90deg,#e63946,#ff6b6b)',borderRadius:'4px',width:`${pct}%`,transition:'width 0.6s ease'}} />
-            </div>
+          <div style={{textAlign:'right'}}>
+            <div className="bc" style={{fontSize:'2rem',fontWeight:900,color:'var(--red)',lineHeight:1}}>{totalBurpees}</div>
+            <div style={{color:'var(--muted)',fontSize:'0.65rem'}}>Burpees gesamt</div>
           </div>
-
-          {/* ── Today CTA ── */}
-          {done < 30 ? (
-            <button
-              style={completed.has(cur) ? {...S.bigBtn,background:'#0a1a0a',border:'2px solid #2d5a2d',marginBottom:'1rem',textAlign:'left',padding:'1.25rem 1.5rem',width:'100%',display:'block'} :
-                                          {...S.bigBtn,background:'linear-gradient(135deg,#e63946,#c1121f)',marginBottom:'1rem',textAlign:'left',padding:'1.25rem 1.5rem',width:'100%',display:'block'}}
-              onClick={() => { setSelDay(cur); setJustDone(false); setScreen('workout'); }}
-            >
-              <div style={{color:'rgba(255,255,255,0.6)',fontSize:'0.68rem',letterSpacing:'0.15em',marginBottom:'4px'}}>HEUTE · TAG {cur}</div>
-              <div style={{...S.oswald,color:'#fff',fontSize:'1.6rem',fontWeight:900}}>
-                {total(DAYS[cur-1])} Burpees
-                {DAYS[cur-1].oneGo && <span style={{fontSize:'0.65rem',background:'rgba(0,0,0,0.25)',padding:'2px 7px',borderRadius:'4px',marginLeft:'8px',verticalAlign:'middle',letterSpacing:'0.1em'}}>IN ONE GO</span>}
-              </div>
-              <div style={{color:'rgba(255,255,255,0.6)',fontSize:'0.78rem',marginTop:'4px'}}>
-                {completed.has(cur) ? '✓ Bereits erledigt' : 'Workout starten →'}
-              </div>
-            </button>
-          ) : (
-            <div style={{background:'linear-gradient(135deg,#ffd700,#ff8c00)',color:'#000',textAlign:'center',padding:'1.25rem',borderRadius:'12px',fontSize:'1.1rem',fontWeight:900,fontFamily:'Oswald,sans-serif',marginBottom:'1rem',letterSpacing:'0.05em'}}>
-              🏆 CHALLENGE ABGESCHLOSSEN! 🏆
-            </div>
-          )}
-
-          {/* ── Motivation ── */}
-          <div style={{background:'#0d0d0d',border:'1px solid #161616',borderRadius:'10px',padding:'0.9rem 1rem',marginBottom:'1.5rem',display:'flex',gap:'0.75rem',alignItems:'center'}}>
-            <p style={{flex:1,color:'#777',fontSize:'0.85rem',fontStyle:'italic',margin:0,lineHeight:1.45}}>{motto}</p>
-            <button style={{background:'none',border:'none',color:'#333',fontSize:'1.1rem',cursor:'pointer',padding:'0.25rem',flexShrink:0}}
-              onClick={() => setMotto(rnd(MOTIVATIONS))}>↻</button>
-          </div>
-
-          {/* ── 30-Day Calendar ── */}
-          <div style={{...S.oswald,fontSize:'0.65rem',color:'#333',letterSpacing:'0.15em',marginBottom:'0.65rem'}}>30-TAGE KALENDER</div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:'5px',marginBottom:'1.75rem'}}>
-            {DAYS.map(d => {
-              const isDone  = completed.has(d.day);
-              const isToday = d.day === cur && !isDone;
-              const tot     = total(d);
-              return (
-                <button key={d.day}
-                  style={{background:isDone?'#0a1a0a':isToday?'#1a0508':'#0d0d0d',border:`1px solid ${isDone?'#2d5a2d':isToday?'#e63946':'#161616'}`,borderRadius:'8px',padding:'5px 3px',display:'flex',flexDirection:'column',alignItems:'center',cursor:'pointer',minHeight:'52px',gap:'1px'}}
-                  onClick={() => { setSelDay(d.day); setJustDone(false); setScreen('workout'); }}
-                >
-                  <span style={{color:'#444',fontSize:'0.55rem'}}>{d.day}</span>
-                  <span style={{...S.oswald,color:isDone?'#4caf50':isToday?'#e63946':'#ccc',fontSize:'0.9rem',fontWeight:700}}>{tot}</span>
-                  {d.oneGo && <span style={{color:isDone?'#3a7a3a':'#8b0000',fontSize:'0.45rem',letterSpacing:'0.03em'}}>1GO</span>}
-                  {isDone && <span style={{color:'#4caf50',fontSize:'0.65rem'}}>✓</span>}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* ── Leaderboard ── */}
-          {leaders.length > 0 && (
-            <>
-              <div style={{...S.oswald,fontSize:'0.65rem',color:'#333',letterSpacing:'0.15em',marginBottom:'0.65rem'}}>🏅 RANGLISTE</div>
-              <div style={{background:'#0d0d0d',border:'1px solid #161616',borderRadius:'12px',overflow:'hidden',marginBottom:'2rem'}}>
-                {leaders.map((u, i) => (
-                  <div key={u.name} style={{display:'flex',alignItems:'center',padding:'0.7rem 1rem',borderBottom:'1px solid #111',background:u.name===userName?'#130508':'transparent',gap:'0.75rem'}}>
-                    <span style={{width:'1.75rem',fontSize:'0.95rem',flexShrink:0}}>{i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`}</span>
-                    <span style={{flex:1,fontSize:'0.9rem',fontWeight:u.name===userName?600:400}}>{u.name}{u.name===userName&&<span style={{color:'#e63946',fontSize:'0.75rem',marginLeft:'4px'}}> (du)</span>}</span>
-                    <div style={{textAlign:'right',flexShrink:0}}>
-                      <div style={{...S.oswald,color:'#e63946',fontSize:'1rem',fontWeight:700}}>{u.completed_days}</div>
-                      <div style={{color:'#333',fontSize:'0.65rem'}}>/ 30</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
         </div>
-      );
-    }
+        <div style={{marginBottom:'1.5rem'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:'6px'}}>
+            <span className="bc" style={{fontSize:'1rem',fontWeight:700,letterSpacing:'0.05em'}}>{done} / 30 TAGE</span>
+            <span className="bc" style={{fontSize:'1.4rem',fontWeight:900,color:'var(--red)'}}>{pct}%</span>
+          </div>
+          <div style={{height:'8px',background:'var(--bg3)',borderRadius:'8px',overflow:'hidden'}}>
+            <div style={{height:'100%',background:'linear-gradient(90deg,var(--red),#ff6b6b)',borderRadius:'8px',width:`${pct}%`,transition:'width 0.8s cubic-bezier(.25,.46,.45,.94)'}}/>
+          </div>
+        </div>
+      </div>
+      <div style={{padding:'0 1.25rem',marginBottom:'1rem'}}>
+        {done<30?(
+          <button onClick={()=>onOpenDay(cur)}
+            style={{width:'100%',background:completed.has(cur)?'linear-gradient(135deg,#0a1f0a,#0f2a0f)':'linear-gradient(135deg,var(--red),var(--red2))',border:`2px solid ${completed.has(cur)?'#2d5a2d':'transparent'}`,borderRadius:'20px',padding:'1.5rem',textAlign:'left',boxShadow:completed.has(cur)?'none':'0 8px 32px rgba(230,57,70,0.35)'}}>
+            <div style={{fontSize:'0.68rem',color:'rgba(255,255,255,0.6)',letterSpacing:'0.15em',marginBottom:'6px'}}>{completed.has(cur)?'✓ HEUTE ERLEDIGT':'HEUTE · TAG '+cur+' VON 30'}</div>
+            <div className="bc" style={{fontSize:'clamp(2rem,10vw,3rem)',fontWeight:900,color:'#fff',lineHeight:1,marginBottom:'4px'}}>{tot(curDay)} BURPEES</div>
+            {curDay.oneGo&&<span style={{display:'inline-block',background:'rgba(0,0,0,0.25)',color:'rgba(255,255,255,0.85)',fontSize:'0.65rem',padding:'3px 10px',borderRadius:'100px',letterSpacing:'0.12em',marginBottom:'6px'}}>IN ONE GO</span>}
+            <div style={{fontSize:'0.82rem',color:'rgba(255,255,255,0.65)',marginTop:'4px'}}>{completed.has(cur)?'Tap für Details':'Workout starten →'}</div>
+          </button>
+        ):(
+          <div className="bc" style={{background:'linear-gradient(135deg,#7c5c00,#b8860b)',borderRadius:'20px',padding:'1.5rem',textAlign:'center',fontSize:'1.8rem',fontWeight:900,letterSpacing:'0.03em'}}>🏆 CHALLENGE ABGESCHLOSSEN!</div>
+        )}
+      </div>
+      <div style={{margin:'0 1.25rem 1.5rem',display:'flex',alignItems:'center',gap:'0.75rem',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'14px',padding:'0.9rem 1rem'}}>
+        <p style={{flex:1,fontSize:'0.87rem',color:'#888',fontStyle:'italic',lineHeight:1.45}}>{motto}</p>
+        <button onClick={()=>setMotto(rnd(MOTIVATIONS))} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:'8px',padding:'6px 8px',color:'var(--muted)',fontSize:'0.9rem',flexShrink:0}}>↻</button>
+      </div>
+      {leaders.length>1&&(
+        <div style={{padding:'0 1.25rem'}}>
+          <div className="bc" style={{fontSize:'0.68rem',color:'var(--muted)',letterSpacing:'0.15em',marginBottom:'0.65rem'}}>🏅 RANGLISTE</div>
+          <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'16px',overflow:'hidden'}}>
+            {leaders.slice(0,5).map((u,i)=>(
+              <div key={u.name} style={{display:'flex',alignItems:'center',padding:'0.85rem 1rem',borderBottom:i<Math.min(leaders.length,5)-1?'1px solid var(--border)':'none',background:u.name===user?'rgba(230,57,70,0.07)':'transparent'}}>
+                <span style={{width:'2rem',fontSize:'1rem',flexShrink:0}}>{i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`}</span>
+                <span style={{flex:1,fontSize:'0.92rem',fontWeight:u.name===user?600:400}}>{u.name}{u.name===user&&<span style={{color:'var(--red)',fontSize:'0.72rem',marginLeft:'5px'}}> (du)</span>}</span>
+                <div style={{textAlign:'right'}}>
+                  <span className="bc" style={{fontSize:'1.3rem',fontWeight:900,color:'var(--red)'}}>{u.completed_days}</span>
+                  <span style={{color:'var(--muted)',fontSize:'0.7rem'}}>/30</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
-    // ─── Shared Styles ────────────────────────────────────────────
-    const S = {
-      center:  { minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center' },
-      page:    { maxWidth:'480px', margin:'0 auto', padding:'1.25rem', minHeight:'100vh' },
-      oswald:  { fontFamily:'Oswald, sans-serif' },
-      back:    { background:'none', border:'none', color:'#555', fontSize:'0.9rem', cursor:'pointer', padding:'0 0 1rem', display:'block' },
-      iconBtn: { background:'#111', border:'1px solid #1e1e1e', borderRadius:'8px', padding:'0.45rem 0.7rem', fontSize:'1.1rem', cursor:'pointer' },
-      input:   { width:'100%', padding:'0.8rem 1rem', background:'#080808', border:'2px solid #1a1a1a', borderRadius:'8px', color:'#f0f0f0', fontSize:'1rem', outline:'none', display:'block' },
-      bigBtn:  { width:'100%', padding:'0.9rem', background:'#e63946', border:'none', borderRadius:'10px', color:'#fff', fontSize:'1rem', fontWeight:700, cursor:'pointer', letterSpacing:'0.08em', fontFamily:'Oswald, sans-serif', display:'block' },
-    };
+function CalendarTab({completed,onOpenDay}){
+  const cur=Math.min(completed.size+1,30);
+  return(
+    <div style={{flex:1,overflowY:'auto',padding:'1.25rem'}}>
+      <div className="bc" style={{fontSize:'1.6rem',fontWeight:800,letterSpacing:'0.05em',marginBottom:'1rem'}}>30-TAGE PLAN</div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:'8px'}}>
+        {DAYS.map(d=>{
+          const isDone=completed.has(d.day),isToday=d.day===cur&&!isDone,t=tot(d);
+          return(
+            <button key={d.day} onClick={()=>onOpenDay(d.day)}
+              style={{background:isDone?'rgba(74,222,128,0.1)':isToday?'rgba(230,57,70,0.12)':'var(--bg2)',border:`1.5px solid ${isDone?'#2d5a2d':isToday?'var(--red)':'var(--border)'}`,borderRadius:'12px',padding:'10px 6px',display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',minHeight:'64px'}}>
+              <span style={{fontSize:'0.58rem',color:isDone?'var(--green)':isToday?'var(--red)':'var(--muted)',fontWeight:600}}>{isDone?'✓':isToday?'●':d.day}</span>
+              <span className="bc" style={{fontSize:'1.15rem',fontWeight:800,color:isDone?'var(--green)':isToday?'var(--red)':'var(--text)',lineHeight:1}}>{t}</span>
+              {d.oneGo&&<span style={{fontSize:'0.48rem',color:isDone?'#2d8050':'#8b1a1a',fontWeight:700}}>1GO</span>}
+            </button>
+          );
+        })}
+      </div>
+      <div style={{display:'flex',gap:'1rem',marginTop:'1.25rem',flexWrap:'wrap'}}>
+        {[['var(--green)','Erledigt'],['var(--red)','Heute'],['var(--muted)','Offen']].map(([c,l])=>(
+          <div key={l} style={{display:'flex',alignItems:'center',gap:'6px'}}>
+            <div style={{width:'10px',height:'10px',borderRadius:'3px',background:c}}/>
+            <span style={{fontSize:'0.75rem',color:'var(--muted)'}}>{l}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-  </script>
-</body>
-</html>
+function WallTab({user,completed,wall,onPost,onReact}){
+  const [text,setText]=useState('');
+  const [posting,setPosting]=useState(false);
+  const submit=async()=>{if(!text.trim()||posting)return;setPosting(true);await onPost(text.trim());setText('');setPosting(false);};
+  return(
+    <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      <div style={{padding:'1.25rem 1.25rem 0.75rem',borderBottom:'1px solid var(--border)',flexShrink:0}}>
+        <div className="bc" style={{fontSize:'1.6rem',fontWeight:800,letterSpacing:'0.05em',marginBottom:'0.9rem'}}>🔥 MOTIVATION WALL</div>
+        <div style={{display:'flex',gap:'8px'}}>
+          <input value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()} placeholder="Motiviere dein Team..."
+            style={{flex:1,padding:'0.8rem 1rem',background:'var(--bg3)',border:'2px solid var(--border)',borderRadius:'12px',color:'var(--text)',fontSize:'0.9rem',outline:'none'}}/>
+          <button onClick={submit} disabled={!text.trim()||posting}
+            style={{background:'var(--red)',border:'none',borderRadius:'12px',padding:'0 1.1rem',color:'#fff',fontSize:'1.3rem',opacity:(!text.trim()||posting)?0.4:1,flexShrink:0}}>→</button>
+        </div>
+      </div>
+      <div style={{flex:1,overflowY:'auto',padding:'0.75rem 1.25rem'}}>
+        {wall.length===0&&<div style={{textAlign:'center',padding:'4rem 1rem'}}><div style={{fontSize:'3rem',marginBottom:'0.75rem'}}>💬</div><p style={{color:'var(--muted)',fontSize:'0.9rem'}}>Noch keine Posts – starte die Konversation!</p></div>}
+        {wall.map((p,i)=>(
+          <div key={p.id} style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'16px',padding:'1rem',marginBottom:'10px',animation:`slideUp 0.3s ${i*0.04}s ease both`}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'6px'}}>
+              <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                <div style={{width:'32px',height:'32px',borderRadius:'50%',background:'var(--red)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'Barlow Condensed,sans-serif',fontWeight:800,fontSize:'0.9rem',flexShrink:0}}>{p.name[0].toUpperCase()}</div>
+                <div>
+                  <div style={{fontSize:'0.85rem',fontWeight:600,color:p.name===user?'var(--red)':'var(--text)'}}>{p.name}</div>
+                  <div style={{fontSize:'0.68rem',color:'var(--muted)'}}>Tag {p.day}</div>
+                </div>
+              </div>
+              <span style={{fontSize:'0.68rem',color:'var(--muted)',flexShrink:0}}>{new Date(p.created_at).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}</span>
+            </div>
+            <p style={{fontSize:'0.92rem',lineHeight:1.5,margin:'0.5rem 0 0.75rem',color:'#ddd'}}>{p.message}</p>
+            <div style={{display:'flex',flexWrap:'wrap',gap:'5px'}}>
+              {EMOJIS.map(e=>{
+                const count=p.reactions?.[e]||0;
+                return(
+                  <button key={e} onClick={()=>onReact(p.id,e)}
+                    style={{background:count>0?'rgba(230,57,70,0.12)':'var(--bg3)',border:`1px solid ${count>0?'rgba(230,57,70,0.3)':'var(--border)'}`,borderRadius:'8px',padding:'4px 8px',fontSize:'0.85rem',display:'flex',alignItems:'center',gap:'4px'}}>
+                    {e}{count>0&&<span style={{color:'var(--muted)',fontSize:'0.7rem'}}>{count}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WorkoutScreen({dayNum,completed,onComplete,onUndo,onBack}){
+  const d=DAYS[dayNum-1],t=tot(d),isDone=completed.has(dayNum);
+  return(
+    <div style={{position:'fixed',inset:0,background:'var(--bg)',zIndex:100,display:'flex',flexDirection:'column',animation:'slideUp 0.3s ease both'}}>
+      <div style={{padding:'calc(var(--safe-t) + 1rem) 1.25rem 0.75rem',display:'flex',alignItems:'center',gap:'1rem',borderBottom:'1px solid var(--border)',flexShrink:0}}>
+        <button onClick={onBack} style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'10px',padding:'8px 14px',color:'var(--text)',fontSize:'0.9rem'}}>←</button>
+        <div className="bc" style={{fontSize:'1rem',fontWeight:700,letterSpacing:'0.1em',color:'var(--muted)'}}>TAG {dayNum} VON 30</div>
+        {isDone&&<div style={{marginLeft:'auto',background:'rgba(74,222,128,0.15)',border:'1px solid #2d5a2d',borderRadius:'100px',padding:'4px 12px',fontSize:'0.72rem',color:'var(--green)',fontWeight:600}}>✓ ERLEDIGT</div>}
+      </div>
+      <div style={{textAlign:'center',padding:'2rem 1.25rem 1.5rem',flexShrink:0}}>
+        <div className="bc" style={{fontWeight:900,fontSize:'min(28vw,7rem)',color:'var(--red)',lineHeight:0.9}}>{t}</div>
+        <div className="bc" style={{fontWeight:700,fontSize:'1.4rem',letterSpacing:'0.2em',color:'var(--muted)',marginTop:'4px'}}>BURPEES</div>
+      </div>
+      <div style={{flex:1,overflowY:'auto',padding:'0 1.25rem'}}>
+        {d.oneGo?(
+          <div style={{background:'rgba(230,57,70,0.08)',border:'2px solid rgba(230,57,70,0.35)',borderRadius:'18px',padding:'1.75rem',textAlign:'center',marginBottom:'1rem'}}>
+            <div className="bc" style={{fontSize:'2rem',fontWeight:900,color:'var(--red)',letterSpacing:'0.05em'}}>IN ONE GO</div>
+            <div style={{color:'var(--muted)',fontSize:'0.8rem',marginTop:'0.5rem'}}>Alle {t} Burpees am Stück</div>
+            <div style={{display:'inline-block',background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:'8px',padding:'6px 14px',fontSize:'0.75rem',color:'var(--muted)',marginTop:'0.75rem'}}>20 Sek. Pause zwischen Sätzen</div>
+          </div>
+        ):(
+          <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'18px',padding:'1.25rem',marginBottom:'1rem'}}>
+            {d.sets.map((s,i)=>(
+              <div key={i}>
+                <div style={{display:'flex',alignItems:'center',padding:'0.6rem 0',gap:'1rem'}}>
+                  <div style={{width:'28px',height:'28px',borderRadius:'50%',background:'var(--bg3)',border:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.72rem',color:'var(--muted)',flexShrink:0}}>{i+1}</div>
+                  <span className="bc" style={{flex:1,fontSize:'1.3rem',fontWeight:700}}>{s} Burpees</span>
+                </div>
+                {i<d.sets.length-1&&<div style={{textAlign:'center',fontSize:'0.72rem',color:'var(--muted)',padding:'3px 0',borderTop:'1px dashed var(--border)',borderBottom:'1px dashed var(--border)',margin:'0 2rem'}}>↓ &nbsp;20 Sek. Pause</div>}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <div style={{padding:'1rem 1.25rem',paddingBottom:'calc(1rem + var(--safe-b))',flexShrink:0,borderTop:'1px solid var(--border)'}}>
+        {!isDone?(
+          <button onClick={()=>onComplete(dayNum)} style={{width:'100%',padding:'1.1rem',background:'var(--red)',border:'none',borderRadius:'16px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.4rem',fontWeight:800,letterSpacing:'0.08em',boxShadow:'0 6px 28px rgba(230,57,70,0.4)'}}>
+            ✓ GESCHAFFT!
+          </button>
+        ):(
+          <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+            <div className="bc" style={{background:'rgba(74,222,128,0.1)',border:'2px solid #2d5a2d',borderRadius:'16px',padding:'1.1rem',textAlign:'center',fontSize:'1.3rem',fontWeight:800,color:'var(--green)',letterSpacing:'0.05em'}}>
+              ✓ TAG {dayNum} ABGESCHLOSSEN!
+            </div>
+            <button onClick={()=>onUndo(dayNum)} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.8rem',padding:'0.5rem'}}>Als unerledigt markieren</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function BottomNav({tab,setTab}){
+  return(
+    <div style={{flexShrink:0,background:'var(--bg)',borderTop:'1px solid var(--border)',paddingBottom:'var(--safe-b)',display:'flex'}}>
+      {[{id:'home',icon:'🏠',label:'HOME'},{id:'calendar',icon:'📅',label:'PLAN'},{id:'wall',icon:'💬',label:'WALL'}].map(item=>{
+        const active=tab===item.id;
+        return(
+          <button key={item.id} onClick={()=>setTab(item.id)}
+            style={{flex:1,padding:'0.8rem 0.5rem',background:'none',border:'none',display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',opacity:active?1:0.4,transition:'opacity 0.15s'}}>
+            <span style={{fontSize:'1.3rem'}}>{item.icon}</span>
+            <span className="bc" style={{fontSize:'0.62rem',fontWeight:700,letterSpacing:'0.1em',color:active?'var(--red)':'var(--muted)'}}>{item.label}</span>
+            {active&&<div style={{width:'16px',height:'2px',background:'var(--red)',borderRadius:'1px'}}/>}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function App(){
+  if(SUPABASE_URL==='DEINE_SUPABASE_URL') return(
+    <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'2rem'}}>
+      <div style={{background:'var(--bg2)',border:'2px solid var(--red)',borderRadius:'20px',padding:'2rem',textAlign:'center',maxWidth:'340px'}}>
+        <div style={{fontSize:'3rem',marginBottom:'1rem'}}>⚙️</div>
+        <div className="bc" style={{fontSize:'1.6rem',fontWeight:800,color:'var(--red)',marginBottom:'0.75rem',letterSpacing:'0.05em'}}>SETUP FEHLT</div>
+        <p style={{color:'var(--muted)',fontSize:'0.88rem',lineHeight:1.6}}>Trage <b style={{color:'var(--text)'}}>SUPABASE_URL</b> und <b style={{color:'var(--text)'}}>SUPABASE_ANON</b> in die <code style={{color:'var(--red)'}}>index.html</code> ein.<br/><br/>Lies die <b style={{color:'var(--text)'}}>ANLEITUNG.md</b> für alle Schritte.</p>
+      </div>
+    </div>
+  );
+
+  const [screen,setScreen]=useState('loading');
+  const [tab,setTab]=useState('home');
+  const [userName,setUserName]=useState('');
+  const [completed,setCompleted]=useState(new Set());
+  const [leaders,setLeaders]=useState([]);
+  const [wall,setWall]=useState([]);
+  const [workoutDay,setWorkoutDay]=useState(null);
+  const [toast,setToast]=useState('');
+  const timer=useRef(null);
+
+  const showToast=msg=>{setToast(msg);clearTimeout(timer.current);timer.current=setTimeout(()=>setToast(''),3000);};
+
+  const loadUser=useCallback(async name=>{
+    const{data}=await db.from('day_completions').select('day').eq('name',name);
+    if(data)setCompleted(new Set(data.map(d=>d.day)));
+    setScreen('main');
+  },[]);
+  const loadLeaders=useCallback(async()=>{
+    const{data}=await db.from('profiles').select('name,completed_days').order('completed_days',{ascending:false}).limit(15);
+    if(data)setLeaders(data);
+  },[]);
+  const loadWall=useCallback(async()=>{
+    const{data}=await db.from('wall_posts').select('*').order('created_at',{ascending:false}).limit(60);
+    if(data)setWall(data);
+  },[]);
+
+  useEffect(()=>{
+    const saved=localStorage.getItem('burpee_name');
+    if(saved){setUserName(saved);loadUser(saved);}else setScreen('onboarding');
+    loadLeaders();loadWall();
+    const ch=db.channel('live')
+      .on('postgres_changes',{event:'*',schema:'public',table:'wall_posts'},loadWall)
+      .on('postgres_changes',{event:'*',schema:'public',table:'profiles'},loadLeaders)
+      .subscribe();
+    return()=>ch.unsubscribe();
+  },[loadUser,loadLeaders,loadWall]);
+
+  const handleJoin=async name=>{
+    await db.from('profiles').upsert({name,completed_days:0},{onConflict:'name',ignoreDuplicates:true});
+    localStorage.setItem('burpee_name',name);
+    setUserName(name);await loadUser(name);showToast(`🎉 Willkommen, ${name}!`);
+  };
+  const handleComplete=async dayNum=>{
+    const next=new Set(completed);next.add(dayNum);setCompleted(next);
+    await db.from('day_completions').insert({name:userName,day:dayNum});
+    await db.from('profiles').update({completed_days:next.size,updated_at:new Date().toISOString()}).eq('name',userName);
+    loadLeaders();showToast(rnd(MOTIVATIONS));
+  };
+  const handleUndo=async dayNum=>{
+    const next=new Set(completed);next.delete(dayNum);setCompleted(next);
+    await db.from('day_completions').delete().eq('name',userName).eq('day',dayNum);
+    await db.from('profiles').update({completed_days:next.size}).eq('name',userName);
+    loadLeaders();
+  };
+  const handlePost=async text=>{
+    const cur=Math.min(completed.size+1,30);
+    await db.from('wall_posts').insert({name:userName,message:text,day:cur,reactions:{}});
+  };
+  const handleReact=async(postId,emoji)=>{
+    const post=wall.find(p=>p.id===postId);if(!post)return;
+    const reactions={...(post.reactions||{}),[emoji]:((post.reactions||{})[emoji]||0)+1};
+    setWall(prev=>prev.map(p=>p.id===postId?{...p,reactions}:p));
+    await db.from('wall_posts').update({reactions}).eq('id',postId);
+  };
+
+  if(screen==='loading') return(
+    <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center'}}>
+      <div style={{textAlign:'center'}}>
+        <div style={{fontSize:'2.5rem',marginBottom:'0.75rem',animation:'shimmer 1.2s infinite'}}>💥</div>
+        <div className="bc" style={{fontSize:'0.8rem',color:'var(--muted)',letterSpacing:'0.15em'}}>LÄDT...</div>
+      </div>
+    </div>
+  );
+
+  if(screen==='onboarding') return <><Toast msg={toast}/><Onboarding onJoin={handleJoin}/></>;
+
+  return(
+    <>
+      <Toast msg={toast}/>
+      <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',paddingTop:'var(--safe-t)'}}>
+        {tab==='home'    &&<HomeTab user={userName} completed={completed} onOpenDay={setWorkoutDay} leaders={leaders}/>}
+        {tab==='calendar'&&<CalendarTab completed={completed} onOpenDay={setWorkoutDay}/>}
+        {tab==='wall'    &&<WallTab user={userName} completed={completed} wall={wall} onPost={handlePost} onReact={handleReact}/>}
+        <BottomNav tab={tab} setTab={setTab}/>
+      </div>
+      {workoutDay&&<WorkoutScreen dayNum={workoutDay} completed={completed} onComplete={handleComplete} onUndo={handleUndo} onBack={()=>setWorkoutDay(null)}/>}
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script></body></html>
