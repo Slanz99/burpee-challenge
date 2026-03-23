@@ -616,6 +616,73 @@ function DailyLegend({legends, cur}){
 
 
 // ─────────────────────────────────────────────────────────
+//  NOTIFICATION BANNER
+// ─────────────────────────────────────────────────────────
+function NotificationBanner({notif, onDismiss}){
+  useEffect(()=>{
+    if(!notif) return;
+    const t = setTimeout(onDismiss, 5000);
+    return ()=>clearTimeout(t);
+  },[notif]);
+
+  if(!notif) return null;
+  const isFeuer = notif.type==='feuer';
+  const color = isFeuer ? '#e63946' : '#f59e0b';
+  const lines = notif.message.split('\n');
+
+  return(
+    <div style={{position:'fixed',top:'calc(var(--safe-t) + 10px)',left:'1rem',right:'1rem',zIndex:9998,animation:'slideDown 0.4s ease both'}}
+      onClick={onDismiss}>
+      <div style={{background:isFeuer?'#1a0508':'#1a1200',border:`2px solid ${color}`,borderRadius:'16px',padding:'0.9rem 1rem',boxShadow:`0 8px 32px ${color}44`,display:'flex',gap:'10px',alignItems:'flex-start'}}>
+        <span style={{fontSize:'1.4rem',flexShrink:0}}>{isFeuer?'🔥':'💪'}</span>
+        <div style={{flex:1,minWidth:0}}>
+          {lines.map((l,i)=>(
+            <div key={i} style={{fontSize:i===0?'0.88rem':'0.8rem',fontWeight:i===0?700:400,color:i===0?'#fff':'#aaa',lineHeight:1.4,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:i===0?'nowrap':'normal'}}>{l}</div>
+          ))}
+        </div>
+        <button onClick={e=>{e.stopPropagation();onDismiss();}}
+          style={{background:'none',border:'none',color:'var(--muted)',fontSize:'1rem',flexShrink:0,padding:'0'}}>✕</button>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  AVATAR CONTEXT MENU
+// ─────────────────────────────────────────────────────────
+function AvatarContextMenu({targetName, onFeuer, onKudo, onClose}){
+  useEffect(()=>{
+    const t = setTimeout(onClose, 4000);
+    return ()=>clearTimeout(t);
+  },[]);
+  return(
+    <div style={{position:'fixed',inset:0,zIndex:400}} onClick={onClose}>
+      <div style={{position:'absolute',bottom:'calc(var(--safe-b) + 80px)',left:'50%',transform:'translateX(-50%)',
+        background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'16px',padding:'0.5rem',
+        display:'flex',gap:'8px',boxShadow:'0 8px 32px rgba(0,0,0,0.5)',animation:'pop 0.25s ease both'}}
+        onClick={e=>e.stopPropagation()}>
+        <div style={{textAlign:'center',padding:'0 4px'}}>
+          <div style={{fontSize:'0.65rem',color:'var(--muted)',marginBottom:'6px',whiteSpace:'nowrap',fontFamily:'Barlow Condensed,sans-serif',letterSpacing:'0.08em'}}>{targetName}</div>
+          <div style={{display:'flex',gap:'8px'}}>
+            <button onClick={()=>{onFeuer(targetName);onClose();}}
+              style={{background:'rgba(230,57,70,0.15)',border:'1px solid rgba(230,57,70,0.4)',borderRadius:'12px',padding:'10px 16px',display:'flex',flexDirection:'column',alignItems:'center',gap:'4px'}}>
+              <span style={{fontSize:'1.4rem'}}>🔥</span>
+              <span style={{fontSize:'0.62rem',color:'var(--red)',fontFamily:'Barlow Condensed,sans-serif',fontWeight:700,letterSpacing:'0.08em'}}>FEUER</span>
+            </button>
+            <button onClick={()=>{onKudo(targetName);onClose();}}
+              style={{background:'rgba(245,158,11,0.15)',border:'1px solid rgba(245,158,11,0.4)',borderRadius:'12px',padding:'10px 16px',display:'flex',flexDirection:'column',alignItems:'center',gap:'4px'}}>
+              <span style={{fontSize:'1.4rem'}}>💪</span>
+              <span style={{fontSize:'0.62rem',color:'var(--gold)',fontFamily:'Barlow Condensed,sans-serif',fontWeight:700,letterSpacing:'0.08em'}}>KUDO</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ─────────────────────────────────────────────────────────
 //  REWARD QUOTE (visible on home until midnight)
 // ─────────────────────────────────────────────────────────
 function RewardQuote(){
@@ -651,11 +718,13 @@ function RewardQuote(){
 // ─────────────────────────────────────────────────────────
 const KUDO_PRESETS = [
   "Früh aufgestanden und direkt geliefert! 🌅",
-  "Doppelrunde heute — absolute Maschine! 🔁",
-  "Trotz schlechtem Tag durchgezogen! 💪",
-  "Erste im Team heute — Respekt! ⚡",
-  "Niemals aufgegeben — Stahlarm! 🦾",
-  "Immer dabei — das Rückgrat des Teams! 🏆",
+  "Trotz schlechtem Tag durchgezogen — Respect! 🙏",
+  "Erste im Team heute — absolute Führung! ⚡",
+  "Kein Joker, kein Halbe — Du Maschine! 🦾",
+  "Das Rückgrat des Teams. Immer dabei! 🏆",
+  "Heute war sicher kein leichter Tag. Trotzdem. 💫",
+  "Schweigend stark — man sieht es am Ergebnis! 🔥",
+  "Vorbildfunktion aktiviert. Das Team schaut auf dich! 👑",
 ];
 
 function KudoModal({to, from, onSend, onCancel}){
@@ -698,18 +767,16 @@ function KudoModal({to, from, onSend, onCancel}){
 // ─────────────────────────────────────────────────────────
 //  TEAM SECTION (replaces leaderboard)
 // ─────────────────────────────────────────────────────────
-function TeamSection({leaders, user, legends, onNudge, achievements, onKudo}){
+function TeamSection({leaders, user, legends, onNudge, achievements, onKudo, onAvatarTap}){
   const today = new Date().toDateString();
   const cur   = getChallengeDay();
 
-  // Count who did today's workout
-  // We use completed_days as proxy — not perfect but available
-  // Better: track via a separate field, but for now use leaders data
-  const totalBurpees = leaders.reduce((a,u) => a + (u.completed_days||0) * 15, 0); // rough avg
-  const teamTotal    = leaders.reduce((a,u) => {
-    // Sum all actual burpees completed based on completed_days × avg
-    return a + (u.completed_days||0);
+  // Real team burpees: sum of all completed days' burpee counts
+  const teamBurpees = leaders.reduce((a,u) => {
+    const days = u.completed_days || 0;
+    return a + DAYS.slice(0, Math.min(days, 30)).reduce((s,d) => s + tot(d), 0);
   }, 0);
+  const teamTotal = leaders.reduce((a,u) => a + (u.completed_days||0), 0);
 
   return(
     <div>
@@ -720,8 +787,8 @@ function TeamSection({leaders, user, legends, onNudge, achievements, onKudo}){
           <div style={{fontSize:'0.62rem',color:'var(--muted)',marginTop:'2px'}}>Krieger</div>
         </div>
         <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0.75rem',textAlign:'center'}}>
-          <div className="bc" style={{fontSize:'1.8rem',fontWeight:900,color:'var(--green)',lineHeight:1}}>{teamTotal}</div>
-          <div style={{fontSize:'0.62rem',color:'var(--muted)',marginTop:'2px'}}>Tage gesamt</div>
+          <div className="bc" style={{fontSize:'1.8rem',fontWeight:900,color:'var(--green)',lineHeight:1}}>{teamBurpees.toLocaleString('de-DE')}</div>
+          <div style={{fontSize:'0.62rem',color:'var(--muted)',marginTop:'2px'}}>Burpees Team</div>
         </div>
         <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0.75rem',textAlign:'center'}}>
           <div className="bc" style={{fontSize:'1.8rem',fontWeight:900,color:'var(--gold)',lineHeight:1}}>{Math.round(leaders.reduce((a,u)=>a+(u.completed_days||0),0)/Math.max(leaders.length,1)*100/30)}%</div>
@@ -737,7 +804,9 @@ function TeamSection({leaders, user, legends, onNudge, achievements, onKudo}){
             const pct = Math.round((u.completed_days||0)/30*100);
             const isMe = u.name===user;
             return(
-              <div key={u.name} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',minWidth:'52px'}}>
+              <div key={u.name} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',minWidth:'52px'}}
+                onClick={!isMe?()=>onAvatarTap(u.name):undefined}
+                style={{cursor:isMe?'default':'pointer'}}>
                 <div style={{position:'relative'}}>
                   <Avatar profile={u} size={44} legends={legends}/>
                   <div style={{position:'absolute',inset:-3,borderRadius:'50%',border:`2px solid ${pct===100?'var(--green)':pct>50?'var(--gold)':'var(--border)'}`,pointerEvents:'none'}}/>
@@ -772,7 +841,7 @@ function TeamSection({leaders, user, legends, onNudge, achievements, onKudo}){
           })}
         </div>
         <div style={{marginTop:'0.75rem',paddingTop:'0.75rem',borderTop:'1px solid var(--border)',textAlign:'center',fontSize:'0.7rem',color:'var(--muted)'}}>
-          🔥 Feuer machen &nbsp;·&nbsp; 💪 Kudo vergeben
+          Tap auf Avatar → 🔥 Feuer · 💪 Kudo
         </div>
       </div>
     </div>
@@ -783,7 +852,7 @@ function TeamSection({leaders, user, legends, onNudge, achievements, onKudo}){
 // ─────────────────────────────────────────────────────────
 //  HOME TAB
 // ─────────────────────────────────────────────────────────
-function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile, legends, onNudge, achievements, onKudo}){
+function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile, legends, onNudge, achievements, onKudo, onAvatarTap}){
   const [motto, setMotto] = useState(()=>rnd(MOTIVATIONS));
   const done    = completed.size;
   const pct     = Math.round((done/30)*100);
@@ -824,10 +893,10 @@ function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile,
       </div>
 
       <DailyLegend legends={legends} cur={getChallengeDay()}/>
-      <TokenBar profile={profile}/>
+      {((1-(profile?.jokers_used||0)-(profile?.joker_swapped?1:0))>0 || (2+(profile?.joker_swapped?1:0)-(profile?.half_used||0))>0) && <TokenBar profile={profile}/>}
       <RewardQuote/>
       <Countdown/>
-      <InviteCard groupSize={leaders.length} leaders={leaders} user={user}/>
+
 
       <div style={{padding:'0 1.25rem',marginBottom:'1rem'}}>
         {cur===0?(
@@ -854,16 +923,17 @@ function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile,
         )}
       </div>
 
-      <div style={{margin:'0 1.25rem 1.5rem',display:'flex',alignItems:'center',gap:'0.75rem',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'14px',padding:'0.9rem 1rem'}}>
+      {!completed.has(getChallengeDay())&&getChallengeDay()>0&&<div style={{margin:'0 1.25rem 1.5rem',display:'flex',alignItems:'center',gap:'0.75rem',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'14px',padding:'0.9rem 1rem'}}>
         <p style={{flex:1,fontSize:'0.87rem',color:'#888',fontStyle:'italic',lineHeight:1.45}}>{motto}</p>
         <button onClick={()=>setMotto(rnd(MOTIVATIONS))} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:'8px',padding:'6px 8px',color:'var(--muted)',fontSize:'0.9rem',flexShrink:0}}>↻</button>
-      </div>
+      </div>}
 
       {leaders.length>0&&(
         <div style={{padding:'0 1.25rem 1rem'}}>
-          <TeamSection leaders={leaders} user={user} legends={legends} onNudge={onNudge} achievements={achievements} onKudo={onKudo}/>
+          <TeamSection leaders={leaders} user={user} legends={legends} onNudge={onNudge} achievements={achievements} onKudo={onKudo} onAvatarTap={onAvatarTap}/>
         </div>
       )}
+      {leaders.length < 12 && <InviteCard groupSize={leaders.length} leaders={leaders} user={user}/>}
     </div>
   );
 }
@@ -875,7 +945,10 @@ function CalendarTab({completed, completionTypes, onOpenDay}){
   const cur = getChallengeDay();
   return(
     <div style={{flex:1,overflowY:'auto',padding:'1.25rem'}}>
-      <div className="bc" style={{fontSize:'1.6rem',fontWeight:800,letterSpacing:'0.05em',marginBottom:'1rem'}}>30-TAGE PLAN</div>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:'1rem'}}>
+        <div className="bc" style={{fontSize:'1.6rem',fontWeight:800,letterSpacing:'0.05em'}}>30-TAGE PLAN</div>
+        <div style={{fontSize:'0.7rem',color:'var(--muted)'}}>Tap zum Nachtragen</div>
+      </div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:'8px'}}>
         {DAYS.map(d=>{
           const isDone  = completed.has(d.day);
@@ -918,6 +991,7 @@ function WallTab({user, profile, legends, wall, onPost, onReact, onOpenCommunity
   const [posting, setPosting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef();
+  const galleryRef = useRef();
 
   const submit = async (imageUrl=null) => {
     if((!text.trim()&&!imageUrl)||posting) return;
@@ -931,13 +1005,20 @@ function WallTab({user, profile, legends, wall, onPost, onReact, onOpenCommunity
     const file = e.target.files[0]; if(!file) return;
     setUploading(true);
     try{
-      const ext = file.name.split('.').pop();
+      const ext = (file.name.split('.').pop()||'jpg').toLowerCase();
       const path = `${user}_${Date.now()}.${ext}`;
-      const {error} = await db.storage.from('wall-photos').upload(path, file, {contentType:file.type});
-      if(error) throw error;
+      const {data, error} = await db.storage.from('wall-photos').upload(path, file, {contentType:file.type, upsert:true});
+      if(error){
+        // Show inline error, not alert
+        showToast('📸 Bucket fehlt — in Supabase Storage "wall-photos" anlegen (Public)');
+        setUploading(false); e.target.value=''; return;
+      }
       const {data:{publicUrl}} = db.storage.from('wall-photos').getPublicUrl(path);
       await submit(publicUrl);
-    }catch(err){ console.error(err); alert('Foto-Upload fehlgeschlagen. Wurde der wall-photos Bucket angelegt?'); }
+    }catch(err){
+      console.error(err);
+      showToast('📸 Upload fehlgeschlagen');
+    }
     setUploading(false);
     e.target.value='';
   };
@@ -954,9 +1035,14 @@ function WallTab({user, profile, legends, wall, onPost, onReact, onOpenCommunity
           <input value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()} placeholder="Motiviere dein Team..."
             style={{flex:1,padding:'0.8rem 1rem',background:'var(--bg3)',border:'2px solid var(--border)',borderRadius:'12px',color:'var(--text)',fontSize:'0.9rem',outline:'none'}}/>
           <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={handlePhoto} style={{display:'none'}}/>
-          <button onClick={()=>fileRef.current.click()} disabled={uploading}
-            style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0 0.7rem',color:uploading?'var(--muted)':'var(--text)',fontSize:'1.2rem',height:'44px',flexShrink:0}}>
-            {uploading?'⏳':'📸'}
+          <input ref={galleryRef} type="file" accept="image/*" onChange={handlePhoto} style={{display:'none'}}/>
+          <button onClick={()=>fileRef.current.click()} disabled={uploading} title="Foto aufnehmen"
+            style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0 0.6rem',color:uploading?'var(--muted)':'var(--text)',fontSize:'1.1rem',height:'44px',flexShrink:0}}>
+            {uploading?'⏳':'📷'}
+          </button>
+          <button onClick={()=>galleryRef.current.click()} disabled={uploading} title="Aus Galerie wählen"
+            style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0 0.6rem',color:uploading?'var(--muted)':'var(--text)',fontSize:'1.1rem',height:'44px',flexShrink:0}}>
+            🖼️
           </button>
           <button onClick={()=>submit()} disabled={!text.trim()||posting}
             style={{background:'var(--red)',border:'none',borderRadius:'12px',padding:'0 1rem',color:'#fff',fontSize:'1.2rem',height:'44px',opacity:(!text.trim()||posting)?0.4:1,flexShrink:0}}>→</button>
@@ -1500,6 +1586,9 @@ function App(){
   const [showKudoModal,   setShowKudoModal]   = useState(null);
   const [allCompletions,  setAllCompletions]  = useState([]);
   const [wildcards,       setWildcards]       = useState([]);
+  const [notifications,   setNotifications]   = useState([]);
+  const [activeNotif,     setActiveNotif]     = useState(null);
+  const [avatarMenu,      setAvatarMenu]      = useState(null); // {name, x, y}
   const [wildcardCompletions, setWildcardCompletions] = useState([]);
   const [workoutDay,      setWorkoutDay]      = useState(null);
   const [feuerTarget,     setFeuerTarget]     = useState(null);
@@ -1567,6 +1656,16 @@ function App(){
     if(data) setAllCompletions(data);
   },[]);
 
+  const loadNotifications = useCallback(async (name) => {
+    const {data} = await db.from('notifications')
+      .select('*').eq('to_name', name).eq('read', false)
+      .order('created_at', {ascending:false}).limit(10);
+    if(data && data.length > 0){
+      setNotifications(data);
+      setActiveNotif(data[0]);
+    }
+  },[]);
+
   const loadWildcards = useCallback(async () => {
     const {data:wc}   = await db.from('wildcards').select('*').order('created_at',{ascending:false}).limit(5);
     const {data:wcc}  = await db.from('wildcard_completions').select('*');
@@ -1584,6 +1683,8 @@ function App(){
     const saved = localStorage.getItem('burpee_name');
     if(saved){ setUserName(saved); loadUser(saved); } else setScreen('onboarding');
     loadLeaders(); loadWall(); loadLegends(); loadSubmissions(); loadKudos(); loadAchievements(); loadAllCompletions(); loadWildcards();
+    const savedName = localStorage.getItem('burpee_name');
+    if(savedName) loadNotifications(savedName);
     const ch = db.channel('live')
       .on('postgres_changes',{event:'*',schema:'public',table:'wall_posts'},loadWall)
       .on('postgres_changes',{event:'*',schema:'public',table:'profiles'},loadLeaders)
@@ -1592,6 +1693,7 @@ function App(){
       .on('postgres_changes',{event:'*',schema:'public',table:'achievements'},loadAchievements)
       .on('postgres_changes',{event:'*',schema:'public',table:'wildcards'},loadWildcards)
       .on('postgres_changes',{event:'*',schema:'public',table:'wildcard_completions'},loadWildcards)
+      .on('postgres_changes',{event:'*',schema:'public',table:'notifications'},()=>loadNotifications(userName))
       .on('postgres_changes',{event:'*',schema:'public',table:'day_completions'},loadAllCompletions)
       .subscribe();
     return () => ch.unsubscribe();
@@ -1723,6 +1825,14 @@ function App(){
 
   const handleNudge = targetName => setFeuerTarget(targetName);
 
+  const dismissNotif = async () => {
+    if(!activeNotif) return;
+    await db.from('notifications').update({read:true}).eq('id', activeNotif.id);
+    const remaining = notifications.filter(n=>n.id!==activeNotif.id);
+    setNotifications(remaining);
+    setActiveNotif(remaining.length > 0 ? remaining[0] : null);
+  };
+
   const handleCallWildcard = async (message) => {
     const expires = new Date(Date.now() + 24*60*60*1000).toISOString();
     await db.from('wildcards').insert({called_by:userName, message, expires_at:expires});
@@ -1740,9 +1850,10 @@ function App(){
     setShowKudoModal(null);
     await db.from('kudos').insert({from_name:userName, to_name:toName, message});
     await loadKudos();
-    // Also post to wall as special message
     await handlePost(`💪 ${userName} gibt ${toName} einen Kudo!
 "${message}"`);
+    await db.from('notifications').insert({to_name:toName, from_name:userName, type:'kudo', message:`💪 ${userName} gibt dir einen Kudo!
+"${message}"`});
     showToast(`💪 Kudo an ${toName} gesendet!`);
   };
 
@@ -1750,6 +1861,7 @@ function App(){
     const target = feuerTarget; setFeuerTarget(null);
     const msg = `🔥 ${userName} macht Feuer unter ${target}!\n\n${legend.emoji} ${legend.char.toUpperCase()} sagt:\n"${legend.selectedQuote}"`;
     await handlePost(msg);
+    await db.from('notifications').insert({to_name:target, from_name:userName, type:'feuer', message:`🔥 ${userName} macht dir Feuer!\n${legend.emoji} "${legend.selectedQuote}"`});
     setTab('wall'); showToast(`🔥 ${target} bekommt Feuer von ${legend.char}!`);
   };
 
@@ -1789,12 +1901,14 @@ function App(){
   return(
     <>
       <Toast msg={toast}/>
+      <NotificationBanner notif={activeNotif} onDismiss={dismissNotif}/>
+      {avatarMenu&&<AvatarContextMenu targetName={avatarMenu} onFeuer={setFeuerTarget} onKudo={setShowKudoModal} onClose={()=>setAvatarMenu(null)}/>}
       {showKudoModal&&<KudoModal to={showKudoModal} from={userName} onSend={handleSendKudo} onCancel={()=>setShowKudoModal(null)}/>}
       {feuerTarget&&<FeuermachenModal from={userName} to={feuerTarget} legends={legends} onSend={handleFeuerSend} onCancel={()=>setFeuerTarget(null)}/>}
       {showAvatarEditor&&<AvatarEditorModal profile={profile} legends={legends} onSave={handleSaveAvatar} onCancel={()=>setShowAvatarEditor(false)}/>}
       {showCommunity&&<CommunityQuotes user={userName} legends={legends} submissions={submissions} onSubmit={handleSubmitQuote} onVote={handleVote} onClose={()=>setShowCommunity(false)}/>}
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',paddingTop:'var(--safe-t)'}}>
-        {tab==='home'     && <HomeTab user={userName} completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay} leaders={leaders} profile={profile} legends={legends} onNudge={handleNudge} achievements={achievements} onKudo={setShowKudoModal}/>}
+        {tab==='home'     && <HomeTab user={userName} completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay} leaders={leaders} profile={profile} legends={legends} onNudge={handleNudge} achievements={achievements} onKudo={setShowKudoModal} onAvatarTap={setAvatarMenu}/>}
         {tab==='calendar' && <CalendarTab completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay}/>}
         {tab==='wall'     && <WallTab user={userName} profile={profile} legends={legends} wall={wall} onPost={handlePost} onReact={handleReact} onOpenCommunity={()=>setShowCommunity(true)}/>}
         {tab==='stats'    && <StatsTab user={userName} leaders={leaders} legends={legends} completionData={allCompletions} wildcards={wildcards} wildcardCompletions={wildcardCompletions} onCallWildcard={handleCallWildcard} onCompleteWildcard={handleCompleteWildcard}/>}
