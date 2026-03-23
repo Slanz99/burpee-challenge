@@ -861,7 +861,7 @@ function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile,
 
       {leaders.length>0&&(
         <div style={{padding:'0 1.25rem 1rem'}}>
-          <TeamSection leaders={leaders} user={user} legends={legends} onNudge={onNudge} achievements={achievements} onKudo={setShowKudoModal}/>
+          <TeamSection leaders={leaders} user={user} legends={legends} onNudge={onNudge} achievements={achievements} onKudo={onKudo}/>
         </div>
       )}
     </div>
@@ -1794,7 +1794,7 @@ function App(){
       {showAvatarEditor&&<AvatarEditorModal profile={profile} legends={legends} onSave={handleSaveAvatar} onCancel={()=>setShowAvatarEditor(false)}/>}
       {showCommunity&&<CommunityQuotes user={userName} legends={legends} submissions={submissions} onSubmit={handleSubmitQuote} onVote={handleVote} onClose={()=>setShowCommunity(false)}/>}
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',paddingTop:'var(--safe-t)'}}>
-        {tab==='home'     && <HomeTab user={userName} completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay} leaders={leaders} profile={profile} legends={legends} onNudge={handleNudge} achievements={achievements} onKudo={setShowKudoModal}/>}
+        {tab==='home'     && <HomeTab user={userName} completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay} leaders={leaders} profile={profile} legends={legends} onNudge={handleNudge} achievements={achievements} onKudo={onKudo}/>}
         {tab==='calendar' && <CalendarTab completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay}/>}
         {tab==='wall'     && <WallTab user={userName} profile={profile} legends={legends} wall={wall} onPost={handlePost} onReact={handleReact} onOpenCommunity={()=>setShowCommunity(true)}/>}
         {tab==='stats'    && <StatsTab user={userName} leaders={leaders} legends={legends} completionData={allCompletions} wildcards={wildcards} wildcardCompletions={wildcardCompletions} onCallWildcard={handleCallWildcard} onCompleteWildcard={handleCompleteWildcard}/>}
