@@ -1,0 +1,1832 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="theme-color" content="#090909"/>
+  <title>Burpee Challenge 💥</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root{
+      --red:#e63946;--red2:#c1121f;--green:#4ade80;--gold:#f59e0b;--purple:#8b5cf6;
+      --bg:#090909;--bg2:#111111;--bg3:#181818;--border:#1f1f1f;
+      --text:#f2f2f2;--muted:#555;
+      --safe-b:env(safe-area-inset-bottom,0px);
+      --safe-t:env(safe-area-inset-top,0px);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+    html{height:100%;overflow:hidden;}
+    body{height:100%;background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;overscroll-behavior:none;-webkit-font-smoothing:antialiased;}
+    #root{height:100%;display:flex;flex-direction:column;}
+    button{cursor:pointer;}
+    input,textarea{font-family:inherit;}
+    input{-webkit-appearance:none;}
+    @keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+    @keyframes pop{0%{transform:scale(0.85);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+    @keyframes shimmer{0%,100%{opacity:1}50%{opacity:0.35}}
+    @keyframes slideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
+    .bc{font-family:'Barlow Condensed',sans-serif;}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+// ─────────────────────────────────────────────────────────
+//  CONFIG
+// ─────────────────────────────────────────────────────────
+const SUPABASE_URL  = 'https://csfhunqizwwgxjcdfttp.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzZmh1bnFpend3Z3hqY2RmdHRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MzgzMTAsImV4cCI6MjA4OTQxNDMxMH0.qRLgc7eVaa-njdhbV5hupLCQJHhupY016MqAaLQ0CPc';
+const START_DATE    = new Date('2026-03-22');
+const MAX_GROUP     = 12;
+
+const {createClient} = window.supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON);
+const {useState, useEffect, useRef, useCallback} = React;
+
+// ─────────────────────────────────────────────────────────
+//  HELPERS
+// ─────────────────────────────────────────────────────────
+const rnd     = a => a[Math.floor(Math.random() * a.length)];
+const tot     = d => d.sets.reduce((a,b) => a+b, 0);
+const getChallengeDay = () => {
+  const t = new Date(); t.setHours(0,0,0,0);
+  const s = new Date(START_DATE); s.setHours(0,0,0,0);
+  return Math.min(Math.max(Math.floor((t-s)/86400000)+1, 0), 30);
+};
+
+// ─────────────────────────────────────────────────────────
+//  CHALLENGE DATA
+// ─────────────────────────────────────────────────────────
+const DAYS = [
+  {day:1, sets:[6,4,3,3],    oneGo:false},{day:2, sets:[10],       oneGo:true},
+  {day:3, sets:[6,6,3,3],    oneGo:false},{day:4, sets:[14],       oneGo:true},
+  {day:5, sets:[8,6,4,4],    oneGo:false},{day:6, sets:[17],       oneGo:true},
+  {day:7, sets:[8,8,4,4],    oneGo:false},{day:8, sets:[20],       oneGo:true},
+  {day:9, sets:[10,8,5,5],   oneGo:false},{day:10,sets:[24],       oneGo:true},
+  {day:11,sets:[10,10,5,5],  oneGo:false},{day:12,sets:[26],       oneGo:true},
+  {day:13,sets:[12,10,6,6],  oneGo:false},{day:14,sets:[30],       oneGo:true},
+  {day:15,sets:[12,12,6,6],  oneGo:false},{day:16,sets:[33],       oneGo:true},
+  {day:17,sets:[14,12,7,7],  oneGo:false},{day:18,sets:[35],       oneGo:true},
+  {day:19,sets:[14,14,7,7],  oneGo:false},{day:20,sets:[37],       oneGo:true},
+  {day:21,sets:[16,14,8,8],  oneGo:false},{day:22,sets:[40],       oneGo:true},
+  {day:23,sets:[16,16,8,8],  oneGo:false},{day:24,sets:[42],       oneGo:true},
+  {day:25,sets:[18,16,9,9],  oneGo:false},{day:26,sets:[44],       oneGo:true},
+  {day:27,sets:[18,18,9,9],  oneGo:false},{day:28,sets:[47],       oneGo:true},
+  {day:29,sets:[20,18,10,10],oneGo:false},{day:30,sets:[50],       oneGo:true},
+];
+
+const MOTIVATIONS = [
+  "Kein Schmerz, kein Gewinn!","Jeder Burpee zählt! 🔥",
+  "Du bist stärker als du denkst!","Schweiß ist Fett, das weint ⚡",
+  "Heute schmerzt es – morgen stärkst du!","30 Tage. Kein Aufgeben! 🏆",
+  "Einmal mehr als gestern!","Dein zukünftiges Ich dankt dir!",
+];
+
+const EMOJIS = ["🔥","🤯","⚡","🎉","👑","🥵","🫀","🚀"];
+
+// ─────────────────────────────────────────────────────────
+//  LEGENDEN FALLBACK (aus Supabase geladen, dies ist Notfall)
+// ─────────────────────────────────────────────────────────
+const LEGENDS_FALLBACK = [
+  // Männer
+  {id:'rocky',      char:'Rocky Balboa',    emoji:'🥊',color:'#c0392b',gender:'male',  quotes:[{category:'bekloppt',anheizer:'Boden ist dein Gegner!',        quote:'Der Boden ist dein Gegner, Adrian! Schlag ihn mit deiner Brust!'}]},
+  {id:'chuck',      char:'Chuck Norris',    emoji:'🤠',color:'#d35400',gender:'male',  quotes:[{category:'bekloppt',anheizer:'Drück die Erde weg!',            quote:'Chuck Norris macht keine Burpees. Er drückt die Erde von der Sonne weg. Und jetzt du.'}]},
+  {id:'gandalf',    char:'Gandalf',         emoji:'🧙',color:'#7f8c8d',gender:'male',  quotes:[{category:'motivierend',anheizer:'Krieger landet perfekt!',       quote:'Ein Burpee-Krieger kommt nie zu spät. Er landet genau dann, wenn er es beabsichtigt!'}]},
+  {id:'vader',      char:'Darth Vader',     emoji:'🎭',color:'#8e44ad',gender:'male',  quotes:[{category:'bekloppt',anheizer:'Ergib dich der Schwerkraft!',    quote:'Ich finde deinen Mangel an Burpees beklagenswert. Ergib dich der Schwerkraft!'}]},
+  {id:'leonidas',   char:'König Leonidas',  emoji:'🛡️',color:'#c0390b',gender:'male',  quotes:[{category:'bekloppt',anheizer:'Liegestütz-Position, runter!',  quote:'Dies ist nicht Sparta, dies ist die Liegestütz-Position! Runter mit dir!'}]},
+  {id:'indy',       char:'Indiana Jones',   emoji:'🎩',color:'#8B6914',gender:'male',  quotes:[{category:'motivierend',anheizer:'Jahre zählen nicht, Reps schon!',quote:'Es sind nicht die Jahre, Schätzchen, es sind die Wiederholungen!'}]},
+  {id:'thor',       char:'Thor',            emoji:'⚡',color:'#1a5e9a',gender:'male',  quotes:[{category:'bekloppt',anheizer:'Arsch ist zu schwer!',           quote:'Mein Hammer ist schwer, aber dein Arsch ist heute schwerer! Beweg ihn!'}]},
+  {id:'rambo',      char:'John Rambo',      emoji:'💪',color:'#2d5a27',gender:'male',  quotes:[{category:'brutal',anheizer:'Werde ein Burpee!',                quote:'Um die Burpees zu überleben, musst du zu einem Burpee werden!'}]},
+  {id:'yoda',       char:'Yoda',            emoji:'🟢',color:'#27ae60',gender:'male',  quotes:[{category:'motivierend',anheizer:'Flach wie Flunder springen!', quote:'Flach wie eine Flunder du sein musst, um hoch wie ein X-Wing zu fliegen!'}]},
+  {id:'bond',       char:'James Bond',      emoji:'🍸',color:'#1a1a2e',gender:'male',  quotes:[{category:'bekloppt',anheizer:'Quantum Liegestütz reicht nicht!',quote:'Ein Quantum Liegestütz reicht nicht. Ich erwarte, dass Sie springen, Goldfinger!'}]},
+  {id:'terminator', char:'Terminator',      emoji:'🤖',color:'#333333',gender:'male',  quotes:[{category:'bekloppt',anheizer:'Muskeln aus Metall!',            quote:'Sprung mit mir, wenn du leben willst. Deine Muskeln sind aus Metall, also bieg sie!'}]},
+  {id:'madmax',     char:'Mad Max',         emoji:'🚙',color:'#5a3e00',gender:'male',  quotes:[{category:'motivierend',anheizer:'Glänzend und verschwitzt!',  quote:'Wir reiten in die Fitness-Walhalla! Glänzend und verschwitzt!'}]},
+  {id:'goggins',    char:'David Goggins',   emoji:'⚓', color:'#2c3e50',gender:'male',  quotes:[{category:'brutal',anheizer:'Erstick sie mit Schweiß!',        quote:'Ich höre da eine kleine Bitch-Voice in deinem Kopf. Erstick sie mit Schweiß!'}]},
+  // Frauen
+  {id:'wonder',     char:'Wonder Woman',    emoji:'🦅',color:'#1a5e9a',gender:'female',quotes:[{category:'bekloppt',anheizer:'Lasso der Wahrheit spricht!',   quote:'Mein Lasso der Wahrheit sagt: Du bist eine faule Socke! Runter jetzt!'}]},
+  {id:'furiosa',    char:'Imperator Furiosa',emoji:'🚗',color:'#c0680a',gender:'female',quotes:[{category:'bekloppt',anheizer:'Witness me!',                   quote:'WITNESS ME! Furiosa hat mit einem Arm die Citadel zurückerobert. Du hast zwei. Keine Ausreden.'}]},
+  {id:'xena',       char:'Xena',            emoji:'⚔️', color:'#9b2335',gender:'female',quotes:[{category:'bekloppt',anheizer:'Krieger weinen erst danach!',   quote:'Ein echter Krieger weint erst, wenn der 50. Burpee vorbei ist! AYALALALALA!'}]},
+  {id:'lara',       char:'Lara Croft',      emoji:'🏹',color:'#8B6914',gender:'female',quotes:[{category:'bekloppt',anheizer:'Gräber waren lebendiger!',      quote:'Ich habe Gräber gefunden, die lebendiger waren als dein Workout heute!'}]},
+  {id:'ripley',     char:'Ellen Ripley',    emoji:'🚀',color:'#2d5a27',gender:'female',quotes:[{category:'bekloppt',anheizer:'Weltraum hört dich nicht!',     quote:'Im Weltraum hört dich niemand fluchen, wenn die Oberschenkel brennen!'}]},
+  {id:'katniss',    char:'Katniss Everdeen',emoji:'🏹',color:'#2d6e2d',gender:'female',quotes:[{category:'bekloppt',anheizer:'Nächste Runde geht los!',       quote:'Ich melde mich freiwillig als Tribut für... die nächste Runde Burpees!'}]},
+  {id:'galadriel',  char:'Galadriel',       emoji:'✨',color:'#8B7536',gender:'female',quotes:[{category:'bekloppt',anheizer:'Schrecklich und muskulös!',     quote:'Anstelle eines dunklen Lords hättest du eine Trainerin! Schrecklich und muskulös!'}]},
+  {id:'beatrix',    char:'Beatrix Kiddo',   emoji:'🗡️',color:'#c0a000',gender:'female',quotes:[{category:'bekloppt',anheizer:'10 Burpees? Peinlich.',         quote:'Ich habe 88 Verrückte besiegt. Du schaffst nicht mal 10 Burpees? Peinlich.'}]},
+  {id:'widow',      char:'Black Widow',     emoji:'🕷️',color:'#1a1a2e',gender:'female',quotes:[{category:'bekloppt',anheizer:'Tilge mit Schweiß!',            quote:'Dein Register ist voll mit Chips-Tüten. Zeit, das mit Schweiß zu tilgen!'}]},
+  {id:'daenerys',   char:'Daenerys',        emoji:'🐉',color:'#8B0000',gender:'female',quotes:[{category:'bekloppt',anheizer:'Brenne, Fettgewebe, brenne!',   quote:'Ich bin die Mutter der Burpees und ich befehle dir: Brenne, Fettgewebe, brenne!'}]},
+  {id:'leia',       char:'Prinzessin Leia', emoji:'👑',color:'#4a0080',gender:'female',quotes:[{category:'bekloppt',anheizer:'Hör auf zu jammern!',           quote:'Hör auf zu jammern, du wandelnder Teppich! Runter auf den Boden!'}]},
+  {id:'trinity',    char:'Trinity',         emoji:'💊',color:'#1a1a1a',gender:'female',quotes:[{category:'bekloppt',anheizer:'Matte existiert nicht!',        quote:'Was ist, wenn ich dir sage, dass die Matte gar nicht existiert? Also leg dich flach!'}]},
+  {id:'boudica',    char:'Boudica',         emoji:'🛡️',color:'#8B2500',gender:'female',quotes:[{category:'bekloppt',anheizer:'Lieber springend sterben!',    quote:'Lieber sterbe ich beim Springen, als kniend vor meiner Couch zu versauern!'}]},
+];
+
+// 50/50 sort: male/female alternating
+const sortLegends = legs => {
+  const m = legs.filter(l=>l.gender!=='female');
+  const f = legs.filter(l=>l.gender==='female');
+  const out = [];
+  for(let i=0;i<Math.max(m.length,f.length);i++){
+    if(i<m.length) out.push(m[i]);
+    if(i<f.length) out.push(f[i]);
+  }
+  return out;
+};
+
+const getByCat = (leg, cat) => {
+  const pool = leg[`quotes_${cat}`];
+  return (pool&&pool.length) ? pool : leg.quotes;
+};
+const getTwoLegends = legends => {
+  const pool = (legends&&legends.length>=2) ? legends : LEGENDS_FALLBACK;
+  const s = [...pool].sort(()=>Math.random()-0.5);
+  const qa = rnd(getByCat(s[0],'bekloppt')||s[0].quotes);
+  const qb = rnd(getByCat(s[1],'bekloppt')||s[1].quotes);
+  return [
+    {...s[0], anheizer:qa.anheizer, selectedQuote:qa.quote},
+    {...s[1], anheizer:qb.anheizer, selectedQuote:qb.quote},
+  ];
+};
+const getJokerQuote = legends => {
+  const pool = (legends&&legends.length) ? legends : LEGENDS_FALLBACK;
+  const l = rnd(pool);
+  const src = getByCat(l,'original') || getByCat(l,'bekloppt') || l.quotes;
+  const q = rnd(src);
+  return {char:l.char, emoji:l.emoji, color:l.color, quote:q.quote};
+};
+
+// ─────────────────────────────────────────────────────────
+//  SVG POSE AVATARS
+// ─────────────────────────────────────────────────────────
+const POSE_SVGS = {
+  1: c => `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="8" r="4.5" fill="${c}"/><line x1="20" y1="12.5" x2="20" y2="22" stroke="${c}" stroke-width="2.8" stroke-linecap="round"/><line x1="20" y1="22" x2="10" y2="30" stroke="${c}" stroke-width="2.8" stroke-linecap="round"/><line x1="20" y1="22" x2="30" y2="30" stroke="${c}" stroke-width="2.8" stroke-linecap="round"/><line x1="10" y1="30" x2="10" y2="37" stroke="${c}" stroke-width="2.5" stroke-linecap="round"/><line x1="30" y1="30" x2="30" y2="37" stroke="${c}" stroke-width="2.5" stroke-linecap="round"/><line x1="20" y1="17" x2="10" y2="26" stroke="${c}" stroke-width="2.2" stroke-linecap="round" opacity="0.7"/><line x1="20" y1="17" x2="30" y2="26" stroke="${c}" stroke-width="2.2" stroke-linecap="round" opacity="0.7"/></svg>`,
+  2: c => `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><circle cx="9" cy="17" r="4.5" fill="${c}"/><line x1="13" y1="17" x2="36" y2="21" stroke="${c}" stroke-width="2.8" stroke-linecap="round"/><line x1="18" y1="18" x2="14" y2="29" stroke="${c}" stroke-width="2.5" stroke-linecap="round"/><line x1="30" y1="20" x2="26" y2="31" stroke="${c}" stroke-width="2.5" stroke-linecap="round"/><line x1="14" y1="29" x2="9" y2="29" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><line x1="26" y1="31" x2="21" y2="31" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><line x1="9" y1="17" x2="6" y2="24" stroke="${c}" stroke-width="2" stroke-linecap="round" opacity="0.7"/></svg>`,
+  3: c => `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="5" r="4.5" fill="${c}"/><line x1="20" y1="9.5" x2="20" y2="22" stroke="${c}" stroke-width="2.8" stroke-linecap="round"/><line x1="20" y1="13" x2="9" y2="8" stroke="${c}" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/><line x1="20" y1="13" x2="31" y2="8" stroke="${c}" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/><line x1="20" y1="22" x2="13" y2="33" stroke="${c}" stroke-width="2.5" stroke-linecap="round"/><line x1="20" y1="22" x2="27" y2="33" stroke="${c}" stroke-width="2.5" stroke-linecap="round"/><circle cx="7" cy="7" r="1.5" fill="${c}" opacity="0.5"/><circle cx="33" cy="6" r="1.2" fill="${c}" opacity="0.4"/></svg>`,
+};
+const POSE_LABELS = {1:'Die Tiefe Beuge', 2:'Die Bergpaß-Plank', 3:'Der Funkensprung'};
+
+// ─────────────────────────────────────────────────────────
+//  AVATAR COMPONENT
+// ─────────────────────────────────────────────────────────
+function Avatar({profile, size=40, legends, showGimmick=true}){
+  const legendId = profile?.avatar_legend || profile?.avatar || 'chuck';
+  const pose = profile?.avatar_pose || (Math.floor(Math.random()*3)+1);
+  const leg = legends ? legends.find(l=>l.id===legendId) : null;
+  const color = leg?.color || '#e63946';
+  const svgStr = (POSE_SVGS[pose]||POSE_SVGS[1])(color);
+
+  let borderColor='#1f1f1f', glow='none';
+  if(profile?.joker_swapped){borderColor='#8b5cf6';glow='0 0 10px rgba(139,92,246,0.5)';}
+
+  let badge = null;
+  if(showGimmick){
+    if(profile?.joker_swapped)       badge=<span style={{position:'absolute',bottom:-2,right:-2,fontSize:'0.6rem',background:'#8b5cf6',borderRadius:'50%',width:15,height:15,display:'flex',alignItems:'center',justifyContent:'center'}}>⚡</span>;
+    else if((profile?.jokers_used||0)>0) badge=<span style={{position:'absolute',bottom:-2,right:-2,fontSize:'0.6rem',background:'#333',borderRadius:'50%',width:15,height:15,display:'flex',alignItems:'center',justifyContent:'center'}}>🎭</span>;
+    else if((profile?.half_used||0)>0)   badge=<span style={{position:'absolute',bottom:-2,right:-2,fontSize:'0.6rem',background:'#1e3a5f',borderRadius:'50%',width:15,height:15,display:'flex',alignItems:'center',justifyContent:'center'}}>🌙</span>;
+  }
+
+  return(
+    <div style={{position:'relative',width:size,height:size,flexShrink:0}}>
+      <div style={{width:size,height:size,borderRadius:'50%',background:'#0d0d0d',border:`2px solid ${borderColor}`,boxShadow:glow,overflow:'hidden',display:'flex',alignItems:'center',justifyContent:'center'}}>
+        {leg
+          ? <div style={{width:size*0.88,height:size*0.88}} dangerouslySetInnerHTML={{__html:svgStr}}/>
+          : <span style={{fontSize:size*0.45}}>{profile?.emoji||'💪'}</span>
+        }
+      </div>
+      {badge}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  TOKEN BAR
+// ─────────────────────────────────────────────────────────
+function TokenBar({profile}){
+  const jokersLeft = 1-(profile?.jokers_used||0)-(profile?.joker_swapped?1:0);
+  const halfLeft   = 2+(profile?.joker_swapped?1:0)-(profile?.half_used||0);
+  return(
+    <div style={{display:'flex',gap:'8px',margin:'0 1.25rem 1rem'}}>
+      <div style={{flex:1,background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0.65rem 0.85rem',display:'flex',alignItems:'center',gap:'8px'}}>
+        <span style={{fontSize:'1.1rem'}}>🃏</span>
+        <div>
+          <div className="bc" style={{fontSize:'0.6rem',color:'var(--muted)',letterSpacing:'0.1em'}}>JOKER</div>
+          <div className="bc" style={{fontSize:'1rem',fontWeight:800,color:jokersLeft>0?'var(--gold)':'var(--muted)'}}>{jokersLeft>0?'1× frei':'verbraucht'}</div>
+        </div>
+      </div>
+      <div style={{flex:1,background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0.65rem 0.85rem',display:'flex',alignItems:'center',gap:'8px'}}>
+        <span style={{fontSize:'1.1rem'}}>🌙</span>
+        <div>
+          <div className="bc" style={{fontSize:'0.6rem',color:'var(--muted)',letterSpacing:'0.1em'}}>HALBE</div>
+          <div className="bc" style={{fontSize:'1rem',fontWeight:800,color:halfLeft>0?'#60a5fa':'var(--muted)'}}>{halfLeft>0?`${halfLeft}× frei`:'verbraucht'}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  TOAST
+// ─────────────────────────────────────────────────────────
+function Toast({msg}){
+  if(!msg) return null;
+  return(
+    <div style={{position:'fixed',top:'calc(var(--safe-t) + 12px)',left:'50%',transform:'translateX(-50%)',
+      background:'var(--red)',color:'#fff',padding:'10px 20px',borderRadius:'100px',
+      fontSize:'0.85rem',fontWeight:600,zIndex:9999,whiteSpace:'nowrap',
+      boxShadow:'0 4px 24px rgba(230,57,70,0.5)',animation:'slideDown 0.3s ease both',
+      maxWidth:'90vw',textAlign:'center'}}>
+      {msg}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  JOKER MODAL
+// ─────────────────────────────────────────────────────────
+function JokerModal({profile, jokerQuote, onCancel, onConfirm, onSwap}){
+  const q = jokerQuote || {char:'Chuck Norris',emoji:'🤠',color:'#d35400',quote:'Die Schwerkraft wartet nicht. Und ich auch nicht.'};
+  const jokersLeft = 1-(profile?.jokers_used||0)-(profile?.joker_swapped?1:0);
+  return(
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:200,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end'}} onClick={e=>e.target===e.currentTarget&&onCancel()}>
+      <div style={{width:'100%',maxWidth:'480px',background:'var(--bg)',borderRadius:'24px 24px 0 0',padding:'2rem 1.5rem',paddingBottom:'calc(2rem + var(--safe-b))'}}>
+        <div style={{textAlign:'center',marginBottom:'1.25rem'}}>
+          <div style={{fontSize:'4rem',marginBottom:'0.5rem',animation:'pop 0.4s ease both'}}>{q.emoji}</div>
+          <div className="bc" style={{fontSize:'1rem',fontWeight:700,color:'var(--gold)',letterSpacing:'0.1em',marginBottom:'0.75rem'}}>{q.char.toUpperCase()} SPRICHT:</div>
+          <p style={{fontSize:'0.95rem',lineHeight:1.55,color:'#ccc',fontStyle:'italic'}}>"{q.quote}"</p>
+        </div>
+        <div style={{height:'1px',background:'var(--border)',margin:'1.25rem 0'}}/>
+        <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+          <button onClick={onCancel} style={{width:'100%',padding:'1rem',background:'linear-gradient(135deg,var(--red),var(--red2))',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.1rem',fontWeight:800,letterSpacing:'0.08em',boxShadow:'0 4px 20px rgba(230,57,70,0.4)'}}>
+            💪 TROTZDEM MACHEN!
+          </button>
+          {jokersLeft>0&&<button onClick={onConfirm} style={{width:'100%',padding:'0.9rem',background:'#1a1a1a',border:'2px solid #444',borderRadius:'14px',color:'#aaa',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1rem',fontWeight:700}}>
+            🃏 Joker einsetzen (1 verbleibend)
+          </button>}
+          {jokersLeft>0&&!profile?.joker_swapped&&<button onClick={onSwap} style={{width:'100%',padding:'0.9rem',background:'rgba(139,92,246,0.1)',border:'2px solid rgba(139,92,246,0.4)',borderRadius:'14px',color:'#a78bfa',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.95rem',fontWeight:700}}>
+            ⚡ Joker → Halbe tauschen + Avatar-Upgrade
+          </button>}
+          <button onClick={onCancel} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.82rem',padding:'0.5rem'}}>Abbrechen</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  FEUER MACHEN MODAL
+// ─────────────────────────────────────────────────────────
+function FeuermachenModal({from, to, legends, onSend, onCancel}){
+  const [options]  = useState(()=>getTwoLegends(legends));
+  const [chosen, setChosen] = useState(null);
+  return(
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.95)',zIndex:250,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',animation:'slideUp 0.3s ease both'}} onClick={e=>e.target===e.currentTarget&&onCancel()}>
+      <div style={{width:'100%',maxWidth:'480px',background:'var(--bg)',borderRadius:'24px 24px 0 0',padding:'1.5rem',paddingBottom:'calc(1.5rem + var(--safe-b))'}}>
+        <div style={{textAlign:'center',marginBottom:'1.25rem'}}>
+          <div style={{fontSize:'2rem',marginBottom:'4px'}}>🔥</div>
+          <div className="bc" style={{fontSize:'1.4rem',fontWeight:900,letterSpacing:'0.05em',color:'var(--red)'}}>FEUER MACHEN</div>
+          <div style={{color:'var(--muted)',fontSize:'0.82rem',marginTop:'4px'}}>Wähle eine Legende für <b style={{color:'var(--text)'}}>{to}</b></div>
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:'10px',marginBottom:'1rem'}}>
+          {options.map((leg,i)=>(
+            <button key={leg.id} onClick={()=>setChosen(i)}
+              style={{background:chosen===i?`${leg.color}22`:'var(--bg2)',border:`2px solid ${chosen===i?leg.color:'var(--border)'}`,borderRadius:'16px',padding:'1rem',textAlign:'left',transition:'all 0.15s'}}>
+              <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'6px'}}>
+                <span style={{fontSize:'1.5rem'}}>{leg.emoji}</span>
+                <div>
+                  <div className="bc" style={{fontSize:'0.95rem',fontWeight:800,color:chosen===i?leg.color:'var(--text)',letterSpacing:'0.05em'}}>{leg.char.toUpperCase()}</div>
+                  <div style={{fontSize:'0.62rem',color:'var(--muted)',letterSpacing:'0.08em'}}>{leg.abteilung}</div>
+                </div>
+                {chosen===i&&<span style={{marginLeft:'auto',fontSize:'1.2rem'}}>✓</span>}
+              </div>
+              <div className="bc" style={{fontSize:'0.75rem',color:'var(--muted)',letterSpacing:'0.08em',marginBottom:'4px'}}>{leg.anheizer}</div>
+              <p style={{fontSize:'0.85rem',lineHeight:1.5,color:'#ccc',fontStyle:'italic'}}>"{leg.selectedQuote}"</p>
+            </button>
+          ))}
+        </div>
+        <button onClick={()=>chosen!==null&&onSend(options[chosen])} disabled={chosen===null}
+          style={{width:'100%',padding:'1rem',background:chosen!==null?'var(--red)':'var(--bg3)',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.08em',opacity:chosen!==null?1:0.4,boxShadow:chosen!==null?'0 4px 20px rgba(230,57,70,0.4)':'none'}}>
+          🔥 FEUER MACHEN!
+        </button>
+        <button onClick={onCancel} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.82rem',padding:'0.75rem',width:'100%',marginTop:'4px'}}>Abbrechen</button>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  COUNTDOWN
+// ─────────────────────────────────────────────────────────
+function Countdown(){
+  const [time, setTime] = useState(null);
+  useEffect(()=>{
+    const calc = () => {
+      const now = new Date();
+      const start = new Date(START_DATE); start.setHours(0,0,0,0);
+      const diff = start - now;
+      if(diff<=0){setTime(null);return;}
+      setTime({
+        d: Math.floor(diff/86400000),
+        h: Math.floor((diff%86400000)/3600000),
+        m: Math.floor((diff%3600000)/60000),
+        s: Math.floor((diff%60000)/1000),
+      });
+    };
+    calc();
+    const iv = setInterval(calc, 1000);
+    return () => clearInterval(iv);
+  },[]);
+  if(!time) return null;
+  return(
+    <div style={{margin:'0 1.25rem 1rem',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'16px',padding:'1rem',textAlign:'center'}}>
+      <div className="bc" style={{fontSize:'0.65rem',color:'var(--muted)',letterSpacing:'0.15em',marginBottom:'8px'}}>⏳ CHALLENGE STARTET IN</div>
+      <div style={{display:'flex',justifyContent:'center',gap:'8px'}}>
+        {[[time.d,'TAGE'],[time.h,'STD'],[time.m,'MIN'],[time.s,'SEK']].map(([v,l])=>(
+          <div key={l} style={{background:'var(--bg3)',borderRadius:'10px',padding:'8px 10px',minWidth:'48px'}}>
+            <div className="bc" style={{fontSize:'1.6rem',fontWeight:900,color:'var(--red)',lineHeight:1}}>{String(v).padStart(2,'0')}</div>
+            <div style={{fontSize:'0.55rem',color:'var(--muted)',marginTop:'2px',letterSpacing:'0.1em'}}>{l}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{fontSize:'0.75rem',color:'var(--muted)',marginTop:'8px'}}>22. März 2026 · Tag 1</div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  INVITE CARD
+// ─────────────────────────────────────────────────────────
+function InviteCard({groupSize, leaders, user}){
+  const [copied, setCopied]     = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const spotsLeft = MAX_GROUP - groupSize;
+  const isFull    = spotsLeft <= 0;
+
+  const share = async () => {
+    const url  = window.location.href;
+    const text = `💥 Burpee Challenge – 30 Tage, 50 Burpees!\n${groupSize} Leute sind dabei${spotsLeft>0?`, noch ${spotsLeft} Plätze frei`:' – Gruppe voll'}.`;
+    if(navigator.share){try{await navigator.share({title:'Burpee Challenge 🔥',text,url});return;}catch(e){}}
+    try{await navigator.clipboard.writeText(url);setCopied(true);setTimeout(()=>setCopied(false),2500);}catch(e){}
+  };
+
+  if(!expanded) return(
+    <div style={{margin:'0 1.25rem 1rem'}}>
+      <button onClick={()=>setExpanded(true)}
+        style={{width:'100%',background:'var(--bg2)',border:`1px solid ${isFull?'#2d5a2d':'rgba(230,57,70,0.3)'}`,borderRadius:'14px',padding:'0.85rem 1rem',display:'flex',alignItems:'center',gap:'12px'}}>
+        <div style={{width:38,height:38,borderRadius:'50%',background:isFull?'rgba(74,222,128,0.15)':'rgba(230,57,70,0.15)',border:`1px solid ${isFull?'#2d5a2d':'rgba(230,57,70,0.3)'}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.2rem',flexShrink:0}}>
+          {isFull?'✅':'🔗'}
+        </div>
+        <div style={{flex:1,textAlign:'left'}}>
+          <div className="bc" style={{fontSize:'1rem',fontWeight:700,letterSpacing:'0.05em',color:isFull?'var(--green)':'var(--text)'}}>{isFull?'GRUPPE VOLL':'FREUNDE EINLADEN'}</div>
+          <div style={{fontSize:'0.72rem',color:'var(--muted)',marginTop:'2px'}}>{groupSize}/{MAX_GROUP} dabei{spotsLeft>0?` · noch ${spotsLeft} Plätze frei`:''}
+          </div>
+        </div>
+        <div style={{display:'flex'}}>
+          {leaders.slice(0,3).map((l,i)=>(
+            <div key={l.name} style={{width:24,height:24,borderRadius:'50%',background:'var(--bg3)',border:'1.5px solid var(--bg)',marginLeft:i>0?'-6px':0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.75rem',fontWeight:700,color:'var(--muted)'}}>
+              {l.name[0].toUpperCase()}
+            </div>
+          ))}
+          {groupSize>3&&<div style={{width:24,height:24,borderRadius:'50%',background:'var(--bg3)',border:'1.5px solid var(--bg)',marginLeft:'-6px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.55rem',color:'var(--muted)'}}>+{groupSize-3}</div>}
+        </div>
+        <span style={{color:'var(--muted)',fontSize:'0.9rem'}}>›</span>
+      </button>
+    </div>
+  );
+
+  return(
+    <div style={{margin:'0 1.25rem 1rem'}}>
+      <div style={{background:'var(--bg2)',border:'1px solid rgba(230,57,70,0.3)',borderRadius:'16px',overflow:'hidden'}}>
+        <div style={{background:'linear-gradient(135deg,#1a0508,#2a0a10)',padding:'1.25rem',borderBottom:'1px solid var(--border)'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'8px'}}>
+            <div>
+              <div className="bc" style={{fontSize:'1.3rem',fontWeight:900,letterSpacing:'0.05em'}}>💥 BURPEE CHALLENGE</div>
+              <div style={{fontSize:'0.75rem',color:'rgba(255,255,255,0.6)',marginTop:'2px'}}>30 Tage · 50 Burpees · Gemeinsam</div>
+            </div>
+            <button onClick={()=>setExpanded(false)} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'1.2rem',padding:'0'}}>✕</button>
+          </div>
+          <div style={{display:'flex',gap:'16px',marginTop:'4px'}}>
+            {[[groupSize,'dabei'],[spotsLeft,'frei'],[MAX_GROUP,'max']].map(([v,l])=>(
+              <div key={l} style={{textAlign:'center'}}>
+                <div className="bc" style={{fontSize:'1.5rem',fontWeight:900,color:l==='dabei'?'var(--red)':l==='frei'?'var(--gold)':'#60a5fa',lineHeight:1}}>{v}</div>
+                <div style={{fontSize:'0.6rem',color:'var(--muted)'}}>{l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={{padding:'0.75rem 1rem',borderBottom:'1px solid var(--border)'}}>
+          <div className="bc" style={{fontSize:'0.6rem',color:'var(--muted)',letterSpacing:'0.15em',marginBottom:'6px'}}>DEIN TEAM</div>
+          <div style={{display:'flex',flexWrap:'wrap',gap:'6px'}}>
+            {leaders.map(l=>(
+              <div key={l.name} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:'8px',padding:'4px 10px',fontSize:'0.78rem',color:l.name===user?'var(--red)':'var(--text)',fontWeight:l.name===user?600:400}}>
+                {l.name}
+              </div>
+            ))}
+            {Array.from({length:spotsLeft}).map((_,i)=>(
+              <div key={i} style={{background:'rgba(230,57,70,0.05)',border:'1px dashed rgba(230,57,70,0.3)',borderRadius:'8px',padding:'4px 10px',fontSize:'0.78rem',color:'rgba(230,57,70,0.5)'}}>❓ noch frei</div>
+            ))}
+          </div>
+        </div>
+        <div style={{padding:'0.85rem 1rem'}}>
+          <button onClick={share}
+            style={{width:'100%',padding:'0.9rem',background:copied?'rgba(74,222,128,0.15)':'var(--red)',border:copied?'2px solid #2d5a2d':'2px solid transparent',borderRadius:'12px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.1rem',fontWeight:800,letterSpacing:'0.08em',boxShadow:copied?'none':'0 4px 16px rgba(230,57,70,0.35)',transition:'all 0.2s'}}>
+            {copied?'✅ LINK KOPIERT!':isFull?'🔗 LINK TEILEN':`🔥 ${spotsLeft} PLÄTZE VERSCHENKEN`}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  ONBOARDING
+// ─────────────────────────────────────────────────────────
+function Onboarding({onJoin, legends}){
+  const [step, setStep]         = useState('name');
+  const [name, setName]         = useState('');
+  const [selLegend, setSelLegend] = useState(null);
+  const [selPose, setSelPose]   = useState(null);
+  const [loading, setLoading]   = useState(false);
+  const inputRef = useRef();
+  useEffect(()=>{ if(step==='name') setTimeout(()=>inputRef.current?.focus(), 400); },[step]);
+
+  const availLegends = (legends&&legends.length) ? legends : sortLegends(LEGENDS_FALLBACK);
+  const join = async () => {
+    if(loading||!selLegend||!selPose) return;
+    setLoading(true);
+    await onJoin(name.trim(), selLegend.id, selPose);
+    setLoading(false);
+  };
+
+  if(step==='name') return(
+    <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'2rem 1.5rem 1rem',textAlign:'center'}}>
+        <div style={{fontSize:'4.5rem',marginBottom:'0.5rem',animation:'pop 0.5s ease both'}}>💥</div>
+        <h1 className="bc" style={{fontWeight:900,fontSize:'clamp(3rem,15vw,5rem)',lineHeight:0.9,textTransform:'uppercase',marginBottom:'0.75rem'}}>
+          BURPEE<br/><span style={{color:'var(--red)'}}>CHALLENGE</span>
+        </h1>
+        <p style={{color:'var(--muted)',fontSize:'0.9rem',marginBottom:'2rem'}}>50 Burpees · 30 Tage · Gemeinsam 🔥</p>
+        <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0.9rem 1.25rem',textAlign:'left',width:'100%',maxWidth:'320px'}}>
+          <div className="bc" style={{fontSize:'0.65rem',color:'var(--muted)',letterSpacing:'0.12em',marginBottom:'6px'}}>DEIN SAFETY NET</div>
+          <div style={{fontSize:'0.85rem',lineHeight:1.6,color:'#aaa'}}>
+            🃏 <b style={{color:'var(--text)'}}>1 Joker</b> – kompletter Skip<br/>
+            🌙 <b style={{color:'var(--text)'}}>2 Halbe</b> – halbe Portion reicht<br/>
+            ⚡ <b style={{color:'var(--text)'}}>Swap</b> – Joker → extra Halbe tauschen
+          </div>
+        </div>
+      </div>
+      <div style={{padding:'1.25rem',paddingBottom:'calc(1.5rem + var(--safe-b))',background:'var(--bg)',borderTop:'1px solid var(--border)'}}>
+        <p style={{fontSize:'0.72rem',color:'var(--muted)',letterSpacing:'0.12em',marginBottom:'0.6rem',textTransform:'uppercase'}}>Dein Name</p>
+        <input ref={inputRef} value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&name.trim()&&setStep('legend')} placeholder="z.B. Stefano, Lisa, Max..."
+          style={{width:'100%',padding:'1rem',background:'var(--bg3)',border:'2px solid var(--border)',borderRadius:'14px',color:'var(--text)',fontSize:'1.05rem',marginBottom:'0.75rem',outline:'none'}}/>
+        <button onClick={()=>name.trim()&&setStep('legend')} disabled={!name.trim()}
+          style={{width:'100%',padding:'1rem',background:name.trim()?'var(--red)':'var(--bg3)',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.08em',opacity:name.trim()?1:0.4}}>
+          WEITER → DEINE LEGENDE 👊
+        </button>
+      </div>
+    </div>
+  );
+
+  if(step==='legend') return(
+    <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      <div style={{padding:'calc(var(--safe-t) + 1rem) 1.25rem 0.75rem',borderBottom:'1px solid var(--border)',flexShrink:0}}>
+        <button onClick={()=>setStep('name')} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.9rem',padding:'0 0 0.5rem',display:'block'}}>← zurück</button>
+        <div className="bc" style={{fontSize:'1.5rem',fontWeight:800}}>WÄHLE DEINE LEGENDE</div>
+        <div style={{color:'var(--muted)',fontSize:'0.78rem',marginTop:'3px'}}>Wer bist du in dieser Challenge?</div>
+      </div>
+      <div style={{flex:1,overflowY:'auto',padding:'1rem 1.25rem'}}>
+        <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+          {availLegends.map(l=>(
+            <button key={l.id} onClick={()=>{setSelLegend(l);setStep('pose');}}
+              style={{background:selLegend?.id===l.id?`${l.color}22`:'var(--bg2)',border:`2px solid ${selLegend?.id===l.id?l.color:'var(--border)'}`,borderRadius:'16px',padding:'1rem',display:'flex',alignItems:'center',gap:'14px',textAlign:'left',transition:'all 0.15s'}}>
+              <div style={{width:52,height:52,borderRadius:'50%',background:'#0d0d0d',border:`2px solid ${l.color}`,flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <div style={{width:44,height:44}} dangerouslySetInnerHTML={{__html:(POSE_SVGS[1])(l.color)}}/>
+              </div>
+              <div style={{flex:1}}>
+                <div className="bc" style={{fontSize:'1.1rem',fontWeight:800,color:selLegend?.id===l.id?l.color:'var(--text)',letterSpacing:'0.03em'}}>{l.char.toUpperCase()}</div>
+                <div style={{fontSize:'0.7rem',color:'var(--muted)',marginTop:'2px'}}>{l.emoji} {l.gender==='female'?'♀':'♂'} · {l.begriff||l.abteilung}</div>
+              </div>
+              <span style={{fontSize:'1.3rem',opacity:selLegend?.id===l.id?1:0.2}}>→</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  if(step==='pose') return(
+    <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      <div style={{padding:'calc(var(--safe-t) + 1rem) 1.25rem 0.75rem',borderBottom:'1px solid var(--border)',flexShrink:0}}>
+        <button onClick={()=>setStep('legend')} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.9rem',padding:'0 0 0.5rem',display:'block'}}>← zurück</button>
+        <div className="bc" style={{fontSize:'1.5rem',fontWeight:800}}>WÄHLE DEINE POSE</div>
+        <div style={{color:selLegend?.color,fontSize:'0.82rem',fontWeight:600,marginTop:'3px'}}>{selLegend?.emoji} {selLegend?.char}</div>
+      </div>
+      <div style={{flex:1,overflowY:'auto',padding:'1.5rem 1.25rem'}}>
+        <div style={{textAlign:'center',marginBottom:'1.75rem'}}>
+          <div style={{width:80,height:80,borderRadius:'50%',background:'#0d0d0d',border:`3px solid ${selLegend?.color}`,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:`0 0 20px ${selLegend?.color}44`}}>
+            {selPose
+              ? <div style={{width:68,height:68}} dangerouslySetInnerHTML={{__html:(POSE_SVGS[selPose]||POSE_SVGS[1])(selLegend?.color)}}/>
+              : <span style={{color:'var(--muted)',fontSize:'1.5rem'}}>?</span>
+            }
+          </div>
+          <div className="bc" style={{marginTop:'8px',fontSize:'0.85rem',color:selPose?selLegend?.color:'var(--muted)',fontWeight:700,letterSpacing:'0.05em'}}>
+            {selPose ? POSE_LABELS[selPose] : 'Pose wählen'}
+          </div>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'1.5rem'}}>
+          {[1,2,3].map(p=>(
+            <button key={p} onClick={()=>setSelPose(p)}
+              style={{background:selPose===p?`${selLegend?.color}22`:'var(--bg2)',border:`2px solid ${selPose===p?selLegend?.color:'var(--border)'}`,borderRadius:'14px',padding:'14px 8px',display:'flex',flexDirection:'column',alignItems:'center',gap:'8px',transition:'all 0.15s',transform:selPose===p?'scale(1.04)':'scale(1)'}}>
+              <div style={{width:56,height:56,borderRadius:'50%',background:'#0d0d0d',display:'flex',alignItems:'center',justifyContent:'center',border:`1px solid ${selLegend?.color}44`}}>
+                <div style={{width:48,height:48}} dangerouslySetInnerHTML={{__html:(POSE_SVGS[p]||POSE_SVGS[1])(selLegend?.color)}}/>
+              </div>
+              <div style={{fontSize:'0.62rem',color:selPose===p?selLegend?.color:'var(--muted)',textAlign:'center',lineHeight:1.3,fontWeight:selPose===p?700:400}}>{POSE_LABELS[p]}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div style={{padding:'1rem 1.25rem',paddingBottom:'calc(1.25rem + var(--safe-b))',borderTop:'1px solid var(--border)',flexShrink:0}}>
+        <button onClick={join} disabled={!selPose||loading}
+          style={{width:'100%',padding:'1rem',background:selPose?'var(--red)':'var(--bg3)',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.08em',opacity:(!selPose||loading)?0.4:1,boxShadow:selPose?'0 6px 24px rgba(230,57,70,0.35)':'none'}}>
+          {loading?'EINEN MOMENT...':'CHALLENGE ANNEHMEN 🔥'}
+        </button>
+      </div>
+    </div>
+  );
+
+  return null;
+}
+
+// ─────────────────────────────────────────────────────────
+//  DAILY LEGEND ANNOUNCEMENT
+// ─────────────────────────────────────────────────────────
+function DailyLegend({legends, cur}){
+  if(cur===0 || !legends || !legends.length) return null;
+
+  // Deterministic: same legend for everyone on same day
+  const pool = legends.length ? legends : LEGENDS_FALLBACK;
+  const legIndex = (cur - 1) % pool.length;
+  const leg = pool[legIndex];
+  if(!leg || !leg.quotes || !leg.quotes.length) return null;
+
+  // Deterministic quote: based on day number
+  const bekloppte = (leg.quotes_bekloppt&&leg.quotes_bekloppt.length) ? leg.quotes_bekloppt : leg.quotes;
+  const q = bekloppte[(cur - 1) % bekloppte.length];
+  const d = DAYS[cur - 1];
+  const t = tot(d);
+
+  return(
+    <div style={{margin:'0 1.25rem 1rem',background:`${leg.color}15`,border:`2px solid ${leg.color}55`,borderRadius:'18px',padding:'1.25rem',overflow:'hidden',position:'relative'}}>
+      {/* Decorative bg emoji */}
+      <div style={{position:'absolute',right:'-10px',top:'-10px',fontSize:'5rem',opacity:0.07,transform:'rotate(15deg)',pointerEvents:'none',userSelect:'none'}}>
+        {leg.emoji}
+      </div>
+      {/* Header */}
+      <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'10px'}}>
+        <div style={{width:42,height:42,borderRadius:'50%',background:'#0d0d0d',border:`2px solid ${leg.color}`,flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <div style={{width:34,height:34}} dangerouslySetInnerHTML={{__html:(POSE_SVGS[1])(leg.color)}}/>
+        </div>
+        <div>
+          <div style={{fontSize:'0.6rem',color:leg.color,letterSpacing:'0.15em',fontWeight:700,fontFamily:'Barlow Condensed,sans-serif'}}>HEUTIGE MISSION · TAG {cur}</div>
+          <div className="bc" style={{fontSize:'1rem',fontWeight:800,color:'var(--text)',letterSpacing:'0.03em'}}>{leg.char.toUpperCase()} SAGT:</div>
+        </div>
+      </div>
+
+      {/* Quote */}
+      <p style={{fontSize:'0.92rem',lineHeight:1.55,color:'#ddd',fontStyle:'italic',marginBottom:'10px'}}>
+        "{q.quote}"
+      </p>
+
+      {/* Today's target */}
+      <div style={{display:'flex',alignItems:'center',gap:'8px',paddingTop:'10px',borderTop:`1px solid ${leg.color}33`}}>
+        <div className="bc" style={{fontSize:'1.4rem',fontWeight:900,color:leg.color,lineHeight:1}}>{t}</div>
+        <div>
+          <div className="bc" style={{fontSize:'0.7rem',color:'var(--text)',fontWeight:700,letterSpacing:'0.05em'}}>BURPEES HEUTE</div>
+          <div style={{fontSize:'0.65rem',color:'var(--muted)'}}>{d.oneGo?'In one go':d.sets.join(' + ')+' Reps'}</div>
+        </div>
+        <div style={{marginLeft:'auto',background:leg.color,borderRadius:'8px',padding:'4px 10px'}}>
+          <div className="bc" style={{fontSize:'0.7rem',fontWeight:800,color:'#fff',letterSpacing:'0.08em'}}>{leg.begriff||leg.abteilung}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ─────────────────────────────────────────────────────────
+//  REWARD QUOTE (visible on home until midnight)
+// ─────────────────────────────────────────────────────────
+function RewardQuote(){
+  const [reward, setReward] = useState(()=>{
+    try{
+      const r = JSON.parse(localStorage.getItem('burpee_reward'));
+      if(!r) return null;
+      if(r.date !== new Date().toDateString()){ localStorage.removeItem('burpee_reward'); return null; }
+      return r;
+    }catch(e){ return null; }
+  });
+
+  if(!reward) return null;
+
+  return(
+    <div style={{margin:'0 1.25rem 1rem',background:`${reward.color}18`,border:`1px solid ${reward.color}44`,borderRadius:'16px',padding:'1rem 1.25rem',position:'relative'}}>
+      <button onClick={()=>{localStorage.removeItem('burpee_reward');setReward(null);}}
+        style={{position:'absolute',top:'10px',right:'12px',background:'none',border:'none',color:'var(--muted)',fontSize:'0.9rem',padding:'0'}}>✕</button>
+      <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'8px'}}>
+        <span style={{fontSize:'1.6rem'}}>{reward.emoji}</span>
+        <div>
+          <div className="bc" style={{fontSize:'0.65rem',color:reward.color,letterSpacing:'0.12em',fontWeight:700}}>HEUTE VERDIENT 🏆</div>
+          <div className="bc" style={{fontSize:'0.85rem',fontWeight:800,color:'var(--text)'}}>{reward.char.toUpperCase()} SAGT:</div>
+        </div>
+      </div>
+      <p style={{fontSize:'0.88rem',lineHeight:1.55,color:'#ccc',fontStyle:'italic'}}>"{reward.quote}"</p>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  KUDO MODAL
+// ─────────────────────────────────────────────────────────
+const KUDO_PRESETS = [
+  "Früh aufgestanden und direkt geliefert! 🌅",
+  "Doppelrunde heute — absolute Maschine! 🔁",
+  "Trotz schlechtem Tag durchgezogen! 💪",
+  "Erste im Team heute — Respekt! ⚡",
+  "Niemals aufgegeben — Stahlarm! 🦾",
+  "Immer dabei — das Rückgrat des Teams! 🏆",
+];
+
+function KudoModal({to, from, onSend, onCancel}){
+  const [msg, setMsg] = useState('');
+
+  return(
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:250,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',animation:'slideUp 0.3s ease both'}} onClick={e=>e.target===e.currentTarget&&onCancel()}>
+      <div style={{width:'100%',maxWidth:'480px',background:'var(--bg)',borderRadius:'24px 24px 0 0',padding:'1.5rem',paddingBottom:'calc(1.5rem + var(--safe-b))'}}>
+        <div style={{textAlign:'center',marginBottom:'1.25rem'}}>
+          <div style={{fontSize:'2rem',marginBottom:'4px'}}>💪</div>
+          <div className="bc" style={{fontSize:'1.4rem',fontWeight:900,letterSpacing:'0.05em',color:'var(--gold)'}}>KUDO VERGEBEN</div>
+          <div style={{color:'var(--muted)',fontSize:'0.82rem',marginTop:'4px'}}>für <b style={{color:'var(--text)'}}>{to}</b></div>
+        </div>
+
+        {/* Presets */}
+        <div style={{display:'flex',flexDirection:'column',gap:'7px',marginBottom:'1rem'}}>
+          {KUDO_PRESETS.map(p=>(
+            <button key={p} onClick={()=>setMsg(p)}
+              style={{background:msg===p?'rgba(245,158,11,0.15)':'var(--bg2)',border:`1.5px solid ${msg===p?'var(--gold)':'var(--border)'}`,borderRadius:'10px',padding:'0.7rem 1rem',textAlign:'left',fontSize:'0.85rem',color:msg===p?'var(--gold)':'var(--text)',transition:'all 0.15s'}}>
+              {p}
+            </button>
+          ))}
+        </div>
+
+        {/* Custom */}
+        <input value={msg} onChange={e=>setMsg(e.target.value)} placeholder="Oder eigene Nachricht..."
+          style={{width:'100%',padding:'0.8rem 1rem',background:'var(--bg3)',border:'2px solid var(--border)',borderRadius:'12px',color:'var(--text)',fontSize:'0.9rem',outline:'none',marginBottom:'0.75rem'}}/>
+
+        <button onClick={()=>msg.trim()&&onSend(to,msg.trim())} disabled={!msg.trim()}
+          style={{width:'100%',padding:'1rem',background:msg.trim()?'linear-gradient(135deg,#f59e0b,#d97706)':'var(--bg3)',border:'none',borderRadius:'14px',color:'#000',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.08em',opacity:msg.trim()?1:0.4,boxShadow:msg.trim()?'0 4px 20px rgba(245,158,11,0.4)':'none'}}>
+          💪 KUDO SENDEN!
+        </button>
+        <button onClick={onCancel} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.82rem',padding:'0.75rem',width:'100%',marginTop:'4px'}}>Abbrechen</button>
+      </div>
+    </div>
+  );
+}
+
+
+// ─────────────────────────────────────────────────────────
+//  TEAM SECTION (replaces leaderboard)
+// ─────────────────────────────────────────────────────────
+function TeamSection({leaders, user, legends, onNudge, achievements, onKudo}){
+  const today = new Date().toDateString();
+  const cur   = getChallengeDay();
+
+  // Count who did today's workout
+  // We use completed_days as proxy — not perfect but available
+  // Better: track via a separate field, but for now use leaders data
+  const totalBurpees = leaders.reduce((a,u) => a + (u.completed_days||0) * 15, 0); // rough avg
+  const teamTotal    = leaders.reduce((a,u) => {
+    // Sum all actual burpees completed based on completed_days × avg
+    return a + (u.completed_days||0);
+  }, 0);
+
+  return(
+    <div>
+      {/* Team Stats Row */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',marginBottom:'1rem'}}>
+        <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0.75rem',textAlign:'center'}}>
+          <div className="bc" style={{fontSize:'1.8rem',fontWeight:900,color:'var(--red)',lineHeight:1}}>{leaders.length}</div>
+          <div style={{fontSize:'0.62rem',color:'var(--muted)',marginTop:'2px'}}>Krieger</div>
+        </div>
+        <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0.75rem',textAlign:'center'}}>
+          <div className="bc" style={{fontSize:'1.8rem',fontWeight:900,color:'var(--green)',lineHeight:1}}>{teamTotal}</div>
+          <div style={{fontSize:'0.62rem',color:'var(--muted)',marginTop:'2px'}}>Tage gesamt</div>
+        </div>
+        <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0.75rem',textAlign:'center'}}>
+          <div className="bc" style={{fontSize:'1.8rem',fontWeight:900,color:'var(--gold)',lineHeight:1}}>{Math.round(leaders.reduce((a,u)=>a+(u.completed_days||0),0)/Math.max(leaders.length,1)*100/30)}%</div>
+          <div style={{fontSize:'0.62rem',color:'var(--muted)',marginTop:'2px'}}>Team-Ø</div>
+        </div>
+      </div>
+
+      {/* Avatar Grid */}
+      <div className="bc" style={{fontSize:'0.65rem',color:'var(--muted)',letterSpacing:'0.15em',marginBottom:'0.65rem'}}>DEIN TEAM</div>
+      <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'16px',padding:'1rem'}}>
+        <div style={{display:'flex',flexWrap:'wrap',gap:'12px',justifyContent:'flex-start'}}>
+          {leaders.map(u=>{
+            const pct = Math.round((u.completed_days||0)/30*100);
+            const isMe = u.name===user;
+            return(
+              <div key={u.name} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',minWidth:'52px'}}>
+                <div style={{position:'relative'}}>
+                  <Avatar profile={u} size={44} legends={legends}/>
+                  <div style={{position:'absolute',inset:-3,borderRadius:'50%',border:`2px solid ${pct===100?'var(--green)':pct>50?'var(--gold)':'var(--border)'}`,pointerEvents:'none'}}/>
+                  {/* Achievement badges */}
+                  {achievements&&achievements.some(a=>a.name===u.name&&a.type==='erster')&&
+                    <span style={{position:'absolute',top:-4,right:-4,fontSize:'0.7rem',background:'#1a3a5e',borderRadius:'50%',width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center',border:'1px solid #60a5fa'}}>⚡</span>}
+                  {achievements&&achievements.some(a=>a.name===u.name&&a.type==='streak')&&
+                    <span style={{position:'absolute',top:-4,left:-4,fontSize:'0.7rem',background:'#3a1a00',borderRadius:'50%',width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center',border:'1px solid var(--red)'}}>🔥</span>}
+                  {achievements&&achievements.some(a=>a.name===u.name&&a.type==='eisenmensch')&&
+                    <span style={{position:'absolute',bottom:-4,left:-4,fontSize:'0.7rem',background:'#1a1a1a',borderRadius:'50%',width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center',border:'1px solid #555'}}>🦾</span>}
+                </div>
+                <div style={{fontSize:'0.6rem',color:isMe?'var(--red)':'var(--muted)',fontWeight:isMe?700:400,textAlign:'center',maxWidth:'52px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                  {isMe?'Du':u.name.split(' ')[0]}
+                </div>
+                <div className="bc" style={{fontSize:'0.65rem',color:pct===100?'var(--green)':pct>50?'var(--gold)':'var(--muted)',fontWeight:700}}>
+                  {u.completed_days}/30
+                </div>
+                {!isMe&&(
+                  <div style={{display:'flex',gap:'4px'}}>
+                    <button onClick={()=>onNudge(u.name)}
+                      style={{background:'rgba(230,57,70,0.1)',border:'1px solid rgba(230,57,70,0.25)',borderRadius:'6px',padding:'3px 6px',fontSize:'0.7rem',color:'var(--red)',fontFamily:'Barlow Condensed,sans-serif',fontWeight:700}}>
+                      🔥
+                    </button>
+                    <button onClick={()=>onKudo(u.name)}
+                      style={{background:'rgba(245,158,11,0.1)',border:'1px solid rgba(245,158,11,0.25)',borderRadius:'6px',padding:'3px 6px',fontSize:'0.7rem',color:'var(--gold)',fontFamily:'Barlow Condensed,sans-serif',fontWeight:700}}>
+                      🏅
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <div style={{marginTop:'0.75rem',paddingTop:'0.75rem',borderTop:'1px solid var(--border)',textAlign:'center',fontSize:'0.7rem',color:'var(--muted)'}}>
+          🔥 Feuer machen &nbsp;·&nbsp; 💪 Kudo vergeben
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ─────────────────────────────────────────────────────────
+//  HOME TAB
+// ─────────────────────────────────────────────────────────
+function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile, legends, onNudge}){
+  const [motto, setMotto] = useState(()=>rnd(MOTIVATIONS));
+  const done    = completed.size;
+  const pct     = Math.round((done/30)*100);
+  const cur     = getChallengeDay();
+  const curDay  = DAYS[Math.max(cur-1,0)];
+  const totalBurpees = DAYS.reduce((a,d)=>{
+    const t = completionTypes[d.day];
+    if(!t) return a;
+    const b = tot(d);
+    return a + (t==='half'?Math.ceil(b/2):t==='joker'?0:b);
+  },0);
+
+  return(
+    <div style={{flex:1,overflowY:'auto',paddingBottom:'0.5rem'}}>
+      <div style={{padding:'1.25rem 1.25rem 0'}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.25rem'}}>
+          <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
+            <Avatar profile={profile} size={46} legends={legends}/>
+            <div>
+              <div className="bc" style={{fontSize:'1.5rem',fontWeight:800,lineHeight:1.1}}>Hey, <span style={{color:'var(--red)'}}>{user}</span> 👊</div>
+              <div style={{color:'var(--muted)',fontSize:'0.75rem'}}>#BurpeeChallenge</div>
+            </div>
+          </div>
+          <div style={{textAlign:'right'}}>
+            <div className="bc" style={{fontSize:'1.8rem',fontWeight:900,color:'var(--red)',lineHeight:1}}>{totalBurpees}</div>
+            <div style={{color:'var(--muted)',fontSize:'0.65rem'}}>Burpees gesamt</div>
+          </div>
+        </div>
+        <div style={{marginBottom:'1rem'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:'6px'}}>
+            <span className="bc" style={{fontSize:'1rem',fontWeight:700,letterSpacing:'0.05em'}}>{done} / 30 TAGE</span>
+            <span className="bc" style={{fontSize:'1.4rem',fontWeight:900,color:'var(--red)'}}>{pct}%</span>
+          </div>
+          <div style={{height:'8px',background:'var(--bg3)',borderRadius:'8px',overflow:'hidden'}}>
+            <div style={{height:'100%',background:'linear-gradient(90deg,var(--red),#ff6b6b)',borderRadius:'8px',width:`${pct}%`,transition:'width 0.8s cubic-bezier(.25,.46,.45,.94)'}}/>
+          </div>
+        </div>
+      </div>
+
+      <DailyLegend legends={legends} cur={getChallengeDay()}/>
+      <TokenBar profile={profile}/>
+      <RewardQuote/>
+      <Countdown/>
+      <InviteCard groupSize={leaders.length} leaders={leaders} user={user}/>
+
+      <div style={{padding:'0 1.25rem',marginBottom:'1rem'}}>
+        {cur===0?(
+          <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'20px',padding:'1.5rem',textAlign:'center'}}>
+            <div style={{fontSize:'2.5rem',marginBottom:'0.75rem'}}>⏳</div>
+            <div className="bc" style={{fontSize:'1.4rem',fontWeight:800,letterSpacing:'0.05em',marginBottom:'6px'}}>STARTET SONNTAG</div>
+            <div style={{color:'var(--muted)',fontSize:'0.85rem'}}>22. März · Tag 1 wartet auf dich!</div>
+          </div>
+        ):done<30?(()=>{
+          const type = completionTypes[cur];
+          const isDone = completed.has(cur);
+          const bg = isDone?(type==='joker'?'linear-gradient(135deg,#1a1a1a,#222)':type==='half'?'linear-gradient(135deg,#0a1a2a,#0f2035)':'linear-gradient(135deg,#0a1f0a,#0f2a0f)'):'linear-gradient(135deg,var(--red),var(--red2))';
+          const brd = isDone?(type==='joker'?'2px solid #444':type==='half'?'2px solid #1e3a5f':'2px solid #2d5a2d'):'2px solid transparent';
+          return(
+            <button onClick={()=>onOpenDay(cur)} style={{width:'100%',background:bg,border:brd,borderRadius:'20px',padding:'1.5rem',textAlign:'left',boxShadow:isDone?'none':'0 8px 32px rgba(230,57,70,0.35)'}}>
+              <div style={{fontSize:'0.68rem',color:'rgba(255,255,255,0.6)',letterSpacing:'0.15em',marginBottom:'6px'}}>{isDone?(type==='joker'?'🃏 JOKER EINGESETZT':type==='half'?'🌙 HALBE PORTION':'✓ HEUTE ERLEDIGT'):'HEUTE · TAG '+cur+' VON 30'}</div>
+              <div className="bc" style={{fontSize:'clamp(2rem,10vw,3rem)',fontWeight:900,color:'#fff',lineHeight:1,marginBottom:'4px'}}>{type==='joker'?'SKIP':type==='half'?Math.ceil(tot(curDay)/2)+' BURPEES 🌙':tot(curDay)+' BURPEES'}</div>
+              {curDay.oneGo&&type!=='joker'&&<span style={{display:'inline-block',background:'rgba(0,0,0,0.25)',color:'rgba(255,255,255,0.85)',fontSize:'0.65rem',padding:'3px 10px',borderRadius:'100px',letterSpacing:'0.12em',marginBottom:'6px'}}>IN ONE GO</span>}
+              <div style={{fontSize:'0.82rem',color:'rgba(255,255,255,0.65)',marginTop:'4px'}}>{isDone?'Tap für Details':'Workout starten →'}</div>
+            </button>
+          );
+        })():(
+          <div className="bc" style={{background:'linear-gradient(135deg,#7c5c00,#b8860b)',borderRadius:'20px',padding:'1.5rem',textAlign:'center',fontSize:'1.8rem',fontWeight:900,letterSpacing:'0.03em'}}>🏆 CHALLENGE ABGESCHLOSSEN!</div>
+        )}
+      </div>
+
+      <div style={{margin:'0 1.25rem 1.5rem',display:'flex',alignItems:'center',gap:'0.75rem',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'14px',padding:'0.9rem 1rem'}}>
+        <p style={{flex:1,fontSize:'0.87rem',color:'#888',fontStyle:'italic',lineHeight:1.45}}>{motto}</p>
+        <button onClick={()=>setMotto(rnd(MOTIVATIONS))} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:'8px',padding:'6px 8px',color:'var(--muted)',fontSize:'0.9rem',flexShrink:0}}>↻</button>
+      </div>
+
+      {leaders.length>0&&(
+        <div style={{padding:'0 1.25rem 1rem'}}>
+          <TeamSection leaders={leaders} user={user} legends={legends} onNudge={onNudge} achievements={achievements} onKudo={setShowKudoModal}/>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  CALENDAR TAB
+// ─────────────────────────────────────────────────────────
+function CalendarTab({completed, completionTypes, onOpenDay}){
+  const cur = getChallengeDay();
+  return(
+    <div style={{flex:1,overflowY:'auto',padding:'1.25rem'}}>
+      <div className="bc" style={{fontSize:'1.6rem',fontWeight:800,letterSpacing:'0.05em',marginBottom:'1rem'}}>30-TAGE PLAN</div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:'8px'}}>
+        {DAYS.map(d=>{
+          const isDone  = completed.has(d.day);
+          const type    = completionTypes[d.day];
+          const isToday = d.day===cur&&!isDone;
+          const t = tot(d);
+          let bg='var(--bg2)',border='1.5px solid var(--border)',color='var(--text)';
+          if(isDone){
+            if(type==='joker')     {bg='rgba(100,100,100,0.1)';border='1.5px solid #333';color='#444';}
+            else if(type==='half') {bg='rgba(30,58,95,0.3)';border='1.5px solid #1e3a5f';color='#60a5fa';}
+            else                   {bg='rgba(74,222,128,0.1)';border='1.5px solid #2d5a2d';color='var(--green)';}
+          } else if(isToday)       {bg='rgba(230,57,70,0.12)';border='1.5px solid var(--red)';color='var(--red)';}
+          return(
+            <button key={d.day} onClick={()=>onOpenDay(d.day)}
+              style={{background:bg,border,borderRadius:'12px',padding:'10px 6px',display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',minHeight:'68px'}}>
+              <span style={{fontSize:'0.58rem',color:isDone?color:isToday?'var(--red)':'var(--muted)',fontWeight:600}}>{isDone?(type==='joker'?'🃏':type==='half'?'🌙':'✓'):isToday?'●':d.day}</span>
+              <span className="bc" style={{fontSize:'1.15rem',fontWeight:800,color,lineHeight:1}}>{type==='joker'?'–':type==='half'?Math.ceil(t/2):t}</span>
+              {d.oneGo&&type!=='joker'&&<span style={{fontSize:'0.45rem',color:isDone?color:'#8b1a1a',fontWeight:700}}>1GO</span>}
+            </button>
+          );
+        })}
+      </div>
+      <div style={{display:'flex',gap:'0.75rem',marginTop:'1.25rem',flexWrap:'wrap'}}>
+        {[['var(--green)','✓ Voll'],['#60a5fa','🌙 Halb'],['#555','🃏 Joker'],['var(--red)','Heute']].map(([c,l])=>(
+          <div key={l} style={{display:'flex',alignItems:'center',gap:'5px'}}>
+            <div style={{width:'10px',height:'10px',borderRadius:'3px',background:c}}/>
+            <span style={{fontSize:'0.75rem',color:'var(--muted)'}}>{l}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  WALL TAB
+// ─────────────────────────────────────────────────────────
+function WallTab({user, profile, legends, wall, onPost, onReact, onOpenCommunity}){
+  const [text, setText]       = useState('');
+  const [posting, setPosting] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef();
+
+  const submit = async (imageUrl=null) => {
+    if((!text.trim()&&!imageUrl)||posting) return;
+    setPosting(true);
+    await onPost(text.trim()||'📸', imageUrl);
+    setText('');
+    setPosting(false);
+  };
+
+  const handlePhoto = async e => {
+    const file = e.target.files[0]; if(!file) return;
+    setUploading(true);
+    try{
+      const ext = file.name.split('.').pop();
+      const path = `${user}_${Date.now()}.${ext}`;
+      const {error} = await db.storage.from('wall-photos').upload(path, file, {contentType:file.type});
+      if(error) throw error;
+      const {data:{publicUrl}} = db.storage.from('wall-photos').getPublicUrl(path);
+      await submit(publicUrl);
+    }catch(err){ console.error(err); alert('Foto-Upload fehlgeschlagen. Wurde der wall-photos Bucket angelegt?'); }
+    setUploading(false);
+    e.target.value='';
+  };
+
+  return(
+    <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      <div style={{padding:'1.25rem 1.25rem 0.75rem',borderBottom:'1px solid var(--border)',flexShrink:0}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.9rem'}}>
+          <div className="bc" style={{fontSize:'1.6rem',fontWeight:800,letterSpacing:'0.05em'}}>🔥 MOTIVATION WALL</div>
+          <button onClick={onOpenCommunity} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:'10px',padding:'6px 12px',color:'var(--text)',fontFamily:'Barlow Condensed,sans-serif',fontWeight:700,fontSize:'0.8rem',letterSpacing:'0.05em'}}>💬 SPRÜCHE</button>
+        </div>
+        <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
+          <Avatar profile={profile} size={36} legends={legends}/>
+          <input value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()} placeholder="Motiviere dein Team..."
+            style={{flex:1,padding:'0.8rem 1rem',background:'var(--bg3)',border:'2px solid var(--border)',borderRadius:'12px',color:'var(--text)',fontSize:'0.9rem',outline:'none'}}/>
+          <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={handlePhoto} style={{display:'none'}}/>
+          <button onClick={()=>fileRef.current.click()} disabled={uploading}
+            style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0 0.7rem',color:uploading?'var(--muted)':'var(--text)',fontSize:'1.2rem',height:'44px',flexShrink:0}}>
+            {uploading?'⏳':'📸'}
+          </button>
+          <button onClick={()=>submit()} disabled={!text.trim()||posting}
+            style={{background:'var(--red)',border:'none',borderRadius:'12px',padding:'0 1rem',color:'#fff',fontSize:'1.2rem',height:'44px',opacity:(!text.trim()||posting)?0.4:1,flexShrink:0}}>→</button>
+        </div>
+      </div>
+      <div style={{flex:1,overflowY:'auto',padding:'0.75rem 1.25rem'}}>
+        {wall.length===0&&<div style={{textAlign:'center',padding:'4rem 1rem'}}><div style={{fontSize:'3rem',marginBottom:'0.75rem'}}>💬</div><p style={{color:'var(--muted)',fontSize:'0.9rem'}}>Noch keine Posts!</p></div>}
+        {wall.map((p,i)=>(
+          <div key={p.id} style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'16px',padding:'1rem',marginBottom:'10px',animation:`slideUp 0.3s ${i*0.04}s ease both`}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'8px'}}>
+              <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                <Avatar profile={{avatar:p.avatar,avatar_legend:p.avatar_legend,avatar_pose:p.avatar_pose}} size={34} legends={legends}/>
+                <div>
+                  <div style={{fontSize:'0.85rem',fontWeight:600,color:p.name===user?'var(--red)':'var(--text)'}}>{p.name}</div>
+                  <div style={{fontSize:'0.68rem',color:'var(--muted)'}}>Tag {p.day}</div>
+                </div>
+              </div>
+              <span style={{fontSize:'0.68rem',color:'var(--muted)',flexShrink:0}}>{new Date(p.created_at).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}</span>
+            </div>
+            {p.image_url&&<img src={p.image_url} alt="" style={{width:'100%',borderRadius:'10px',marginBottom:'8px',maxHeight:'280px',objectFit:'cover'}}/>}
+            {p.message&&p.message!=='📸'&&<p style={{fontSize:'0.92rem',lineHeight:1.5,margin:'0 0 0.75rem',color:'#ddd'}}>{p.message}</p>}
+            <div style={{display:'flex',flexWrap:'wrap',gap:'5px'}}>
+              {EMOJIS.map(e=>{
+                const count = p.reactions?.[e]||0;
+                return(
+                  <button key={e} onClick={()=>onReact(p.id,e)}
+                    style={{background:count>0?'rgba(230,57,70,0.12)':'var(--bg3)',border:`1px solid ${count>0?'rgba(230,57,70,0.3)':'var(--border)'}`,borderRadius:'8px',padding:'4px 8px',fontSize:'0.85rem',display:'flex',alignItems:'center',gap:'4px'}}>
+                    {e}{count>0&&<span style={{color:'var(--muted)',fontSize:'0.7rem'}}>{count}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  WORKOUT SCREEN
+// ─────────────────────────────────────────────────────────
+function WorkoutScreen({dayNum, completed, completionTypes, profile, legends, onComplete, onHalf, onJoker, onUndo, onBack}){
+  const [showJoker, setShowJoker] = useState(false);
+  const jokerQuote = useRef(getJokerQuote(legends)).current;
+  const d       = DAYS[dayNum-1];
+  const t       = tot(d);
+  const isDone  = completed.has(dayNum);
+  const type    = completionTypes[dayNum];
+  const halfT   = Math.ceil(t/2);
+  const jokersLeft = 1-(profile?.jokers_used||0)-(profile?.joker_swapped?1:0);
+  const halfLeft   = 2+(profile?.joker_swapped?1:0)-(profile?.half_used||0);
+
+  return(
+    <>
+      <div style={{position:'fixed',inset:0,background:'var(--bg)',zIndex:100,display:'flex',flexDirection:'column',animation:'slideUp 0.3s ease both'}}>
+        <div style={{padding:'calc(var(--safe-t) + 1rem) 1.25rem 0.75rem',display:'flex',alignItems:'center',gap:'1rem',borderBottom:'1px solid var(--border)',flexShrink:0}}>
+          <button onClick={onBack} style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'10px',padding:'8px 14px',color:'var(--text)',fontSize:'0.9rem'}}>←</button>
+          <div className="bc" style={{fontSize:'1rem',fontWeight:700,letterSpacing:'0.1em',color:'var(--muted)'}}>TAG {dayNum} VON 30</div>
+          {isDone&&<div style={{marginLeft:'auto',borderRadius:'100px',padding:'4px 12px',fontSize:'0.72rem',fontWeight:600,
+            background:type==='joker'?'rgba(80,80,80,0.2)':type==='half'?'rgba(30,58,95,0.3)':'rgba(74,222,128,0.15)',
+            border:type==='joker'?'1px solid #444':type==='half'?'1px solid #1e3a5f':'1px solid #2d5a2d',
+            color:type==='joker'?'#888':type==='half'?'#60a5fa':'var(--green)'}}>
+            {type==='joker'?'🃏 Joker':type==='half'?'🌙 Halbe':'✓ Erledigt'}
+          </div>}
+        </div>
+
+        <div style={{textAlign:'center',padding:'1.75rem 1.25rem 1.25rem',flexShrink:0}}>
+          <div className="bc" style={{fontWeight:900,fontSize:'min(28vw,7rem)',color:'var(--red)',lineHeight:0.9}}>{type==='joker'?'🃏':type==='half'?halfT:t}</div>
+          <div className="bc" style={{fontWeight:700,fontSize:'1.4rem',letterSpacing:'0.2em',color:'var(--muted)',marginTop:'4px'}}>
+            {type==='joker'?'SKIP TAG':'BURPEES'}{type==='half'&&<span style={{color:'#60a5fa'}}> (HALBE)</span>}
+          </div>
+        </div>
+
+        <div style={{flex:1,overflowY:'auto',padding:'0 1.25rem'}}>
+          {type!=='joker'&&(d.oneGo?(
+            <div style={{background:'rgba(230,57,70,0.08)',border:'2px solid rgba(230,57,70,0.35)',borderRadius:'18px',padding:'1.75rem',textAlign:'center',marginBottom:'1rem'}}>
+              <div className="bc" style={{fontSize:'2rem',fontWeight:900,color:'var(--red)',letterSpacing:'0.05em'}}>IN ONE GO</div>
+              <div style={{color:'var(--muted)',fontSize:'0.8rem',marginTop:'0.5rem'}}>Alle {type==='half'?halfT:t} Burpees am Stück</div>
+              <div style={{display:'inline-block',background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:'8px',padding:'6px 14px',fontSize:'0.75rem',color:'var(--muted)',marginTop:'0.75rem'}}>20 Sek. Pause zwischen Sätzen</div>
+            </div>
+          ):(
+            <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'18px',padding:'1.25rem',marginBottom:'1rem'}}>
+              {d.sets.map((s,i)=>{
+                const hs = Math.ceil(s/2);
+                return(
+                  <div key={i}>
+                    <div style={{display:'flex',alignItems:'center',padding:'0.6rem 0',gap:'1rem'}}>
+                      <div style={{width:'28px',height:'28px',borderRadius:'50%',background:'var(--bg3)',border:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.72rem',color:'var(--muted)',flexShrink:0}}>{i+1}</div>
+                      <span className="bc" style={{flex:1,fontSize:'1.3rem',fontWeight:700}}>{type==='half'?hs:s} Burpees</span>
+                      {type==='half'&&<span style={{fontSize:'0.7rem',color:'#60a5fa'}}>🌙</span>}
+                    </div>
+                    {i<d.sets.length-1&&<div style={{textAlign:'center',fontSize:'0.72rem',color:'var(--muted)',padding:'3px 0',borderTop:'1px dashed var(--border)',borderBottom:'1px dashed var(--border)',margin:'0 2rem'}}>↓ &nbsp;20 Sek. Pause</div>}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+          {type==='joker'&&<div style={{background:'#111',border:'2px solid #333',borderRadius:'18px',padding:'1.75rem',textAlign:'center',marginBottom:'1rem'}}><div style={{fontSize:'3rem',marginBottom:'0.5rem'}}>🃏</div><div className="bc" style={{fontSize:'1.2rem',fontWeight:800,color:'#888'}}>JOKER EINGESETZT</div></div>}
+        </div>
+
+        <div style={{padding:'1rem 1.25rem',paddingBottom:'calc(1rem + var(--safe-b))',flexShrink:0,borderTop:'1px solid var(--border)'}}>
+          {!isDone?(
+            <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+              <button onClick={()=>onComplete(dayNum)} style={{width:'100%',padding:'1.1rem',background:'var(--red)',border:'none',borderRadius:'16px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.4rem',fontWeight:800,letterSpacing:'0.08em',boxShadow:'0 6px 28px rgba(230,57,70,0.4)'}}>✓ GESCHAFFT!</button>
+              <div style={{display:'flex',gap:'8px'}}>
+                {halfLeft>0&&<button onClick={()=>onHalf(dayNum)} style={{flex:1,padding:'0.85rem',background:'rgba(30,58,95,0.3)',border:'2px solid #1e3a5f',borderRadius:'14px',color:'#60a5fa',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.95rem',fontWeight:700,letterSpacing:'0.05em'}}>🌙 Halbe ({halfLeft}×)</button>}
+                <button onClick={()=>setShowJoker(true)} style={{flex:1,padding:'0.85rem',background:'rgba(100,100,100,0.1)',border:'2px solid #2a2a2a',borderRadius:'14px',color:'var(--muted)',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.95rem',fontWeight:700,letterSpacing:'0.05em'}}>🃏 Joker {jokersLeft>0?'(1×)':'(0×)'}</button>
+              </div>
+            </div>
+          ):(
+            <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+              <div className="bc" style={{background:type==='joker'?'rgba(60,60,60,0.2)':type==='half'?'rgba(30,58,95,0.2)':'rgba(74,222,128,0.1)',border:type==='joker'?'2px solid #333':type==='half'?'2px solid #1e3a5f':'2px solid #2d5a2d',borderRadius:'16px',padding:'1.1rem',textAlign:'center',fontSize:'1.3rem',fontWeight:800,letterSpacing:'0.05em',color:type==='joker'?'#666':type==='half'?'#60a5fa':'var(--green)'}}>
+                {type==='joker'?'🃏 JOKER':type==='half'?'🌙 HALBE DONE':'✓ TAG '+dayNum+' DONE!'}
+              </div>
+              <button onClick={()=>onUndo(dayNum)} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.8rem',padding:'0.5rem'}}>Als unerledigt markieren</button>
+            </div>
+          )}
+        </div>
+      </div>
+      {showJoker&&<JokerModal profile={profile} jokerQuote={jokerQuote} onCancel={()=>setShowJoker(false)} onConfirm={async()=>{setShowJoker(false);await onJoker(dayNum);}} onSwap={async()=>{setShowJoker(false);await onJoker(dayNum,'swap');}}/>}
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  COMMUNITY QUOTES
+// ─────────────────────────────────────────────────────────
+function CommunityQuotes({user, legends, submissions, onSubmit, onVote, onClose}){
+  const [step, setStep]           = useState('list');
+  const [selLegend, setSelLegend] = useState('');
+  const [anheizer, setAnheizer]   = useState('');
+  const [quote, setQuote]         = useState('');
+  const [sending, setSending]     = useState(false);
+
+  const wordCount = anheizer.trim().split(/\s+/).filter(Boolean).length;
+  const valid = selLegend && anheizer.trim() && wordCount<=5 && quote.trim().length>10;
+  const alreadyVoted = sub => localStorage.getItem(`vote_${sub.id}`)==='1';
+
+  const submit = async () => {
+    if(!valid||sending) return;
+    setSending(true);
+    await onSubmit({legend_id:selLegend, anheizer:anheizer.trim(), quote:quote.trim(), submitted_by:user});
+    setSelLegend(''); setAnheizer(''); setQuote(''); setStep('list'); setSending(false);
+  };
+
+  return(
+    <div style={{position:'fixed',inset:0,background:'var(--bg)',zIndex:300,display:'flex',flexDirection:'column',animation:'slideUp 0.3s ease both'}}>
+      <div style={{padding:'calc(var(--safe-t) + 1rem) 1.25rem 0.75rem',display:'flex',alignItems:'center',gap:'1rem',borderBottom:'1px solid var(--border)',flexShrink:0}}>
+        <button onClick={step==='form'?()=>setStep('list'):onClose} style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'10px',padding:'8px 14px',color:'var(--text)',fontSize:'0.9rem'}}>←</button>
+        <div className="bc" style={{fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.05em',flex:1}}>{step==='list'?'💬 COMMUNITY SPRÜCHE':'✍️ SPRUCH EINREICHEN'}</div>
+        {step==='list'&&<button onClick={()=>setStep('form')} style={{background:'var(--red)',border:'none',borderRadius:'10px',padding:'8px 14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontWeight:800,fontSize:'0.9rem',letterSpacing:'0.05em'}}>+ NEU</button>}
+      </div>
+
+      {step==='list'&&(
+        <div style={{flex:1,overflowY:'auto',padding:'1rem 1.25rem'}}>
+          <p style={{color:'var(--muted)',fontSize:'0.82rem',marginBottom:'1rem',lineHeight:1.5}}>Ab <b style={{color:'var(--text)'}}>5 Votes</b> kommen Sprüche live in die App 🔥</p>
+          {submissions.length===0&&<div style={{textAlign:'center',padding:'3rem 1rem'}}><div style={{fontSize:'3rem',marginBottom:'0.75rem'}}>✍️</div><p style={{color:'var(--muted)',fontSize:'0.9rem'}}>Noch keine Einreichungen!</p></div>}
+          {submissions.map(sub=>{
+            const leg = legends.find(l=>l.id===sub.legend_id);
+            const voted = alreadyVoted(sub);
+            return(
+              <div key={sub.id} style={{background:'var(--bg2)',border:`1px solid ${sub.approved?'var(--green)':'var(--border)'}`,borderRadius:'14px',padding:'1rem',marginBottom:'10px'}}>
+                <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'6px'}}>
+                  <span style={{fontSize:'1.1rem'}}>{leg?.emoji||'❓'}</span>
+                  <div style={{flex:1}}>
+                    <span className="bc" style={{fontSize:'0.85rem',fontWeight:700,color:leg?.color||'var(--text)'}}>{leg?.char||sub.legend_id}</span>
+                    <span style={{color:'var(--muted)',fontSize:'0.7rem',marginLeft:'6px'}}>von {sub.submitted_by}</span>
+                  </div>
+                  {sub.approved&&<span style={{fontSize:'0.7rem',background:'rgba(74,222,128,0.15)',color:'var(--green)',border:'1px solid #2d5a2d',borderRadius:'100px',padding:'2px 8px'}}>✓ live</span>}
+                </div>
+                <div className="bc" style={{fontSize:'0.8rem',color:'var(--muted)',letterSpacing:'0.08em',marginBottom:'4px'}}>{sub.anheizer}</div>
+                <p style={{fontSize:'0.88rem',lineHeight:1.5,color:'#ccc',fontStyle:'italic',marginBottom:'10px'}}>"{sub.quote}"</p>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                  <span style={{fontSize:'0.75rem',color:'var(--muted)'}}>{sub.votes} / 5 Votes</span>
+                  <button onClick={()=>!voted&&onVote(sub.id)}
+                    style={{background:voted?'rgba(74,222,128,0.1)':'rgba(230,57,70,0.1)',border:`1px solid ${voted?'#2d5a2d':'rgba(230,57,70,0.3)'}`,borderRadius:'8px',padding:'5px 14px',color:voted?'var(--green)':'var(--red)',fontFamily:'Barlow Condensed,sans-serif',fontWeight:700,fontSize:'0.85rem',opacity:voted?0.6:1}}>
+                    {voted?'✓ gevoted':'🔥 +1 Vote'}
+                  </button>
+                </div>
+                {sub.votes>0&&<div style={{marginTop:'6px',height:'3px',background:'var(--bg3)',borderRadius:'2px',overflow:'hidden'}}><div style={{height:'100%',background:'var(--red)',borderRadius:'2px',width:`${Math.min((sub.votes/5)*100,100)}%`,transition:'width 0.4s ease'}}/></div>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {step==='form'&&(
+        <div style={{flex:1,overflowY:'auto',padding:'1rem 1.25rem'}}>
+          <p style={{color:'var(--muted)',fontSize:'0.82rem',marginBottom:'1.25rem',lineHeight:1.5}}>Nach <b style={{color:'var(--text)'}}>5 Votes</b> geht dein Spruch live 🔥</p>
+          <div style={{marginBottom:'1rem'}}>
+            <p className="bc" style={{fontSize:'0.65rem',color:'var(--muted)',letterSpacing:'0.12em',marginBottom:'0.5rem'}}>LEGENDE WÄHLEN</p>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'8px'}}>
+              {legends.map(l=>(
+                <button key={l.id} onClick={()=>setSelLegend(l.id)}
+                  style={{background:selLegend===l.id?`${l.color}22`:'var(--bg2)',border:`1.5px solid ${selLegend===l.id?l.color:'var(--border)'}`,borderRadius:'12px',padding:'10px',display:'flex',alignItems:'center',gap:'8px',textAlign:'left'}}>
+                  <span style={{fontSize:'1.2rem'}}>{l.emoji}</span>
+                  <span className="bc" style={{fontSize:'0.85rem',fontWeight:700,color:selLegend===l.id?l.color:'var(--text)'}}>{l.char}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div style={{marginBottom:'1rem'}}>
+            <div style={{display:'flex',justifyContent:'space-between',marginBottom:'0.5rem'}}>
+              <p className="bc" style={{fontSize:'0.65rem',color:'var(--muted)',letterSpacing:'0.12em'}}>ANHEIZER (3-5 WÖRTER)</p>
+              <span style={{fontSize:'0.65rem',color:wordCount>5?'var(--red)':'var(--muted)'}}>{wordCount}/5</span>
+            </div>
+            <input value={anheizer} onChange={e=>setAnheizer(e.target.value)} placeholder="z.B. Schwerkraft führt 1:0!"
+              style={{width:'100%',padding:'0.8rem 1rem',background:'var(--bg3)',border:`2px solid ${wordCount>5?'var(--red)':'var(--border)'}`,borderRadius:'12px',color:'var(--text)',fontSize:'0.9rem',outline:'none'}}/>
+          </div>
+          <div style={{marginBottom:'1.5rem'}}>
+            <p className="bc" style={{fontSize:'0.65rem',color:'var(--muted)',letterSpacing:'0.12em',marginBottom:'0.5rem'}}>DER SPRUCH</p>
+            <textarea value={quote} onChange={e=>setQuote(e.target.value)} placeholder="Der epische Spruch der Legende..."
+              style={{width:'100%',padding:'0.8rem 1rem',background:'var(--bg3)',border:'2px solid var(--border)',borderRadius:'12px',color:'var(--text)',fontSize:'0.9rem',outline:'none',resize:'none',minHeight:'100px',lineHeight:1.5}}/>
+          </div>
+          <button onClick={submit} disabled={!valid||sending}
+            style={{width:'100%',padding:'1rem',background:valid?'var(--red)':'var(--bg3)',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.08em',opacity:(!valid||sending)?0.4:1,marginBottom:'calc(1rem + var(--safe-b))'}}>
+            {sending?'WIRD EINGEREICHT...':'EINREICHEN 🔥'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  AVATAR EDITOR MODAL
+// ─────────────────────────────────────────────────────────
+function AvatarEditorModal({profile, legends, onSave, onCancel}){
+  const avail = (legends&&legends.length) ? legends : sortLegends(LEGENDS_FALLBACK);
+  const [selLegend, setSelLegend] = useState(()=>avail.find(l=>l.id===(profile?.avatar_legend||profile?.avatar))||avail[0]);
+  const [selPose, setSelPose]     = useState(profile?.avatar_pose||1);
+
+  return(
+    <div style={{position:'fixed',inset:0,background:'var(--bg)',zIndex:300,display:'flex',flexDirection:'column',animation:'slideUp 0.3s ease both'}}>
+      <div style={{padding:'calc(var(--safe-t) + 1rem) 1.25rem 0.75rem',display:'flex',alignItems:'center',gap:'1rem',borderBottom:'1px solid var(--border)',flexShrink:0}}>
+        <button onClick={onCancel} style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'10px',padding:'8px 14px',color:'var(--text)',fontSize:'0.9rem'}}>←</button>
+        <span className="bc" style={{fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.05em',flex:1}}>🎨 AVATAR ÄNDERN</span>
+        <button onClick={()=>onSave(selLegend.id, selPose)} style={{background:'var(--red)',border:'none',borderRadius:'10px',padding:'8px 16px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontWeight:800,fontSize:'0.95rem'}}>SPEICHERN</button>
+      </div>
+      <div style={{flex:1,overflowY:'auto',padding:'1.25rem'}}>
+        <div style={{textAlign:'center',marginBottom:'1.5rem'}}>
+          <div style={{width:80,height:80,borderRadius:'50%',background:'#0d0d0d',border:`3px solid ${selLegend?.color}`,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:`0 0 20px ${selLegend?.color}44`}}>
+            <div style={{width:68,height:68}} dangerouslySetInnerHTML={{__html:(POSE_SVGS[selPose]||POSE_SVGS[1])(selLegend?.color)}}/>
+          </div>
+          <div className="bc" style={{marginTop:'8px',fontSize:'0.9rem',color:selLegend?.color,fontWeight:700}}>{selLegend?.char} · {POSE_LABELS[selPose]}</div>
+        </div>
+        <div className="bc" style={{fontSize:'0.65rem',color:'var(--muted)',letterSpacing:'0.15em',marginBottom:'0.65rem'}}>LEGENDE</div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'8px',marginBottom:'1.25rem'}}>
+          {avail.map(l=>(
+            <button key={l.id} onClick={()=>setSelLegend(l)}
+              style={{background:selLegend?.id===l.id?`${l.color}22`:'var(--bg2)',border:`1.5px solid ${selLegend?.id===l.id?l.color:'var(--border)'}`,borderRadius:'12px',padding:'10px',display:'flex',alignItems:'center',gap:'8px',textAlign:'left'}}>
+              <span style={{fontSize:'1.1rem'}}>{l.emoji}</span>
+              <span className="bc" style={{fontSize:'0.85rem',fontWeight:700,color:selLegend?.id===l.id?l.color:'var(--text)'}}>{l.char}</span>
+            </button>
+          ))}
+        </div>
+        <div className="bc" style={{fontSize:'0.65rem',color:'var(--muted)',letterSpacing:'0.15em',marginBottom:'0.65rem'}}>POSE</div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'10px'}}>
+          {[1,2,3].map(p=>(
+            <button key={p} onClick={()=>setSelPose(p)}
+              style={{background:selPose===p?`${selLegend?.color}22`:'var(--bg2)',border:`2px solid ${selPose===p?selLegend?.color:'var(--border)'}`,borderRadius:'12px',padding:'12px 8px',display:'flex',flexDirection:'column',alignItems:'center',gap:'8px',transition:'all 0.15s'}}>
+              <div style={{width:52,height:52,borderRadius:'50%',background:'#0d0d0d',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <div style={{width:44,height:44}} dangerouslySetInnerHTML={{__html:(POSE_SVGS[p]||POSE_SVGS[1])(selLegend?.color)}}/>
+              </div>
+              <div style={{fontSize:'0.6rem',color:selPose===p?selLegend?.color:'var(--muted)',textAlign:'center',lineHeight:1.3,fontWeight:selPose===p?700:400}}>{POSE_LABELS[p]}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  WILDCARD MODAL
+// ─────────────────────────────────────────────────────────
+const WILDCARD_MESSAGES = [
+  "BONUS-RUNDE! 10 extra Burpees in 24h! 🎰",
+  "WILDCARD! Wer schafft 20 Bonus-Burpees?! ⚡",
+  "ÜBERRASCHUNG! 15 Burpees extra — wer ist dabei?! 💥",
+  "CHAOS-TAG! 5 Burpee-Sets à 5 — los geht's! 🔥",
+];
+
+function WildcardModal({onCall, onCancel}){
+  const [msg, setMsg] = useState(WILDCARD_MESSAGES[0]);
+  return(
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:250,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',animation:'slideUp 0.3s ease both'}} onClick={e=>e.target===e.currentTarget&&onCancel()}>
+      <div style={{width:'100%',maxWidth:'480px',background:'var(--bg)',borderRadius:'24px 24px 0 0',padding:'1.5rem',paddingBottom:'calc(1.5rem + var(--safe-b))'}}>
+        <div style={{textAlign:'center',marginBottom:'1.25rem'}}>
+          <div style={{fontSize:'3rem',marginBottom:'4px'}}>🎰</div>
+          <div className="bc" style={{fontSize:'1.4rem',fontWeight:900,letterSpacing:'0.05em',color:'var(--purple)'}}>WILDCARD RUFEN</div>
+          <div style={{color:'var(--muted)',fontSize:'0.82rem',marginTop:'4px'}}>Das Team hat 24h um mitzumachen</div>
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:'8px',marginBottom:'1rem'}}>
+          {WILDCARD_MESSAGES.map(m=>(
+            <button key={m} onClick={()=>setMsg(m)}
+              style={{background:msg===m?'rgba(139,92,246,0.15)':'var(--bg2)',border:`1.5px solid ${msg===m?'var(--purple)':'var(--border)'}`,borderRadius:'10px',padding:'0.7rem 1rem',textAlign:'left',fontSize:'0.85rem',color:msg===m?'#c4b5fd':'var(--text)',transition:'all 0.15s'}}>
+              {m}
+            </button>
+          ))}
+        </div>
+        <button onClick={()=>onCall(msg)}
+          style={{width:'100%',padding:'1rem',background:'linear-gradient(135deg,#8b5cf6,#7c3aed)',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.08em',boxShadow:'0 4px 20px rgba(139,92,246,0.4)'}}>
+          🎰 WILDCARD RUFEN!
+        </button>
+        <button onClick={onCancel} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.82rem',padding:'0.75rem',width:'100%',marginTop:'4px'}}>Abbrechen</button>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  STATS TAB (Heatmap + Wildcard + Finale)
+// ─────────────────────────────────────────────────────────
+function StatsTab({user, leaders, legends, completionData, wildcards, wildcardCompletions, onCallWildcard, onCompleteWildcard}){
+  const [showWildcardModal, setShowWildcardModal] = useState(false);
+  const cur = getChallengeDay();
+  const names = leaders.map(l=>l.name);
+
+  // ── Heatmap data ──
+  // Build 30-day × member grid
+  const completionMap = {};
+  (completionData||[]).forEach(c=>{
+    if(!completionMap[c.name]) completionMap[c.name] = {};
+    const hour = c.completed_at ? new Date(c.completed_at).getHours() : 12;
+    const timeSlot = hour < 9 ? '🌅' : hour < 13 ? '🌤' : hour < 18 ? '☀️' : '🌙';
+    completionMap[c.name][c.day] = {type:c.type, timeSlot};
+  });
+
+  // Weekday pattern
+  const weekdayCount = {};
+  (completionData||[]).forEach(c=>{
+    if(!c.completed_at) return;
+    const day = new Date(c.completed_at).toLocaleDateString('de-DE',{weekday:'short'});
+    weekdayCount[day] = (weekdayCount[day]||0)+1;
+  });
+  const weekdays = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+
+  // ── Active wildcard ──
+  const now = new Date();
+  const activeWC = wildcards.find(w=>new Date(w.expires_at)>now);
+  const hasCalledWC = wildcards.some(w=>w.called_by===user);
+  const hasCompletedWC = activeWC && wildcardCompletions.some(c=>c.wildcard_id===activeWC.id&&c.name===user);
+  const wcParticipants = activeWC ? wildcardCompletions.filter(c=>c.wildcard_id===activeWC.id) : [];
+
+  // ── Finale ──
+  const isFinale = cur >= 30 && leaders.every(l=>l.completed_days>=30);
+  const totalTeamBurpees = leaders.reduce((a,l)=>{
+    return a + DAYS.slice(0,l.completed_days||0).reduce((s,d)=>s+tot(d),0);
+  },0);
+  const earliest = leaders.reduce((a,b)=>(a.completed_days||0)>(b.completed_days||0)?a:b,leaders[0]);
+  const noJoker = leaders.filter(l=>!(l.jokers_used>0||l.half_used>0||l.joker_swapped));
+
+  return(
+    <div style={{flex:1,overflowY:'auto',padding:'1.25rem'}}>
+
+      {/* ── FINALE ── */}
+      {isFinale&&(
+        <div style={{background:'linear-gradient(135deg,#3a2800,#5a3e00)',border:'2px solid var(--gold)',borderRadius:'18px',padding:'1.5rem',marginBottom:'1.5rem',textAlign:'center'}}>
+          <div style={{fontSize:'3rem',marginBottom:'0.5rem'}}>🏆</div>
+          <div className="bc" style={{fontSize:'1.8rem',fontWeight:900,color:'var(--gold)',letterSpacing:'0.05em',marginBottom:'0.5rem'}}>CHALLENGE ABGESCHLOSSEN!</div>
+          <div style={{color:'#ddd',fontSize:'0.85rem',marginBottom:'1.25rem'}}>Das Team hat es geschafft. Alle 30 Tage. Gemeinsam.</div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'8px',marginBottom:'1rem'}}>
+            <div style={{background:'rgba(0,0,0,0.3)',borderRadius:'10px',padding:'0.75rem'}}>
+              <div className="bc" style={{fontSize:'1.6rem',fontWeight:900,color:'var(--gold)'}}>{totalTeamBurpees.toLocaleString()}</div>
+              <div style={{fontSize:'0.65rem',color:'var(--muted)'}}>Team-Burpees gesamt</div>
+            </div>
+            <div style={{background:'rgba(0,0,0,0.3)',borderRadius:'10px',padding:'0.75rem'}}>
+              <div className="bc" style={{fontSize:'1.6rem',fontWeight:900,color:'var(--green)'}}>{noJoker.length}</div>
+              <div style={{fontSize:'0.65rem',color:'var(--muted)'}}>Stahlarme 🦾</div>
+            </div>
+          </div>
+          {noJoker.length>0&&<div style={{fontSize:'0.8rem',color:'var(--green)',marginBottom:'8px'}}>🦾 Stahlarm: {noJoker.map(l=>l.name).join(', ')}</div>}
+          {earliest&&<div style={{fontSize:'0.8rem',color:'#60a5fa'}}>⚡ Schnellster: {earliest.name}</div>}
+        </div>
+      )}
+
+      {/* ── WILDCARD ── */}
+      <div className="bc" style={{fontSize:'0.68rem',color:'var(--muted)',letterSpacing:'0.15em',marginBottom:'0.65rem'}}>🎰 WILDCARD</div>
+      {activeWC?(
+        <div style={{background:'rgba(139,92,246,0.1)',border:'2px solid var(--purple)',borderRadius:'16px',padding:'1.25rem',marginBottom:'1.5rem'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'8px'}}>
+            <div>
+              <div className="bc" style={{fontSize:'1rem',fontWeight:800,color:'#c4b5fd',letterSpacing:'0.05em'}}>AKTIVE WILDCARD!</div>
+              <div style={{fontSize:'0.78rem',color:'var(--muted)',marginTop:'2px'}}>von {activeWC.called_by}</div>
+            </div>
+            <WildcardCountdown expires={activeWC.expires_at}/>
+          </div>
+          <p style={{fontSize:'0.9rem',color:'#ddd',marginBottom:'1rem',fontStyle:'italic'}}>"{activeWC.message}"</p>
+          {/* Participants */}
+          <div style={{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'1rem'}}>
+            {names.map(n=>{
+              const done = wcParticipants.some(c=>c.name===n);
+              return(
+                <div key={n} style={{background:done?'rgba(74,222,128,0.15)':'var(--bg3)',border:`1px solid ${done?'#2d5a2d':'var(--border)'}`,borderRadius:'8px',padding:'4px 10px',fontSize:'0.78rem',color:done?'var(--green)':'var(--muted)'}}>
+                  {done?'✓ ':''}{n}
+                </div>
+              );
+            })}
+          </div>
+          {!hasCompletedWC&&(
+            <button onClick={()=>onCompleteWildcard(activeWC.id)}
+              style={{width:'100%',padding:'0.9rem',background:'linear-gradient(135deg,#8b5cf6,#7c3aed)',border:'none',borderRadius:'12px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.1rem',fontWeight:800,letterSpacing:'0.08em'}}>
+              ⚡ WILDCARD ABGEHAKT!
+            </button>
+          )}
+          {hasCompletedWC&&<div className="bc" style={{textAlign:'center',color:'var(--green)',fontSize:'1rem',fontWeight:700}}>✓ Du hast mitgemacht!</div>}
+        </div>
+      ):(
+        <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'16px',padding:'1.25rem',marginBottom:'1.5rem',textAlign:'center'}}>
+          <div style={{color:'var(--muted)',fontSize:'0.85rem',marginBottom:'1rem'}}>Keine aktive Wildcard — ruf eine aus!</div>
+          <button
+            onClick={()=>setShowWildcardModal(true)}
+            disabled={hasCalledWC}
+            style={{padding:'0.85rem 2rem',background:hasCalledWC?'var(--bg3)':'linear-gradient(135deg,#8b5cf6,#7c3aed)',border:'none',borderRadius:'12px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.1rem',fontWeight:800,letterSpacing:'0.08em',opacity:hasCalledWC?0.4:1}}>
+            {hasCalledWC?'Bereits gerufen':'🎰 WILDCARD RUFEN'}
+          </button>
+          {hasCalledWC&&<div style={{fontSize:'0.72rem',color:'var(--muted)',marginTop:'6px'}}>Du hast bereits eine Wildcard gerufen</div>}
+        </div>
+      )}
+
+      {/* ── HEATMAP ── */}
+      <div className="bc" style={{fontSize:'0.68rem',color:'var(--muted)',letterSpacing:'0.15em',marginBottom:'0.65rem'}}>📊 TEAM HEATMAP</div>
+      <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'16px',padding:'1rem',marginBottom:'1.5rem',overflowX:'auto'}}>
+        {/* Header: day numbers */}
+        <div style={{display:'flex',alignItems:'center',gap:'0',marginBottom:'4px'}}>
+          <div style={{width:'70px',flexShrink:0}}/>
+          <div style={{display:'flex',gap:'2px'}}>
+            {DAYS.map(d=>(
+              <div key={d.day} style={{width:'18px',textAlign:'center',fontSize:'0.45rem',color:'var(--muted)',flexShrink:0}}>{d.day}</div>
+            ))}
+          </div>
+        </div>
+        {/* Rows per person */}
+        {names.map(n=>(
+          <div key={n} style={{display:'flex',alignItems:'center',gap:'0',marginBottom:'3px'}}>
+            <div style={{width:'70px',fontSize:'0.65rem',color:n===user?'var(--red)':'var(--text)',fontWeight:n===user?600:400,flexShrink:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{n}</div>
+            <div style={{display:'flex',gap:'2px'}}>
+              {DAYS.map(d=>{
+                const cell = completionMap[n]?.[d.day];
+                const bg = !cell?'var(--bg3)':cell.type==='joker'?'#333':cell.type==='half'?'#1e3a5f':'rgba(74,222,128,0.5)';
+                return(
+                  <div key={d.day} style={{width:'18px',height:'14px',borderRadius:'2px',background:bg,flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.5rem'}} title={cell?`${n} · Tag ${d.day} · ${cell.timeSlot||''}`:''}>
+                    {cell&&cell.timeSlot&&<span style={{fontSize:'0.45rem'}}>{cell.timeSlot}</span>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+        {/* Legend */}
+        <div style={{display:'flex',gap:'10px',marginTop:'8px',paddingTop:'8px',borderTop:'1px solid var(--border)',flexWrap:'wrap'}}>
+          {[['rgba(74,222,128,0.5)','✓ Voll'],['#1e3a5f','🌙 Halb'],['#333','🃏 Joker'],['var(--bg3)','– Offen']].map(([c,l])=>(
+            <div key={l} style={{display:'flex',alignItems:'center',gap:'4px'}}>
+              <div style={{width:'12px',height:'10px',borderRadius:'2px',background:c,flexShrink:0}}/>
+              <span style={{fontSize:'0.65rem',color:'var(--muted)'}}>{l}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── WOCHENTAG PATTERN ── */}
+      <div className="bc" style={{fontSize:'0.68rem',color:'var(--muted)',letterSpacing:'0.15em',marginBottom:'0.65rem'}}>📅 WOCHENTAG-MUSTER</div>
+      <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'16px',padding:'1rem',marginBottom:'1.5rem'}}>
+        {weekdays.map(day=>{
+          const count = weekdayCount[day]||0;
+          const maxCount = Math.max(...weekdays.map(d=>weekdayCount[d]||0),1);
+          const pct = Math.round((count/maxCount)*100);
+          return(
+            <div key={day} style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'6px'}}>
+              <div style={{width:'24px',fontSize:'0.75rem',color:'var(--muted)',flexShrink:0}}>{day}</div>
+              <div style={{flex:1,height:'16px',background:'var(--bg3)',borderRadius:'4px',overflow:'hidden'}}>
+                <div style={{height:'100%',width:`${pct}%`,background:pct>70?'var(--green)':pct>40?'var(--gold)':'var(--red)',borderRadius:'4px',transition:'width 0.6s ease'}}/>
+              </div>
+              <div style={{width:'28px',textAlign:'right',fontSize:'0.72rem',color:'var(--muted)',flexShrink:0}}>{count}×</div>
+            </div>
+          );
+        })}
+      </div>
+
+      {showWildcardModal&&<WildcardModal onCall={msg=>{setShowWildcardModal(false);onCallWildcard(msg);}} onCancel={()=>setShowWildcardModal(false)}/>}
+    </div>
+  );
+}
+
+// Mini countdown for wildcard
+function WildcardCountdown({expires}){
+  const [left, setLeft] = useState('');
+  useEffect(()=>{
+    const calc=()=>{
+      const diff=new Date(expires)-new Date();
+      if(diff<=0){setLeft('Abgelaufen');return;}
+      const h=Math.floor(diff/3600000);
+      const m=Math.floor((diff%3600000)/60000);
+      setLeft(`${h}h ${m}m`);
+    };
+    calc();const iv=setInterval(calc,60000);return()=>clearInterval(iv);
+  },[expires]);
+  return <div className="bc" style={{fontSize:'0.85rem',fontWeight:700,color:'#c4b5fd',background:'rgba(139,92,246,0.2)',padding:'4px 10px',borderRadius:'8px'}}>{left}</div>;
+}
+
+
+// ─────────────────────────────────────────────────────────
+//  BOTTOM NAV
+// ─────────────────────────────────────────────────────────
+function BottomNav({tab, setTab}){
+  return(
+    <div style={{flexShrink:0,background:'var(--bg)',borderTop:'1px solid var(--border)',paddingBottom:'var(--safe-b)',display:'flex'}}>
+      {[{id:'home',icon:'🏠',label:'HOME'},{id:'calendar',icon:'📅',label:'PLAN'},{id:'wall',icon:'💬',label:'WALL'},{id:'stats',icon:'📊',label:'STATS'}].map(item=>{
+        const active = tab===item.id;
+        return(
+          <button key={item.id} onClick={()=>setTab(item.id)}
+            style={{flex:1,padding:'0.8rem 0.5rem',background:'none',border:'none',display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',opacity:active?1:0.4,transition:'opacity 0.15s'}}>
+            <span style={{fontSize:'1.3rem'}}>{item.icon}</span>
+            <span className="bc" style={{fontSize:'0.62rem',fontWeight:700,letterSpacing:'0.1em',color:active?'var(--red)':'var(--muted)'}}>{item.label}</span>
+            {active&&<div style={{width:'16px',height:'2px',background:'var(--red)',borderRadius:'1px'}}/>}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  APP
+// ─────────────────────────────────────────────────────────
+function App(){
+  const [screen,          setScreen]          = useState('loading');
+  const [tab,             setTab]             = useState('home');
+  const [userName,        setUserName]        = useState('');
+  const [completed,       setCompleted]       = useState(new Set());
+  const [compTypes,       setCompTypes]       = useState({});
+  const [profile,         setProfile]         = useState(null);
+  const [legends,         setLegends]         = useState([]);
+  const [leaders,         setLeaders]         = useState([]);
+  const [wall,            setWall]            = useState([]);
+  const [submissions,     setSubmissions]     = useState([]);
+  const [kudos,           setKudos]           = useState([]);
+  const [achievements,    setAchievements]    = useState([]);
+  const [showKudoModal,   setShowKudoModal]   = useState(null);
+  const [allCompletions,  setAllCompletions]  = useState([]);
+  const [wildcards,       setWildcards]       = useState([]);
+  const [wildcardCompletions, setWildcardCompletions] = useState([]);
+  const [workoutDay,      setWorkoutDay]      = useState(null);
+  const [feuerTarget,     setFeuerTarget]     = useState(null);
+  const [showAvatarEditor,setShowAvatarEditor]= useState(false);
+  const [showCommunity,   setShowCommunity]   = useState(false);
+  const [toast,           setToast]           = useState('');
+  const toastTimer = useRef(null);
+
+  const showToast = msg => {
+    setToast(msg);
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(()=>setToast(''), 3200);
+  };
+
+  // ── Loaders ──
+  const loadUser = useCallback(async name => {
+    const {data:comp} = await db.from('day_completions').select('day,type').eq('name',name);
+    if(comp){
+      setCompleted(new Set(comp.map(d=>d.day)));
+      const t={}; comp.forEach(d=>{t[d.day]=d.type||'full';}); setCompTypes(t);
+    }
+    const {data:prof} = await db.from('profiles').select('*').eq('name',name).single();
+    if(prof) setProfile(prof);
+    setScreen('main');
+  },[]);
+
+  const loadLeaders = useCallback(async () => {
+    const {data} = await db.from('profiles').select('*').order('completed_days',{ascending:false}).limit(15);
+    if(data) setLeaders(data);
+  },[]);
+
+  const loadWall = useCallback(async () => {
+    const {data} = await db.from('wall_posts').select('*').order('created_at',{ascending:false}).limit(60);
+    if(data) setWall(data);
+  },[]);
+
+  const loadLegends = useCallback(async () => {
+    const {data:legs} = await db.from('legends').select('*');
+    const {data:qs}   = await db.from('quotes').select('*').eq('approved',true);
+    if(legs&&qs){
+      const grouped = legs.map(l=>({
+        ...l,
+        quotes:           qs.filter(q=>q.legend_id===l.id),
+        quotes_bekloppt:  qs.filter(q=>q.legend_id===l.id && q.category==='bekloppt'),
+        quotes_original:  qs.filter(q=>q.legend_id===l.id && q.category==='original'),
+        quotes_motivierend:qs.filter(q=>q.legend_id===l.id && q.category==='motivierend'),
+        quotes_brutal:    qs.filter(q=>q.legend_id===l.id && q.category==='brutal'),
+      })).filter(l=>l.quotes.length>0);
+      setLegends(sortLegends(grouped));
+    }
+  },[]);
+
+  const loadSubmissions = useCallback(async () => {
+    const {data} = await db.from('quote_submissions').select('*').order('votes',{ascending:false});
+    if(data) setSubmissions(data);
+  },[]);
+
+  const loadKudos = useCallback(async () => {
+    const {data} = await db.from('kudos').select('*').order('created_at',{ascending:false}).limit(50);
+    if(data) setKudos(data);
+  },[]);
+
+  const loadAllCompletions = useCallback(async () => {
+    const {data} = await db.from('day_completions').select('name,day,type,completed_at');
+    if(data) setAllCompletions(data);
+  },[]);
+
+  const loadWildcards = useCallback(async () => {
+    const {data:wc}   = await db.from('wildcards').select('*').order('created_at',{ascending:false}).limit(5);
+    const {data:wcc}  = await db.from('wildcard_completions').select('*');
+    if(wc)  setWildcards(wc);
+    if(wcc) setWildcardCompletions(wcc);
+  },[]);
+
+  const loadAchievements = useCallback(async () => {
+    const {data} = await db.from('achievements').select('*').order('created_at',{ascending:false});
+    if(data) setAchievements(data);
+  },[]);
+
+  // ── Init ──
+  useEffect(()=>{
+    const saved = localStorage.getItem('burpee_name');
+    if(saved){ setUserName(saved); loadUser(saved); } else setScreen('onboarding');
+    loadLeaders(); loadWall(); loadLegends(); loadSubmissions(); loadKudos(); loadAchievements(); loadAllCompletions(); loadWildcards();
+    const ch = db.channel('live')
+      .on('postgres_changes',{event:'*',schema:'public',table:'wall_posts'},loadWall)
+      .on('postgres_changes',{event:'*',schema:'public',table:'profiles'},loadLeaders)
+      .on('postgres_changes',{event:'*',schema:'public',table:'quote_submissions'},loadSubmissions)
+      .on('postgres_changes',{event:'*',schema:'public',table:'kudos'},loadKudos)
+      .on('postgres_changes',{event:'*',schema:'public',table:'achievements'},loadAchievements)
+      .on('postgres_changes',{event:'*',schema:'public',table:'wildcards'},loadWildcards)
+      .on('postgres_changes',{event:'*',schema:'public',table:'wildcard_completions'},loadWildcards)
+      .on('postgres_changes',{event:'*',schema:'public',table:'day_completions'},loadAllCompletions)
+      .subscribe();
+    return () => ch.unsubscribe();
+  },[loadUser,loadLeaders,loadWall,loadLegends,loadSubmissions]);
+
+  // ── Refresh profile ──
+  const refreshProfile = async name => {
+    const {data} = await db.from('profiles').select('*').eq('name',name).single();
+    if(data){ setProfile(data); return data; } return null;
+  };
+
+  // ── Handlers ──
+  const handleJoin = async (name, legendId, pose) => {
+    await db.from('profiles').upsert({name, avatar:legendId, avatar_legend:legendId, avatar_pose:pose, completed_days:0, jokers_used:0, half_used:0, joker_swapped:false},{onConflict:'name',ignoreDuplicates:false});
+    localStorage.setItem('burpee_name', name);
+    setUserName(name); await loadUser(name);
+    showToast(`🎉 Willkommen, ${name}!`);
+  };
+
+  const handleSaveAvatar = async (legendId, pose) => {
+    setShowAvatarEditor(false);
+    await db.from('profiles').update({avatar:legendId, avatar_legend:legendId, avatar_pose:pose}).eq('name',userName);
+    await refreshProfile(userName); loadLeaders();
+    showToast('🎨 Avatar gespeichert!');
+  };
+
+  const handleComplete = async dayNum => {
+    const next = new Set(completed); next.add(dayNum);
+    setCompleted(next); setCompTypes({...compTypes,[dayNum]:'full'});
+    await db.from('day_completions').upsert({name:userName,day:dayNum,type:'full'},{onConflict:'name,day'});
+    await db.from('profiles').update({completed_days:next.size,updated_at:new Date().toISOString()}).eq('name',userName);
+    await refreshProfile(userName); loadLeaders();
+
+    // ── Achievement detection ──
+    // ⚡ Erster im Team heute
+    const {count} = await db.from('day_completions')
+      .select('*', {count:'exact',head:true})
+      .eq('day', dayNum);
+    if(count===1){
+      await db.from('achievements').upsert({name:userName,type:'erster',day:dayNum},{onConflict:'name,type,day',ignoreDuplicates:true});
+      showToast('🥇 ERSTER im Team heute!');
+      await loadAchievements();
+    }
+
+    // 🔥 Streak — 7 Tage am Stück
+    const lastDays = Array.from({length:7},(_,i)=>dayNum-i).filter(d=>d>0);
+    const hasStreak = lastDays.length===7 && lastDays.every(d=>next.has(d));
+    if(hasStreak){
+      await db.from('achievements').upsert({name:userName,type:'streak',day:dayNum},{onConflict:'name,type,day',ignoreDuplicates:true});
+      showToast('💫 7-TAGE STREAK! Unaufhaltbar!');
+      await loadAchievements();
+    }
+
+    // 🦾 Du Maschine — kein Joker, kein Halbe, 30 Tage voll
+    const freshProfile = await refreshProfile(userName);
+    if(next.size===30 && (freshProfile?.jokers_used||0)===0 && (freshProfile?.half_used||0)===0){
+      await db.from('achievements').upsert({name:userName,type:'eisenmensch',day:30},{onConflict:'name,type,day',ignoreDuplicates:true});
+      showToast('🦾 STAHLARM! 30 Tage, kein Joker, kein Halbe!');
+      await loadAchievements();
+    }
+
+    // Save reward quote for home screen
+    const pool = (legends&&legends.length) ? legends : LEGENDS_FALLBACK;
+    const leg = rnd(pool);
+    const src = getByCat(leg,'motivierend') || leg.quotes;
+    const q = rnd(src);
+    const reward = {char:leg.char, emoji:leg.emoji, color:leg.color, quote:q.quote, date:new Date().toDateString()};
+    localStorage.setItem('burpee_reward', JSON.stringify(reward));
+    showToast('🎉 Tag '+dayNum+' geschafft!');
+  };
+
+  const handleHalf = async dayNum => {
+    const next = new Set(completed); next.add(dayNum);
+    setCompleted(next); setCompTypes({...compTypes,[dayNum]:'half'});
+    const newH = (profile?.half_used||0)+1;
+    await db.from('day_completions').upsert({name:userName,day:dayNum,type:'half'},{onConflict:'name,day'});
+    await db.from('profiles').update({completed_days:next.size,half_used:newH,updated_at:new Date().toISOString()}).eq('name',userName);
+    const p = await refreshProfile(userName); loadLeaders();
+    showToast(`🌙 Halbe reicht auch! (${2+(p?.joker_swapped?1:0)-newH} übrig)`);
+  };
+
+  const handleJoker = async (dayNum, action) => {
+    if(action==='swap'){
+      const next = new Set(completed); next.add(dayNum);
+      const newH = (profile?.half_used||0)+1;
+      setCompleted(next); setCompTypes({...compTypes,[dayNum]:'half'});
+      await db.from('day_completions').upsert({name:userName,day:dayNum,type:'half'},{onConflict:'name,day'});
+      await db.from('profiles').update({completed_days:next.size,joker_swapped:true,half_used:newH,updated_at:new Date().toISOString()}).eq('name',userName);
+      await refreshProfile(userName); loadLeaders();
+      showToast('⚡ Joker getauscht! Avatar upgraded!');
+    } else {
+      const next = new Set(completed); next.add(dayNum);
+      const newJ = (profile?.jokers_used||0)+1;
+      setCompleted(next); setCompTypes({...compTypes,[dayNum]:'joker'});
+      await db.from('day_completions').upsert({name:userName,day:dayNum,type:'joker'},{onConflict:'name,day'});
+      await db.from('profiles').update({completed_days:next.size,jokers_used:newJ,updated_at:new Date().toISOString()}).eq('name',userName);
+      await refreshProfile(userName); loadLeaders();
+      showToast('🃏 Joker eingesetzt – morgen wieder voll!');
+    }
+  };
+
+  const handleUndo = async dayNum => {
+    const type = compTypes[dayNum];
+    const next = new Set(completed); next.delete(dayNum);
+    const nextT = {...compTypes}; delete nextT[dayNum];
+    setCompleted(next); setCompTypes(nextT);
+    await db.from('day_completions').delete().eq('name',userName).eq('day',dayNum);
+    let updates = {completed_days:next.size};
+    if(type==='half')  updates.half_used   = Math.max((profile?.half_used||0)-1,0);
+    if(type==='joker') updates.jokers_used = Math.max((profile?.jokers_used||0)-1,0);
+    await db.from('profiles').update(updates).eq('name',userName);
+    await refreshProfile(userName); loadLeaders();
+  };
+
+  const handlePost = async (text, imageUrl=null) => {
+    const cur = getChallengeDay();
+    const {error} = await db.from('wall_posts').insert({name:userName, avatar:profile?.avatar||'chuck', avatar_legend:profile?.avatar_legend||'chuck', avatar_pose:profile?.avatar_pose||1, message:text, day:cur, reactions:{}, image_url:imageUrl});
+    if(error) { console.error('Wall post error:', error); showToast('❌ Fehler: '+error.message); return; }
+    await loadWall();
+  };
+
+  const handleReact = async (postId, emoji) => {
+    const post = wall.find(p=>p.id===postId); if(!post) return;
+    const reactions = {...(post.reactions||{}),[emoji]:((post.reactions||{})[emoji]||0)+1};
+    setWall(prev=>prev.map(p=>p.id===postId?{...p,reactions}:p));
+    await db.from('wall_posts').update({reactions}).eq('id',postId);
+    await loadWall();
+  };
+
+  const handleNudge = targetName => setFeuerTarget(targetName);
+
+  const handleCallWildcard = async (message) => {
+    const expires = new Date(Date.now() + 24*60*60*1000).toISOString();
+    await db.from('wildcards').insert({called_by:userName, message, expires_at:expires});
+    await loadWildcards();
+    showToast('🎰 WILDCARD gerufen! Das Team hat 24h!');
+  };
+
+  const handleCompleteWildcard = async (wildcardId) => {
+    await db.from('wildcard_completions').insert({wildcard_id:wildcardId, name:userName});
+    await loadWildcards();
+    showToast('⚡ Wildcard abgehakt!');
+  };
+
+  const handleSendKudo = async (toName, message) => {
+    setShowKudoModal(null);
+    await db.from('kudos').insert({from_name:userName, to_name:toName, message});
+    await loadKudos();
+    // Also post to wall as special message
+    await handlePost(`💪 ${userName} gibt ${toName} einen Kudo!
+"${message}"`);
+    showToast(`💪 Kudo an ${toName} gesendet!`);
+  };
+
+  const handleFeuerSend = async legend => {
+    const target = feuerTarget; setFeuerTarget(null);
+    const msg = `🔥 ${userName} macht Feuer unter ${target}!\n\n${legend.emoji} ${legend.char.toUpperCase()} sagt:\n"${legend.selectedQuote}"`;
+    await handlePost(msg);
+    setTab('wall'); showToast(`🔥 ${target} bekommt Feuer von ${legend.char}!`);
+  };
+
+  const handleSubmitQuote = async sub => {
+    await db.from('quote_submissions').insert(sub);
+    await loadSubmissions();
+  };
+
+  const handleVote = async subId => {
+    const key = `vote_${subId}`;
+    if(localStorage.getItem(key)==='1') return;
+    localStorage.setItem(key,'1');
+    const sub = submissions.find(s=>s.id===subId); if(!sub) return;
+    const newVotes = sub.votes+1;
+    setSubmissions(prev=>prev.map(s=>s.id===subId?{...s,votes:newVotes}:s));
+    await db.from('quote_submissions').update({votes:newVotes}).eq('id',subId);
+    if(newVotes>=5){
+      await db.from('quotes').insert({legend_id:sub.legend_id,anheizer:sub.anheizer,quote:sub.quote,approved:true});
+      await db.from('quote_submissions').update({approved:true}).eq('id',subId);
+      await loadLegends(); await loadSubmissions();
+      showToast('🔥 Spruch freigeschaltet! Er ist jetzt live!');
+    }
+  };
+
+  // ── Screens ──
+  if(screen==='loading') return(
+    <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center'}}>
+      <div style={{textAlign:'center'}}>
+        <div style={{fontSize:'2.5rem',marginBottom:'0.75rem',animation:'shimmer 1.2s infinite'}}>💥</div>
+        <div className="bc" style={{fontSize:'0.8rem',color:'var(--muted)',letterSpacing:'0.15em'}}>LÄDT...</div>
+      </div>
+    </div>
+  );
+
+  if(screen==='onboarding') return <><Toast msg={toast}/><Onboarding onJoin={handleJoin} legends={legends}/></>;
+
+  return(
+    <>
+      <Toast msg={toast}/>
+      {showKudoModal&&<KudoModal to={showKudoModal} from={userName} onSend={handleSendKudo} onCancel={()=>setShowKudoModal(null)}/>}
+      {feuerTarget&&<FeuermachenModal from={userName} to={feuerTarget} legends={legends} onSend={handleFeuerSend} onCancel={()=>setFeuerTarget(null)}/>}
+      {showAvatarEditor&&<AvatarEditorModal profile={profile} legends={legends} onSave={handleSaveAvatar} onCancel={()=>setShowAvatarEditor(false)}/>}
+      {showCommunity&&<CommunityQuotes user={userName} legends={legends} submissions={submissions} onSubmit={handleSubmitQuote} onVote={handleVote} onClose={()=>setShowCommunity(false)}/>}
+      <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',paddingTop:'var(--safe-t)'}}>
+        {tab==='home'     && <HomeTab user={userName} completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay} leaders={leaders} profile={profile} legends={legends} onNudge={handleNudge}/>}
+        {tab==='calendar' && <CalendarTab completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay}/>}
+        {tab==='wall'     && <WallTab user={userName} profile={profile} legends={legends} wall={wall} onPost={handlePost} onReact={handleReact} onOpenCommunity={()=>setShowCommunity(true)}/>}
+        {tab==='stats'    && <StatsTab user={userName} leaders={leaders} legends={legends} completionData={allCompletions} wildcards={wildcards} wildcardCompletions={wildcardCompletions} onCallWildcard={handleCallWildcard} onCompleteWildcard={handleCompleteWildcard}/>}
+        <BottomNav tab={tab} setTab={setTab}/>
+      </div>
+      {workoutDay&&<WorkoutScreen dayNum={workoutDay} completed={completed} completionTypes={compTypes} profile={profile} legends={legends} onComplete={handleComplete} onHalf={handleHalf} onJoker={handleJoker} onUndo={handleUndo} onBack={()=>setWorkoutDay(null)}/>}
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  ERROR BOUNDARY + MOUNT
+// ─────────────────────────────────────────────────────────
+class ErrorBoundary extends React.Component {
+  constructor(props){super(props);this.state={error:null};}
+  static getDerivedStateFromError(e){return{error:e};}
+  componentDidCatch(e,info){console.error('CRASH:',e,info);}
+  render(){
+    if(this.state.error) return(
+      <div style={{padding:'2rem',background:'#1a0000',color:'#ff6b6b',fontFamily:'monospace',fontSize:'0.85rem',minHeight:'100vh',overflowY:'auto'}}>
+        <div style={{fontSize:'1.5rem',marginBottom:'1rem'}}>💥 JavaScript Fehler</div>
+        <div style={{background:'#2a0000',padding:'1rem',borderRadius:'8px',marginBottom:'1rem',wordBreak:'break-all'}}>
+          <b>{this.state.error.toString()}</b>
+        </div>
+        <pre style={{whiteSpace:'pre-wrap',opacity:0.7,fontSize:'0.75rem'}}>{this.state.error.stack}</pre>
+      </div>
+    );
+    return this.props.children;
+  }
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<ErrorBoundary><App/></ErrorBoundary>);
+</script>
+</body>
+</html>
