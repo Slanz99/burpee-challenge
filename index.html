@@ -88,40 +88,40 @@ const MOTIVATIONS = [
   "Einmal mehr als gestern!","Dein zukünftiges Ich dankt dir!",
 ];
 
-const EMOJIS = ["🔥","💪","⚡","🎉","👊","🏆","😤","🚀"];
+const EMOJIS = ["🔥","🤯","⚡","🎉","👑","🥵","🫀","🚀"];
 
 // ─────────────────────────────────────────────────────────
 //  LEGENDEN FALLBACK (aus Supabase geladen, dies ist Notfall)
 // ─────────────────────────────────────────────────────────
 const LEGENDS_FALLBACK = [
   // Männer
-  {id:'rocky',      char:'Rocky Balboa',    emoji:'🥊',color:'#c0392b',gender:'male',  quotes:[{anheizer:'Boden ist dein Gegner!',        quote:'Der Boden ist dein Gegner, Adrian! Schlag ihn mit deiner Brust!'}]},
-  {id:'chuck',      char:'Chuck Norris',    emoji:'🤠',color:'#d35400',gender:'male',  quotes:[{anheizer:'Drück die Erde weg!',            quote:'Chuck Norris macht keine Burpees. Er drückt die Erde von der Sonne weg. Und jetzt du.'}]},
-  {id:'gandalf',    char:'Gandalf',         emoji:'🧙',color:'#7f8c8d',gender:'male',  quotes:[{anheizer:'Krieger landet perfekt!',         quote:'Ein Burpee-Krieger kommt nie zu spät. Er landet genau dann, wenn er es beabsichtigt!'}]},
-  {id:'vader',      char:'Darth Vader',     emoji:'🎭',color:'#8e44ad',gender:'male',  quotes:[{anheizer:'Ergib dich der Schwerkraft!',    quote:'Ich finde deinen Mangel an Burpees beklagenswert. Ergib dich der Schwerkraft!'}]},
-  {id:'leonidas',   char:'König Leonidas',  emoji:'🛡️',color:'#c0390b',gender:'male',  quotes:[{anheizer:'Liegestütz-Position, runter!',  quote:'Dies ist nicht Sparta, dies ist die Liegestütz-Position! Runter mit dir!'}]},
-  {id:'indy',       char:'Indiana Jones',   emoji:'🎩',color:'#8B6914',gender:'male',  quotes:[{anheizer:'Jahre zählen nicht, Reps schon!',quote:'Es sind nicht die Jahre, Schätzchen, es sind die Wiederholungen!'}]},
-  {id:'thor',       char:'Thor',            emoji:'⚡',color:'#1a5e9a',gender:'male',  quotes:[{anheizer:'Arsch ist zu schwer!',           quote:'Mein Hammer ist schwer, aber dein Arsch ist heute schwerer! Beweg ihn!'}]},
-  {id:'rambo',      char:'John Rambo',      emoji:'💪',color:'#2d5a27',gender:'male',  quotes:[{anheizer:'Werde ein Burpee!',              quote:'Um die Burpees zu überleben, musst du zu einem Burpee werden!'}]},
-  {id:'yoda',       char:'Yoda',            emoji:'🟢',color:'#27ae60',gender:'male',  quotes:[{anheizer:'Flach wie Flunder springen!',   quote:'Flach wie eine Flunder du sein musst, um hoch wie ein X-Wing zu fliegen!'}]},
-  {id:'bond',       char:'James Bond',      emoji:'🍸',color:'#1a1a2e',gender:'male',  quotes:[{anheizer:'Quantum Liegestütz reicht nicht!',quote:'Ein Quantum Liegestütz reicht nicht. Ich erwarte, dass Sie springen, Goldfinger!'}]},
-  {id:'terminator', char:'Terminator',      emoji:'🤖',color:'#333333',gender:'male',  quotes:[{anheizer:'Muskeln aus Metall!',            quote:'Sprung mit mir, wenn du leben willst. Deine Muskeln sind aus Metall, also bieg sie!'}]},
-  {id:'madmax',     char:'Mad Max',         emoji:'🚙',color:'#5a3e00',gender:'male',  quotes:[{anheizer:'Glänzend und verschwitzt!',     quote:'Wir reiten in die Fitness-Walhalla! Glänzend und verschwitzt!'}]},
-  {id:'goggins',    char:'David Goggins',   emoji:'⚓', color:'#2c3e50',gender:'male',  quotes:[{anheizer:'Erstick sie mit Schweiß!',      quote:'Ich höre da eine kleine Bitch-Voice in deinem Kopf. Erstick sie mit Schweiß!'}]},
+  {id:'rocky',      char:'Rocky Balboa',    emoji:'🥊',color:'#c0392b',gender:'male',  quotes:[{category:'bekloppt',anheizer:'Boden ist dein Gegner!',        quote:'Der Boden ist dein Gegner, Adrian! Schlag ihn mit deiner Brust!'}]},
+  {id:'chuck',      char:'Chuck Norris',    emoji:'🤠',color:'#d35400',gender:'male',  quotes:[{category:'bekloppt',anheizer:'Drück die Erde weg!',            quote:'Chuck Norris macht keine Burpees. Er drückt die Erde von der Sonne weg. Und jetzt du.'}]},
+  {id:'gandalf',    char:'Gandalf',         emoji:'🧙',color:'#7f8c8d',gender:'male',  quotes:[{category:'motivierend',anheizer:'Krieger landet perfekt!',       quote:'Ein Burpee-Krieger kommt nie zu spät. Er landet genau dann, wenn er es beabsichtigt!'}]},
+  {id:'vader',      char:'Darth Vader',     emoji:'🎭',color:'#8e44ad',gender:'male',  quotes:[{category:'bekloppt',anheizer:'Ergib dich der Schwerkraft!',    quote:'Ich finde deinen Mangel an Burpees beklagenswert. Ergib dich der Schwerkraft!'}]},
+  {id:'leonidas',   char:'König Leonidas',  emoji:'🛡️',color:'#c0390b',gender:'male',  quotes:[{category:'bekloppt',anheizer:'Liegestütz-Position, runter!',  quote:'Dies ist nicht Sparta, dies ist die Liegestütz-Position! Runter mit dir!'}]},
+  {id:'indy',       char:'Indiana Jones',   emoji:'🎩',color:'#8B6914',gender:'male',  quotes:[{category:'motivierend',anheizer:'Jahre zählen nicht, Reps schon!',quote:'Es sind nicht die Jahre, Schätzchen, es sind die Wiederholungen!'}]},
+  {id:'thor',       char:'Thor',            emoji:'⚡',color:'#1a5e9a',gender:'male',  quotes:[{category:'bekloppt',anheizer:'Arsch ist zu schwer!',           quote:'Mein Hammer ist schwer, aber dein Arsch ist heute schwerer! Beweg ihn!'}]},
+  {id:'rambo',      char:'John Rambo',      emoji:'💪',color:'#2d5a27',gender:'male',  quotes:[{category:'brutal',anheizer:'Werde ein Burpee!',                quote:'Um die Burpees zu überleben, musst du zu einem Burpee werden!'}]},
+  {id:'yoda',       char:'Yoda',            emoji:'🟢',color:'#27ae60',gender:'male',  quotes:[{category:'motivierend',anheizer:'Flach wie Flunder springen!', quote:'Flach wie eine Flunder du sein musst, um hoch wie ein X-Wing zu fliegen!'}]},
+  {id:'bond',       char:'James Bond',      emoji:'🍸',color:'#1a1a2e',gender:'male',  quotes:[{category:'bekloppt',anheizer:'Quantum Liegestütz reicht nicht!',quote:'Ein Quantum Liegestütz reicht nicht. Ich erwarte, dass Sie springen, Goldfinger!'}]},
+  {id:'terminator', char:'Terminator',      emoji:'🤖',color:'#333333',gender:'male',  quotes:[{category:'bekloppt',anheizer:'Muskeln aus Metall!',            quote:'Sprung mit mir, wenn du leben willst. Deine Muskeln sind aus Metall, also bieg sie!'}]},
+  {id:'madmax',     char:'Mad Max',         emoji:'🚙',color:'#5a3e00',gender:'male',  quotes:[{category:'motivierend',anheizer:'Glänzend und verschwitzt!',  quote:'Wir reiten in die Fitness-Walhalla! Glänzend und verschwitzt!'}]},
+  {id:'goggins',    char:'David Goggins',   emoji:'⚓', color:'#2c3e50',gender:'male',  quotes:[{category:'brutal',anheizer:'Erstick sie mit Schweiß!',        quote:'Ich höre da eine kleine Bitch-Voice in deinem Kopf. Erstick sie mit Schweiß!'}]},
   // Frauen
-  {id:'wonder',     char:'Wonder Woman',    emoji:'🦅',color:'#1a5e9a',gender:'female',quotes:[{anheizer:'Lasso der Wahrheit spricht!',   quote:'Mein Lasso der Wahrheit sagt: Du bist eine faule Socke! Runter jetzt!'}]},
-  {id:'furiosa',    char:'Imperator Furiosa',emoji:'🚗',color:'#c0680a',gender:'female',quotes:[{anheizer:'Witness me!',                   quote:'WITNESS ME! Furiosa hat mit einem Arm die Citadel zurückerobert. Du hast zwei. Keine Ausreden.'}]},
-  {id:'xena',       char:'Xena',            emoji:'⚔️', color:'#9b2335',gender:'female',quotes:[{anheizer:'Krieger weinen erst danach!',   quote:'Ein echter Krieger weint erst, wenn der 50. Burpee vorbei ist! AYALALALALA!'}]},
-  {id:'lara',       char:'Lara Croft',      emoji:'🏹',color:'#8B6914',gender:'female',quotes:[{anheizer:'Gräber waren lebendiger!',      quote:'Ich habe Gräber gefunden, die lebendiger waren als dein Workout heute!'}]},
-  {id:'ripley',     char:'Ellen Ripley',    emoji:'🚀',color:'#2d5a27',gender:'female',quotes:[{anheizer:'Weltraum hört dich nicht!',     quote:'Im Weltraum hört dich niemand fluchen, wenn die Oberschenkel brennen!'}]},
-  {id:'katniss',    char:'Katniss Everdeen',emoji:'🏹',color:'#2d6e2d',gender:'female',quotes:[{anheizer:'Nächste Runde geht los!',       quote:'Ich melde mich freiwillig als Tribut für... die nächste Runde Burpees!'}]},
-  {id:'galadriel',  char:'Galadriel',       emoji:'✨',color:'#8B7536',gender:'female',quotes:[{anheizer:'Schrecklich und muskulös!',     quote:'Anstelle eines dunklen Lords hättest du eine Trainerin! Schrecklich und muskulös!'}]},
-  {id:'beatrix',    char:'Beatrix Kiddo',   emoji:'🗡️',color:'#c0a000',gender:'female',quotes:[{anheizer:'10 Burpees? Peinlich.',         quote:'Ich habe 88 Verrückte besiegt. Du schaffst nicht mal 10 Burpees? Peinlich.'}]},
-  {id:'widow',      char:'Black Widow',     emoji:'🕷️',color:'#1a1a2e',gender:'female',quotes:[{anheizer:'Tilge mit Schweiß!',            quote:'Dein Register ist voll mit Chips-Tüten. Zeit, das mit Schweiß zu tilgen!'}]},
-  {id:'daenerys',   char:'Daenerys',        emoji:'🐉',color:'#8B0000',gender:'female',quotes:[{anheizer:'Brenne, Fettgewebe, brenne!',   quote:'Ich bin die Mutter der Burpees und ich befehle dir: Brenne, Fettgewebe, brenne!'}]},
-  {id:'leia',       char:'Prinzessin Leia', emoji:'👑',color:'#4a0080',gender:'female',quotes:[{anheizer:'Hör auf zu jammern!',           quote:'Hör auf zu jammern, du wandelnder Teppich! Runter auf den Boden!'}]},
-  {id:'trinity',    char:'Trinity',         emoji:'💊',color:'#1a1a1a',gender:'female',quotes:[{anheizer:'Matte existiert nicht!',        quote:'Was ist, wenn ich dir sage, dass die Matte gar nicht existiert? Also leg dich flach!'}]},
-  {id:'boudica',    char:'Boudica',         emoji:'🛡️',color:'#8B2500',gender:'female',quotes:[{anheizer:'Lieber springend sterben!',    quote:'Lieber sterbe ich beim Springen, als kniend vor meiner Couch zu versauern!'}]},
+  {id:'wonder',     char:'Wonder Woman',    emoji:'🦅',color:'#1a5e9a',gender:'female',quotes:[{category:'bekloppt',anheizer:'Lasso der Wahrheit spricht!',   quote:'Mein Lasso der Wahrheit sagt: Du bist eine faule Socke! Runter jetzt!'}]},
+  {id:'furiosa',    char:'Imperator Furiosa',emoji:'🚗',color:'#c0680a',gender:'female',quotes:[{category:'bekloppt',anheizer:'Witness me!',                   quote:'WITNESS ME! Furiosa hat mit einem Arm die Citadel zurückerobert. Du hast zwei. Keine Ausreden.'}]},
+  {id:'xena',       char:'Xena',            emoji:'⚔️', color:'#9b2335',gender:'female',quotes:[{category:'bekloppt',anheizer:'Krieger weinen erst danach!',   quote:'Ein echter Krieger weint erst, wenn der 50. Burpee vorbei ist! AYALALALALA!'}]},
+  {id:'lara',       char:'Lara Croft',      emoji:'🏹',color:'#8B6914',gender:'female',quotes:[{category:'bekloppt',anheizer:'Gräber waren lebendiger!',      quote:'Ich habe Gräber gefunden, die lebendiger waren als dein Workout heute!'}]},
+  {id:'ripley',     char:'Ellen Ripley',    emoji:'🚀',color:'#2d5a27',gender:'female',quotes:[{category:'bekloppt',anheizer:'Weltraum hört dich nicht!',     quote:'Im Weltraum hört dich niemand fluchen, wenn die Oberschenkel brennen!'}]},
+  {id:'katniss',    char:'Katniss Everdeen',emoji:'🏹',color:'#2d6e2d',gender:'female',quotes:[{category:'bekloppt',anheizer:'Nächste Runde geht los!',       quote:'Ich melde mich freiwillig als Tribut für... die nächste Runde Burpees!'}]},
+  {id:'galadriel',  char:'Galadriel',       emoji:'✨',color:'#8B7536',gender:'female',quotes:[{category:'bekloppt',anheizer:'Schrecklich und muskulös!',     quote:'Anstelle eines dunklen Lords hättest du eine Trainerin! Schrecklich und muskulös!'}]},
+  {id:'beatrix',    char:'Beatrix Kiddo',   emoji:'🗡️',color:'#c0a000',gender:'female',quotes:[{category:'bekloppt',anheizer:'10 Burpees? Peinlich.',         quote:'Ich habe 88 Verrückte besiegt. Du schaffst nicht mal 10 Burpees? Peinlich.'}]},
+  {id:'widow',      char:'Black Widow',     emoji:'🕷️',color:'#1a1a2e',gender:'female',quotes:[{category:'bekloppt',anheizer:'Tilge mit Schweiß!',            quote:'Dein Register ist voll mit Chips-Tüten. Zeit, das mit Schweiß zu tilgen!'}]},
+  {id:'daenerys',   char:'Daenerys',        emoji:'🐉',color:'#8B0000',gender:'female',quotes:[{category:'bekloppt',anheizer:'Brenne, Fettgewebe, brenne!',   quote:'Ich bin die Mutter der Burpees und ich befehle dir: Brenne, Fettgewebe, brenne!'}]},
+  {id:'leia',       char:'Prinzessin Leia', emoji:'👑',color:'#4a0080',gender:'female',quotes:[{category:'bekloppt',anheizer:'Hör auf zu jammern!',           quote:'Hör auf zu jammern, du wandelnder Teppich! Runter auf den Boden!'}]},
+  {id:'trinity',    char:'Trinity',         emoji:'💊',color:'#1a1a1a',gender:'female',quotes:[{category:'bekloppt',anheizer:'Matte existiert nicht!',        quote:'Was ist, wenn ich dir sage, dass die Matte gar nicht existiert? Also leg dich flach!'}]},
+  {id:'boudica',    char:'Boudica',         emoji:'🛡️',color:'#8B2500',gender:'female',quotes:[{category:'bekloppt',anheizer:'Lieber springend sterben!',    quote:'Lieber sterbe ich beim Springen, als kniend vor meiner Couch zu versauern!'}]},
 ];
 
 // 50/50 sort: male/female alternating
@@ -136,17 +136,25 @@ const sortLegends = legs => {
   return out;
 };
 
+const getByCat = (leg, cat) => {
+  const pool = leg[`quotes_${cat}`];
+  return (pool&&pool.length) ? pool : leg.quotes;
+};
 const getTwoLegends = legends => {
   const pool = (legends&&legends.length>=2) ? legends : LEGENDS_FALLBACK;
   const s = [...pool].sort(()=>Math.random()-0.5);
+  const qa = rnd(getByCat(s[0],'bekloppt')||s[0].quotes);
+  const qb = rnd(getByCat(s[1],'bekloppt')||s[1].quotes);
   return [
-    {...s[0], anheizer:rnd(s[0].quotes).anheizer, selectedQuote:rnd(s[0].quotes).quote},
-    {...s[1], anheizer:rnd(s[1].quotes).anheizer, selectedQuote:rnd(s[1].quotes).quote},
+    {...s[0], anheizer:qa.anheizer, selectedQuote:qa.quote},
+    {...s[1], anheizer:qb.anheizer, selectedQuote:qb.quote},
   ];
 };
 const getJokerQuote = legends => {
   const pool = (legends&&legends.length) ? legends : LEGENDS_FALLBACK;
-  const l = rnd(pool); const q = rnd(l.quotes);
+  const l = rnd(pool);
+  const src = getByCat(l,'original') || getByCat(l,'bekloppt') || l.quotes;
+  const q = rnd(src);
   return {char:l.char, emoji:l.emoji, color:l.color, quote:q.quote};
 };
 
@@ -176,7 +184,7 @@ function Avatar({profile, size=40, legends, showGimmick=true}){
   let badge = null;
   if(showGimmick){
     if(profile?.joker_swapped)       badge=<span style={{position:'absolute',bottom:-2,right:-2,fontSize:'0.6rem',background:'#8b5cf6',borderRadius:'50%',width:15,height:15,display:'flex',alignItems:'center',justifyContent:'center'}}>⚡</span>;
-    else if((profile?.jokers_used||0)>0) badge=<span style={{position:'absolute',bottom:-2,right:-2,fontSize:'0.6rem',background:'#333',borderRadius:'50%',width:15,height:15,display:'flex',alignItems:'center',justifyContent:'center'}}>💀</span>;
+    else if((profile?.jokers_used||0)>0) badge=<span style={{position:'absolute',bottom:-2,right:-2,fontSize:'0.6rem',background:'#333',borderRadius:'50%',width:15,height:15,display:'flex',alignItems:'center',justifyContent:'center'}}>🎭</span>;
     else if((profile?.half_used||0)>0)   badge=<span style={{position:'absolute',bottom:-2,right:-2,fontSize:'0.6rem',background:'#1e3a5f',borderRadius:'50%',width:15,height:15,display:'flex',alignItems:'center',justifyContent:'center'}}>🌙</span>;
   }
 
@@ -552,6 +560,227 @@ function Onboarding({onJoin, legends}){
 }
 
 // ─────────────────────────────────────────────────────────
+//  DAILY LEGEND ANNOUNCEMENT
+// ─────────────────────────────────────────────────────────
+function DailyLegend({legends, cur}){
+  if(cur===0 || !legends || !legends.length) return null;
+
+  // Deterministic: same legend for everyone on same day
+  const pool = legends.length ? legends : LEGENDS_FALLBACK;
+  const legIndex = (cur - 1) % pool.length;
+  const leg = pool[legIndex];
+  if(!leg || !leg.quotes || !leg.quotes.length) return null;
+
+  // Deterministic quote: based on day number
+  const bekloppte = (leg.quotes_bekloppt&&leg.quotes_bekloppt.length) ? leg.quotes_bekloppt : leg.quotes;
+  const q = bekloppte[(cur - 1) % bekloppte.length];
+  const d = DAYS[cur - 1];
+  const t = tot(d);
+
+  return(
+    <div style={{margin:'0 1.25rem 1rem',background:`${leg.color}15`,border:`2px solid ${leg.color}55`,borderRadius:'18px',padding:'1.25rem',overflow:'hidden',position:'relative'}}>
+      {/* Decorative bg emoji */}
+      <div style={{position:'absolute',right:'-10px',top:'-10px',fontSize:'5rem',opacity:0.07,transform:'rotate(15deg)',pointerEvents:'none',userSelect:'none'}}>
+        {leg.emoji}
+      </div>
+      {/* Header */}
+      <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'10px'}}>
+        <div style={{width:42,height:42,borderRadius:'50%',background:'#0d0d0d',border:`2px solid ${leg.color}`,flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <div style={{width:34,height:34}} dangerouslySetInnerHTML={{__html:(POSE_SVGS[1])(leg.color)}}/>
+        </div>
+        <div>
+          <div style={{fontSize:'0.6rem',color:leg.color,letterSpacing:'0.15em',fontWeight:700,fontFamily:'Barlow Condensed,sans-serif'}}>HEUTIGE MISSION · TAG {cur}</div>
+          <div className="bc" style={{fontSize:'1rem',fontWeight:800,color:'var(--text)',letterSpacing:'0.03em'}}>{leg.char.toUpperCase()} SAGT:</div>
+        </div>
+      </div>
+
+      {/* Quote */}
+      <p style={{fontSize:'0.92rem',lineHeight:1.55,color:'#ddd',fontStyle:'italic',marginBottom:'10px'}}>
+        "{q.quote}"
+      </p>
+
+      {/* Today's target */}
+      <div style={{display:'flex',alignItems:'center',gap:'8px',paddingTop:'10px',borderTop:`1px solid ${leg.color}33`}}>
+        <div className="bc" style={{fontSize:'1.4rem',fontWeight:900,color:leg.color,lineHeight:1}}>{t}</div>
+        <div>
+          <div className="bc" style={{fontSize:'0.7rem',color:'var(--text)',fontWeight:700,letterSpacing:'0.05em'}}>BURPEES HEUTE</div>
+          <div style={{fontSize:'0.65rem',color:'var(--muted)'}}>{d.oneGo?'In one go':d.sets.join(' + ')+' Reps'}</div>
+        </div>
+        <div style={{marginLeft:'auto',background:leg.color,borderRadius:'8px',padding:'4px 10px'}}>
+          <div className="bc" style={{fontSize:'0.7rem',fontWeight:800,color:'#fff',letterSpacing:'0.08em'}}>{leg.begriff||leg.abteilung}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ─────────────────────────────────────────────────────────
+//  REWARD QUOTE (visible on home until midnight)
+// ─────────────────────────────────────────────────────────
+function RewardQuote(){
+  const [reward, setReward] = useState(()=>{
+    try{
+      const r = JSON.parse(localStorage.getItem('burpee_reward'));
+      if(!r) return null;
+      if(r.date !== new Date().toDateString()){ localStorage.removeItem('burpee_reward'); return null; }
+      return r;
+    }catch(e){ return null; }
+  });
+
+  if(!reward) return null;
+
+  return(
+    <div style={{margin:'0 1.25rem 1rem',background:`${reward.color}18`,border:`1px solid ${reward.color}44`,borderRadius:'16px',padding:'1rem 1.25rem',position:'relative'}}>
+      <button onClick={()=>{localStorage.removeItem('burpee_reward');setReward(null);}}
+        style={{position:'absolute',top:'10px',right:'12px',background:'none',border:'none',color:'var(--muted)',fontSize:'0.9rem',padding:'0'}}>✕</button>
+      <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'8px'}}>
+        <span style={{fontSize:'1.6rem'}}>{reward.emoji}</span>
+        <div>
+          <div className="bc" style={{fontSize:'0.65rem',color:reward.color,letterSpacing:'0.12em',fontWeight:700}}>HEUTE VERDIENT 🏆</div>
+          <div className="bc" style={{fontSize:'0.85rem',fontWeight:800,color:'var(--text)'}}>{reward.char.toUpperCase()} SAGT:</div>
+        </div>
+      </div>
+      <p style={{fontSize:'0.88rem',lineHeight:1.55,color:'#ccc',fontStyle:'italic'}}>"{reward.quote}"</p>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  KUDO MODAL
+// ─────────────────────────────────────────────────────────
+const KUDO_PRESETS = [
+  "Früh aufgestanden und direkt geliefert! 🌅",
+  "Doppelrunde heute — absolute Maschine! 🔁",
+  "Trotz schlechtem Tag durchgezogen! 💪",
+  "Erste im Team heute — Respekt! ⚡",
+  "Niemals aufgegeben — Stahlarm! 🦾",
+  "Immer dabei — das Rückgrat des Teams! 🏆",
+];
+
+function KudoModal({to, from, onSend, onCancel}){
+  const [msg, setMsg] = useState('');
+
+  return(
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:250,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',animation:'slideUp 0.3s ease both'}} onClick={e=>e.target===e.currentTarget&&onCancel()}>
+      <div style={{width:'100%',maxWidth:'480px',background:'var(--bg)',borderRadius:'24px 24px 0 0',padding:'1.5rem',paddingBottom:'calc(1.5rem + var(--safe-b))'}}>
+        <div style={{textAlign:'center',marginBottom:'1.25rem'}}>
+          <div style={{fontSize:'2rem',marginBottom:'4px'}}>💪</div>
+          <div className="bc" style={{fontSize:'1.4rem',fontWeight:900,letterSpacing:'0.05em',color:'var(--gold)'}}>KUDO VERGEBEN</div>
+          <div style={{color:'var(--muted)',fontSize:'0.82rem',marginTop:'4px'}}>für <b style={{color:'var(--text)'}}>{to}</b></div>
+        </div>
+
+        {/* Presets */}
+        <div style={{display:'flex',flexDirection:'column',gap:'7px',marginBottom:'1rem'}}>
+          {KUDO_PRESETS.map(p=>(
+            <button key={p} onClick={()=>setMsg(p)}
+              style={{background:msg===p?'rgba(245,158,11,0.15)':'var(--bg2)',border:`1.5px solid ${msg===p?'var(--gold)':'var(--border)'}`,borderRadius:'10px',padding:'0.7rem 1rem',textAlign:'left',fontSize:'0.85rem',color:msg===p?'var(--gold)':'var(--text)',transition:'all 0.15s'}}>
+              {p}
+            </button>
+          ))}
+        </div>
+
+        {/* Custom */}
+        <input value={msg} onChange={e=>setMsg(e.target.value)} placeholder="Oder eigene Nachricht..."
+          style={{width:'100%',padding:'0.8rem 1rem',background:'var(--bg3)',border:'2px solid var(--border)',borderRadius:'12px',color:'var(--text)',fontSize:'0.9rem',outline:'none',marginBottom:'0.75rem'}}/>
+
+        <button onClick={()=>msg.trim()&&onSend(to,msg.trim())} disabled={!msg.trim()}
+          style={{width:'100%',padding:'1rem',background:msg.trim()?'linear-gradient(135deg,#f59e0b,#d97706)':'var(--bg3)',border:'none',borderRadius:'14px',color:'#000',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.08em',opacity:msg.trim()?1:0.4,boxShadow:msg.trim()?'0 4px 20px rgba(245,158,11,0.4)':'none'}}>
+          💪 KUDO SENDEN!
+        </button>
+        <button onClick={onCancel} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.82rem',padding:'0.75rem',width:'100%',marginTop:'4px'}}>Abbrechen</button>
+      </div>
+    </div>
+  );
+}
+
+
+// ─────────────────────────────────────────────────────────
+//  TEAM SECTION (replaces leaderboard)
+// ─────────────────────────────────────────────────────────
+function TeamSection({leaders, user, legends, onNudge, achievements, onKudo}){
+  const today = new Date().toDateString();
+  const cur   = getChallengeDay();
+
+  // Count who did today's workout
+  // We use completed_days as proxy — not perfect but available
+  // Better: track via a separate field, but for now use leaders data
+  const totalBurpees = leaders.reduce((a,u) => a + (u.completed_days||0) * 15, 0); // rough avg
+  const teamTotal    = leaders.reduce((a,u) => {
+    // Sum all actual burpees completed based on completed_days × avg
+    return a + (u.completed_days||0);
+  }, 0);
+
+  return(
+    <div>
+      {/* Team Stats Row */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',marginBottom:'1rem'}}>
+        <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0.75rem',textAlign:'center'}}>
+          <div className="bc" style={{fontSize:'1.8rem',fontWeight:900,color:'var(--red)',lineHeight:1}}>{leaders.length}</div>
+          <div style={{fontSize:'0.62rem',color:'var(--muted)',marginTop:'2px'}}>Krieger</div>
+        </div>
+        <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0.75rem',textAlign:'center'}}>
+          <div className="bc" style={{fontSize:'1.8rem',fontWeight:900,color:'var(--green)',lineHeight:1}}>{teamTotal}</div>
+          <div style={{fontSize:'0.62rem',color:'var(--muted)',marginTop:'2px'}}>Tage gesamt</div>
+        </div>
+        <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0.75rem',textAlign:'center'}}>
+          <div className="bc" style={{fontSize:'1.8rem',fontWeight:900,color:'var(--gold)',lineHeight:1}}>{Math.round(leaders.reduce((a,u)=>a+(u.completed_days||0),0)/Math.max(leaders.length,1)*100/30)}%</div>
+          <div style={{fontSize:'0.62rem',color:'var(--muted)',marginTop:'2px'}}>Team-Ø</div>
+        </div>
+      </div>
+
+      {/* Avatar Grid */}
+      <div className="bc" style={{fontSize:'0.65rem',color:'var(--muted)',letterSpacing:'0.15em',marginBottom:'0.65rem'}}>DEIN TEAM</div>
+      <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'16px',padding:'1rem'}}>
+        <div style={{display:'flex',flexWrap:'wrap',gap:'12px',justifyContent:'flex-start'}}>
+          {leaders.map(u=>{
+            const pct = Math.round((u.completed_days||0)/30*100);
+            const isMe = u.name===user;
+            return(
+              <div key={u.name} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',minWidth:'52px'}}>
+                <div style={{position:'relative'}}>
+                  <Avatar profile={u} size={44} legends={legends}/>
+                  <div style={{position:'absolute',inset:-3,borderRadius:'50%',border:`2px solid ${pct===100?'var(--green)':pct>50?'var(--gold)':'var(--border)'}`,pointerEvents:'none'}}/>
+                  {/* Achievement badges */}
+                  {achievements&&achievements.some(a=>a.name===u.name&&a.type==='erster')&&
+                    <span style={{position:'absolute',top:-4,right:-4,fontSize:'0.7rem',background:'#1a3a5e',borderRadius:'50%',width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center',border:'1px solid #60a5fa'}}>⚡</span>}
+                  {achievements&&achievements.some(a=>a.name===u.name&&a.type==='streak')&&
+                    <span style={{position:'absolute',top:-4,left:-4,fontSize:'0.7rem',background:'#3a1a00',borderRadius:'50%',width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center',border:'1px solid var(--red)'}}>🔥</span>}
+                  {achievements&&achievements.some(a=>a.name===u.name&&a.type==='eisenmensch')&&
+                    <span style={{position:'absolute',bottom:-4,left:-4,fontSize:'0.7rem',background:'#1a1a1a',borderRadius:'50%',width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center',border:'1px solid #555'}}>🦾</span>}
+                </div>
+                <div style={{fontSize:'0.6rem',color:isMe?'var(--red)':'var(--muted)',fontWeight:isMe?700:400,textAlign:'center',maxWidth:'52px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                  {isMe?'Du':u.name.split(' ')[0]}
+                </div>
+                <div className="bc" style={{fontSize:'0.65rem',color:pct===100?'var(--green)':pct>50?'var(--gold)':'var(--muted)',fontWeight:700}}>
+                  {u.completed_days}/30
+                </div>
+                {!isMe&&(
+                  <div style={{display:'flex',gap:'4px'}}>
+                    <button onClick={()=>onNudge(u.name)}
+                      style={{background:'rgba(230,57,70,0.1)',border:'1px solid rgba(230,57,70,0.25)',borderRadius:'6px',padding:'3px 6px',fontSize:'0.7rem',color:'var(--red)',fontFamily:'Barlow Condensed,sans-serif',fontWeight:700}}>
+                      🔥
+                    </button>
+                    <button onClick={()=>onKudo(u.name)}
+                      style={{background:'rgba(245,158,11,0.1)',border:'1px solid rgba(245,158,11,0.25)',borderRadius:'6px',padding:'3px 6px',fontSize:'0.7rem',color:'var(--gold)',fontFamily:'Barlow Condensed,sans-serif',fontWeight:700}}>
+                      🏅
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <div style={{marginTop:'0.75rem',paddingTop:'0.75rem',borderTop:'1px solid var(--border)',textAlign:'center',fontSize:'0.7rem',color:'var(--muted)'}}>
+          🔥 Feuer machen &nbsp;·&nbsp; 💪 Kudo vergeben
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ─────────────────────────────────────────────────────────
 //  HOME TAB
 // ─────────────────────────────────────────────────────────
 function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile, legends, onNudge}){
@@ -594,7 +823,9 @@ function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile,
         </div>
       </div>
 
+      <DailyLegend legends={legends} cur={getChallengeDay()}/>
       <TokenBar profile={profile}/>
+      <RewardQuote/>
       <Countdown/>
       <InviteCard groupSize={leaders.length} leaders={leaders} user={user}/>
 
@@ -628,33 +859,9 @@ function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile,
         <button onClick={()=>setMotto(rnd(MOTIVATIONS))} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:'8px',padding:'6px 8px',color:'var(--muted)',fontSize:'0.9rem',flexShrink:0}}>↻</button>
       </div>
 
-      {leaders.length>1&&(
+      {leaders.length>0&&(
         <div style={{padding:'0 1.25rem 1rem'}}>
-          <div className="bc" style={{fontSize:'0.68rem',color:'var(--muted)',letterSpacing:'0.15em',marginBottom:'0.65rem'}}>🏅 RANGLISTE</div>
-          <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'16px',overflow:'hidden'}}>
-            {leaders.slice(0,8).map((u,i)=>(
-              <div key={u.name} style={{display:'flex',alignItems:'center',padding:'0.75rem 1rem',borderBottom:i<Math.min(leaders.length,8)-1?'1px solid var(--border)':'none',background:u.name===user?'rgba(230,57,70,0.07)':'transparent',gap:'10px'}}>
-                <span style={{width:'1.6rem',fontSize:'0.95rem',flexShrink:0}}>{i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`}</span>
-                <Avatar profile={u} size={34} legends={legends}/>
-                <span style={{flex:1,fontSize:'0.88rem',fontWeight:u.name===user?600:400,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
-                  {u.name}{u.name===user&&<span style={{color:'var(--red)',fontSize:'0.7rem',marginLeft:'4px'}}>(du)</span>}
-                </span>
-                <div style={{display:'flex',alignItems:'center',gap:'8px',flexShrink:0}}>
-                  <div style={{textAlign:'right'}}>
-                    <span className="bc" style={{fontSize:'1.2rem',fontWeight:900,color:'var(--red)'}}>{u.completed_days}</span>
-                    <span style={{color:'var(--muted)',fontSize:'0.65rem'}}>/30</span>
-                  </div>
-                  {u.name!==user&&(
-                    <button onClick={()=>onNudge(u.name)}
-                      style={{background:'rgba(230,57,70,0.1)',border:'1px solid rgba(230,57,70,0.3)',borderRadius:'8px',padding:'5px 9px',fontSize:'0.82rem',color:'var(--red)',flexShrink:0,fontFamily:'Barlow Condensed,sans-serif',fontWeight:700,letterSpacing:'0.05em'}}>
-                      🔥
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-          <p style={{fontSize:'0.68rem',color:'var(--muted)',marginTop:'6px',textAlign:'center'}}>🔥 = Feuer machen</p>
+          <TeamSection leaders={leaders} user={user} legends={legends} onNudge={onNudge} achievements={achievements} onKudo={setShowKudoModal}/>
         </div>
       )}
     </div>
@@ -1025,12 +1232,241 @@ function AvatarEditorModal({profile, legends, onSave, onCancel}){
 }
 
 // ─────────────────────────────────────────────────────────
+//  WILDCARD MODAL
+// ─────────────────────────────────────────────────────────
+const WILDCARD_MESSAGES = [
+  "BONUS-RUNDE! 10 extra Burpees in 24h! 🎰",
+  "WILDCARD! Wer schafft 20 Bonus-Burpees?! ⚡",
+  "ÜBERRASCHUNG! 15 Burpees extra — wer ist dabei?! 💥",
+  "CHAOS-TAG! 5 Burpee-Sets à 5 — los geht's! 🔥",
+];
+
+function WildcardModal({onCall, onCancel}){
+  const [msg, setMsg] = useState(WILDCARD_MESSAGES[0]);
+  return(
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:250,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',animation:'slideUp 0.3s ease both'}} onClick={e=>e.target===e.currentTarget&&onCancel()}>
+      <div style={{width:'100%',maxWidth:'480px',background:'var(--bg)',borderRadius:'24px 24px 0 0',padding:'1.5rem',paddingBottom:'calc(1.5rem + var(--safe-b))'}}>
+        <div style={{textAlign:'center',marginBottom:'1.25rem'}}>
+          <div style={{fontSize:'3rem',marginBottom:'4px'}}>🎰</div>
+          <div className="bc" style={{fontSize:'1.4rem',fontWeight:900,letterSpacing:'0.05em',color:'var(--purple)'}}>WILDCARD RUFEN</div>
+          <div style={{color:'var(--muted)',fontSize:'0.82rem',marginTop:'4px'}}>Das Team hat 24h um mitzumachen</div>
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:'8px',marginBottom:'1rem'}}>
+          {WILDCARD_MESSAGES.map(m=>(
+            <button key={m} onClick={()=>setMsg(m)}
+              style={{background:msg===m?'rgba(139,92,246,0.15)':'var(--bg2)',border:`1.5px solid ${msg===m?'var(--purple)':'var(--border)'}`,borderRadius:'10px',padding:'0.7rem 1rem',textAlign:'left',fontSize:'0.85rem',color:msg===m?'#c4b5fd':'var(--text)',transition:'all 0.15s'}}>
+              {m}
+            </button>
+          ))}
+        </div>
+        <button onClick={()=>onCall(msg)}
+          style={{width:'100%',padding:'1rem',background:'linear-gradient(135deg,#8b5cf6,#7c3aed)',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.08em',boxShadow:'0 4px 20px rgba(139,92,246,0.4)'}}>
+          🎰 WILDCARD RUFEN!
+        </button>
+        <button onClick={onCancel} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.82rem',padding:'0.75rem',width:'100%',marginTop:'4px'}}>Abbrechen</button>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  STATS TAB (Heatmap + Wildcard + Finale)
+// ─────────────────────────────────────────────────────────
+function StatsTab({user, leaders, legends, completionData, wildcards, wildcardCompletions, onCallWildcard, onCompleteWildcard}){
+  const [showWildcardModal, setShowWildcardModal] = useState(false);
+  const cur = getChallengeDay();
+  const names = leaders.map(l=>l.name);
+
+  // ── Heatmap data ──
+  // Build 30-day × member grid
+  const completionMap = {};
+  (completionData||[]).forEach(c=>{
+    if(!completionMap[c.name]) completionMap[c.name] = {};
+    const hour = c.completed_at ? new Date(c.completed_at).getHours() : 12;
+    const timeSlot = hour < 9 ? '🌅' : hour < 13 ? '🌤' : hour < 18 ? '☀️' : '🌙';
+    completionMap[c.name][c.day] = {type:c.type, timeSlot};
+  });
+
+  // Weekday pattern
+  const weekdayCount = {};
+  (completionData||[]).forEach(c=>{
+    if(!c.completed_at) return;
+    const day = new Date(c.completed_at).toLocaleDateString('de-DE',{weekday:'short'});
+    weekdayCount[day] = (weekdayCount[day]||0)+1;
+  });
+  const weekdays = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+
+  // ── Active wildcard ──
+  const now = new Date();
+  const activeWC = wildcards.find(w=>new Date(w.expires_at)>now);
+  const hasCalledWC = wildcards.some(w=>w.called_by===user);
+  const hasCompletedWC = activeWC && wildcardCompletions.some(c=>c.wildcard_id===activeWC.id&&c.name===user);
+  const wcParticipants = activeWC ? wildcardCompletions.filter(c=>c.wildcard_id===activeWC.id) : [];
+
+  // ── Finale ──
+  const isFinale = cur >= 30 && leaders.every(l=>l.completed_days>=30);
+  const totalTeamBurpees = leaders.reduce((a,l)=>{
+    return a + DAYS.slice(0,l.completed_days||0).reduce((s,d)=>s+tot(d),0);
+  },0);
+  const earliest = leaders.reduce((a,b)=>(a.completed_days||0)>(b.completed_days||0)?a:b,leaders[0]);
+  const noJoker = leaders.filter(l=>!(l.jokers_used>0||l.half_used>0||l.joker_swapped));
+
+  return(
+    <div style={{flex:1,overflowY:'auto',padding:'1.25rem'}}>
+
+      {/* ── FINALE ── */}
+      {isFinale&&(
+        <div style={{background:'linear-gradient(135deg,#3a2800,#5a3e00)',border:'2px solid var(--gold)',borderRadius:'18px',padding:'1.5rem',marginBottom:'1.5rem',textAlign:'center'}}>
+          <div style={{fontSize:'3rem',marginBottom:'0.5rem'}}>🏆</div>
+          <div className="bc" style={{fontSize:'1.8rem',fontWeight:900,color:'var(--gold)',letterSpacing:'0.05em',marginBottom:'0.5rem'}}>CHALLENGE ABGESCHLOSSEN!</div>
+          <div style={{color:'#ddd',fontSize:'0.85rem',marginBottom:'1.25rem'}}>Das Team hat es geschafft. Alle 30 Tage. Gemeinsam.</div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'8px',marginBottom:'1rem'}}>
+            <div style={{background:'rgba(0,0,0,0.3)',borderRadius:'10px',padding:'0.75rem'}}>
+              <div className="bc" style={{fontSize:'1.6rem',fontWeight:900,color:'var(--gold)'}}>{totalTeamBurpees.toLocaleString()}</div>
+              <div style={{fontSize:'0.65rem',color:'var(--muted)'}}>Team-Burpees gesamt</div>
+            </div>
+            <div style={{background:'rgba(0,0,0,0.3)',borderRadius:'10px',padding:'0.75rem'}}>
+              <div className="bc" style={{fontSize:'1.6rem',fontWeight:900,color:'var(--green)'}}>{noJoker.length}</div>
+              <div style={{fontSize:'0.65rem',color:'var(--muted)'}}>Stahlarme 🦾</div>
+            </div>
+          </div>
+          {noJoker.length>0&&<div style={{fontSize:'0.8rem',color:'var(--green)',marginBottom:'8px'}}>🦾 Stahlarm: {noJoker.map(l=>l.name).join(', ')}</div>}
+          {earliest&&<div style={{fontSize:'0.8rem',color:'#60a5fa'}}>⚡ Schnellster: {earliest.name}</div>}
+        </div>
+      )}
+
+      {/* ── WILDCARD ── */}
+      <div className="bc" style={{fontSize:'0.68rem',color:'var(--muted)',letterSpacing:'0.15em',marginBottom:'0.65rem'}}>🎰 WILDCARD</div>
+      {activeWC?(
+        <div style={{background:'rgba(139,92,246,0.1)',border:'2px solid var(--purple)',borderRadius:'16px',padding:'1.25rem',marginBottom:'1.5rem'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'8px'}}>
+            <div>
+              <div className="bc" style={{fontSize:'1rem',fontWeight:800,color:'#c4b5fd',letterSpacing:'0.05em'}}>AKTIVE WILDCARD!</div>
+              <div style={{fontSize:'0.78rem',color:'var(--muted)',marginTop:'2px'}}>von {activeWC.called_by}</div>
+            </div>
+            <WildcardCountdown expires={activeWC.expires_at}/>
+          </div>
+          <p style={{fontSize:'0.9rem',color:'#ddd',marginBottom:'1rem',fontStyle:'italic'}}>"{activeWC.message}"</p>
+          {/* Participants */}
+          <div style={{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'1rem'}}>
+            {names.map(n=>{
+              const done = wcParticipants.some(c=>c.name===n);
+              return(
+                <div key={n} style={{background:done?'rgba(74,222,128,0.15)':'var(--bg3)',border:`1px solid ${done?'#2d5a2d':'var(--border)'}`,borderRadius:'8px',padding:'4px 10px',fontSize:'0.78rem',color:done?'var(--green)':'var(--muted)'}}>
+                  {done?'✓ ':''}{n}
+                </div>
+              );
+            })}
+          </div>
+          {!hasCompletedWC&&(
+            <button onClick={()=>onCompleteWildcard(activeWC.id)}
+              style={{width:'100%',padding:'0.9rem',background:'linear-gradient(135deg,#8b5cf6,#7c3aed)',border:'none',borderRadius:'12px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.1rem',fontWeight:800,letterSpacing:'0.08em'}}>
+              ⚡ WILDCARD ABGEHAKT!
+            </button>
+          )}
+          {hasCompletedWC&&<div className="bc" style={{textAlign:'center',color:'var(--green)',fontSize:'1rem',fontWeight:700}}>✓ Du hast mitgemacht!</div>}
+        </div>
+      ):(
+        <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'16px',padding:'1.25rem',marginBottom:'1.5rem',textAlign:'center'}}>
+          <div style={{color:'var(--muted)',fontSize:'0.85rem',marginBottom:'1rem'}}>Keine aktive Wildcard — ruf eine aus!</div>
+          <button
+            onClick={()=>setShowWildcardModal(true)}
+            disabled={hasCalledWC}
+            style={{padding:'0.85rem 2rem',background:hasCalledWC?'var(--bg3)':'linear-gradient(135deg,#8b5cf6,#7c3aed)',border:'none',borderRadius:'12px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.1rem',fontWeight:800,letterSpacing:'0.08em',opacity:hasCalledWC?0.4:1}}>
+            {hasCalledWC?'Bereits gerufen':'🎰 WILDCARD RUFEN'}
+          </button>
+          {hasCalledWC&&<div style={{fontSize:'0.72rem',color:'var(--muted)',marginTop:'6px'}}>Du hast bereits eine Wildcard gerufen</div>}
+        </div>
+      )}
+
+      {/* ── HEATMAP ── */}
+      <div className="bc" style={{fontSize:'0.68rem',color:'var(--muted)',letterSpacing:'0.15em',marginBottom:'0.65rem'}}>📊 TEAM HEATMAP</div>
+      <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'16px',padding:'1rem',marginBottom:'1.5rem',overflowX:'auto'}}>
+        {/* Header: day numbers */}
+        <div style={{display:'flex',alignItems:'center',gap:'0',marginBottom:'4px'}}>
+          <div style={{width:'70px',flexShrink:0}}/>
+          <div style={{display:'flex',gap:'2px'}}>
+            {DAYS.map(d=>(
+              <div key={d.day} style={{width:'18px',textAlign:'center',fontSize:'0.45rem',color:'var(--muted)',flexShrink:0}}>{d.day}</div>
+            ))}
+          </div>
+        </div>
+        {/* Rows per person */}
+        {names.map(n=>(
+          <div key={n} style={{display:'flex',alignItems:'center',gap:'0',marginBottom:'3px'}}>
+            <div style={{width:'70px',fontSize:'0.65rem',color:n===user?'var(--red)':'var(--text)',fontWeight:n===user?600:400,flexShrink:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{n}</div>
+            <div style={{display:'flex',gap:'2px'}}>
+              {DAYS.map(d=>{
+                const cell = completionMap[n]?.[d.day];
+                const bg = !cell?'var(--bg3)':cell.type==='joker'?'#333':cell.type==='half'?'#1e3a5f':'rgba(74,222,128,0.5)';
+                return(
+                  <div key={d.day} style={{width:'18px',height:'14px',borderRadius:'2px',background:bg,flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.5rem'}} title={cell?`${n} · Tag ${d.day} · ${cell.timeSlot||''}`:''}>
+                    {cell&&cell.timeSlot&&<span style={{fontSize:'0.45rem'}}>{cell.timeSlot}</span>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+        {/* Legend */}
+        <div style={{display:'flex',gap:'10px',marginTop:'8px',paddingTop:'8px',borderTop:'1px solid var(--border)',flexWrap:'wrap'}}>
+          {[['rgba(74,222,128,0.5)','✓ Voll'],['#1e3a5f','🌙 Halb'],['#333','🃏 Joker'],['var(--bg3)','– Offen']].map(([c,l])=>(
+            <div key={l} style={{display:'flex',alignItems:'center',gap:'4px'}}>
+              <div style={{width:'12px',height:'10px',borderRadius:'2px',background:c,flexShrink:0}}/>
+              <span style={{fontSize:'0.65rem',color:'var(--muted)'}}>{l}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── WOCHENTAG PATTERN ── */}
+      <div className="bc" style={{fontSize:'0.68rem',color:'var(--muted)',letterSpacing:'0.15em',marginBottom:'0.65rem'}}>📅 WOCHENTAG-MUSTER</div>
+      <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'16px',padding:'1rem',marginBottom:'1.5rem'}}>
+        {weekdays.map(day=>{
+          const count = weekdayCount[day]||0;
+          const maxCount = Math.max(...weekdays.map(d=>weekdayCount[d]||0),1);
+          const pct = Math.round((count/maxCount)*100);
+          return(
+            <div key={day} style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'6px'}}>
+              <div style={{width:'24px',fontSize:'0.75rem',color:'var(--muted)',flexShrink:0}}>{day}</div>
+              <div style={{flex:1,height:'16px',background:'var(--bg3)',borderRadius:'4px',overflow:'hidden'}}>
+                <div style={{height:'100%',width:`${pct}%`,background:pct>70?'var(--green)':pct>40?'var(--gold)':'var(--red)',borderRadius:'4px',transition:'width 0.6s ease'}}/>
+              </div>
+              <div style={{width:'28px',textAlign:'right',fontSize:'0.72rem',color:'var(--muted)',flexShrink:0}}>{count}×</div>
+            </div>
+          );
+        })}
+      </div>
+
+      {showWildcardModal&&<WildcardModal onCall={msg=>{setShowWildcardModal(false);onCallWildcard(msg);}} onCancel={()=>setShowWildcardModal(false)}/>}
+    </div>
+  );
+}
+
+// Mini countdown for wildcard
+function WildcardCountdown({expires}){
+  const [left, setLeft] = useState('');
+  useEffect(()=>{
+    const calc=()=>{
+      const diff=new Date(expires)-new Date();
+      if(diff<=0){setLeft('Abgelaufen');return;}
+      const h=Math.floor(diff/3600000);
+      const m=Math.floor((diff%3600000)/60000);
+      setLeft(`${h}h ${m}m`);
+    };
+    calc();const iv=setInterval(calc,60000);return()=>clearInterval(iv);
+  },[expires]);
+  return <div className="bc" style={{fontSize:'0.85rem',fontWeight:700,color:'#c4b5fd',background:'rgba(139,92,246,0.2)',padding:'4px 10px',borderRadius:'8px'}}>{left}</div>;
+}
+
+
+// ─────────────────────────────────────────────────────────
 //  BOTTOM NAV
 // ─────────────────────────────────────────────────────────
 function BottomNav({tab, setTab}){
   return(
     <div style={{flexShrink:0,background:'var(--bg)',borderTop:'1px solid var(--border)',paddingBottom:'var(--safe-b)',display:'flex'}}>
-      {[{id:'home',icon:'🏠',label:'HOME'},{id:'calendar',icon:'📅',label:'PLAN'},{id:'wall',icon:'💬',label:'WALL'}].map(item=>{
+      {[{id:'home',icon:'🏠',label:'HOME'},{id:'calendar',icon:'📅',label:'PLAN'},{id:'wall',icon:'💬',label:'WALL'},{id:'stats',icon:'📊',label:'STATS'}].map(item=>{
         const active = tab===item.id;
         return(
           <button key={item.id} onClick={()=>setTab(item.id)}
@@ -1059,6 +1495,12 @@ function App(){
   const [leaders,         setLeaders]         = useState([]);
   const [wall,            setWall]            = useState([]);
   const [submissions,     setSubmissions]     = useState([]);
+  const [kudos,           setKudos]           = useState([]);
+  const [achievements,    setAchievements]    = useState([]);
+  const [showKudoModal,   setShowKudoModal]   = useState(null);
+  const [allCompletions,  setAllCompletions]  = useState([]);
+  const [wildcards,       setWildcards]       = useState([]);
+  const [wildcardCompletions, setWildcardCompletions] = useState([]);
   const [workoutDay,      setWorkoutDay]      = useState(null);
   const [feuerTarget,     setFeuerTarget]     = useState(null);
   const [showAvatarEditor,setShowAvatarEditor]= useState(false);
@@ -1098,7 +1540,14 @@ function App(){
     const {data:legs} = await db.from('legends').select('*');
     const {data:qs}   = await db.from('quotes').select('*').eq('approved',true);
     if(legs&&qs){
-      const grouped = legs.map(l=>({...l, quotes:qs.filter(q=>q.legend_id===l.id)})).filter(l=>l.quotes.length>0);
+      const grouped = legs.map(l=>({
+        ...l,
+        quotes:           qs.filter(q=>q.legend_id===l.id),
+        quotes_bekloppt:  qs.filter(q=>q.legend_id===l.id && q.category==='bekloppt'),
+        quotes_original:  qs.filter(q=>q.legend_id===l.id && q.category==='original'),
+        quotes_motivierend:qs.filter(q=>q.legend_id===l.id && q.category==='motivierend'),
+        quotes_brutal:    qs.filter(q=>q.legend_id===l.id && q.category==='brutal'),
+      })).filter(l=>l.quotes.length>0);
       setLegends(sortLegends(grouped));
     }
   },[]);
@@ -1108,15 +1557,42 @@ function App(){
     if(data) setSubmissions(data);
   },[]);
 
+  const loadKudos = useCallback(async () => {
+    const {data} = await db.from('kudos').select('*').order('created_at',{ascending:false}).limit(50);
+    if(data) setKudos(data);
+  },[]);
+
+  const loadAllCompletions = useCallback(async () => {
+    const {data} = await db.from('day_completions').select('name,day,type,completed_at');
+    if(data) setAllCompletions(data);
+  },[]);
+
+  const loadWildcards = useCallback(async () => {
+    const {data:wc}   = await db.from('wildcards').select('*').order('created_at',{ascending:false}).limit(5);
+    const {data:wcc}  = await db.from('wildcard_completions').select('*');
+    if(wc)  setWildcards(wc);
+    if(wcc) setWildcardCompletions(wcc);
+  },[]);
+
+  const loadAchievements = useCallback(async () => {
+    const {data} = await db.from('achievements').select('*').order('created_at',{ascending:false});
+    if(data) setAchievements(data);
+  },[]);
+
   // ── Init ──
   useEffect(()=>{
     const saved = localStorage.getItem('burpee_name');
     if(saved){ setUserName(saved); loadUser(saved); } else setScreen('onboarding');
-    loadLeaders(); loadWall(); loadLegends(); loadSubmissions();
+    loadLeaders(); loadWall(); loadLegends(); loadSubmissions(); loadKudos(); loadAchievements(); loadAllCompletions(); loadWildcards();
     const ch = db.channel('live')
       .on('postgres_changes',{event:'*',schema:'public',table:'wall_posts'},loadWall)
       .on('postgres_changes',{event:'*',schema:'public',table:'profiles'},loadLeaders)
       .on('postgres_changes',{event:'*',schema:'public',table:'quote_submissions'},loadSubmissions)
+      .on('postgres_changes',{event:'*',schema:'public',table:'kudos'},loadKudos)
+      .on('postgres_changes',{event:'*',schema:'public',table:'achievements'},loadAchievements)
+      .on('postgres_changes',{event:'*',schema:'public',table:'wildcards'},loadWildcards)
+      .on('postgres_changes',{event:'*',schema:'public',table:'wildcard_completions'},loadWildcards)
+      .on('postgres_changes',{event:'*',schema:'public',table:'day_completions'},loadAllCompletions)
       .subscribe();
     return () => ch.unsubscribe();
   },[loadUser,loadLeaders,loadWall,loadLegends,loadSubmissions]);
@@ -1147,7 +1623,44 @@ function App(){
     setCompleted(next); setCompTypes({...compTypes,[dayNum]:'full'});
     await db.from('day_completions').upsert({name:userName,day:dayNum,type:'full'},{onConflict:'name,day'});
     await db.from('profiles').update({completed_days:next.size,updated_at:new Date().toISOString()}).eq('name',userName);
-    await refreshProfile(userName); loadLeaders(); showToast(rnd(MOTIVATIONS));
+    await refreshProfile(userName); loadLeaders();
+
+    // ── Achievement detection ──
+    // ⚡ Erster im Team heute
+    const {count} = await db.from('day_completions')
+      .select('*', {count:'exact',head:true})
+      .eq('day', dayNum);
+    if(count===1){
+      await db.from('achievements').upsert({name:userName,type:'erster',day:dayNum},{onConflict:'name,type,day',ignoreDuplicates:true});
+      showToast('🥇 ERSTER im Team heute!');
+      await loadAchievements();
+    }
+
+    // 🔥 Streak — 7 Tage am Stück
+    const lastDays = Array.from({length:7},(_,i)=>dayNum-i).filter(d=>d>0);
+    const hasStreak = lastDays.length===7 && lastDays.every(d=>next.has(d));
+    if(hasStreak){
+      await db.from('achievements').upsert({name:userName,type:'streak',day:dayNum},{onConflict:'name,type,day',ignoreDuplicates:true});
+      showToast('💫 7-TAGE STREAK! Unaufhaltbar!');
+      await loadAchievements();
+    }
+
+    // 🦾 Du Maschine — kein Joker, kein Halbe, 30 Tage voll
+    const freshProfile = await refreshProfile(userName);
+    if(next.size===30 && (freshProfile?.jokers_used||0)===0 && (freshProfile?.half_used||0)===0){
+      await db.from('achievements').upsert({name:userName,type:'eisenmensch',day:30},{onConflict:'name,type,day',ignoreDuplicates:true});
+      showToast('🦾 STAHLARM! 30 Tage, kein Joker, kein Halbe!');
+      await loadAchievements();
+    }
+
+    // Save reward quote for home screen
+    const pool = (legends&&legends.length) ? legends : LEGENDS_FALLBACK;
+    const leg = rnd(pool);
+    const src = getByCat(leg,'motivierend') || leg.quotes;
+    const q = rnd(src);
+    const reward = {char:leg.char, emoji:leg.emoji, color:leg.color, quote:q.quote, date:new Date().toDateString()};
+    localStorage.setItem('burpee_reward', JSON.stringify(reward));
+    showToast('🎉 Tag '+dayNum+' geschafft!');
   };
 
   const handleHalf = async dayNum => {
@@ -1195,7 +1708,9 @@ function App(){
 
   const handlePost = async (text, imageUrl=null) => {
     const cur = getChallengeDay();
-    await db.from('wall_posts').insert({name:userName, avatar:profile?.avatar||'chuck', avatar_legend:profile?.avatar_legend||'chuck', avatar_pose:profile?.avatar_pose||1, message:text, day:cur, reactions:{}, image_url:imageUrl});
+    const {error} = await db.from('wall_posts').insert({name:userName, avatar:profile?.avatar||'chuck', avatar_legend:profile?.avatar_legend||'chuck', avatar_pose:profile?.avatar_pose||1, message:text, day:cur, reactions:{}, image_url:imageUrl});
+    if(error) { console.error('Wall post error:', error); showToast('❌ Fehler: '+error.message); return; }
+    await loadWall();
   };
 
   const handleReact = async (postId, emoji) => {
@@ -1203,9 +1718,33 @@ function App(){
     const reactions = {...(post.reactions||{}),[emoji]:((post.reactions||{})[emoji]||0)+1};
     setWall(prev=>prev.map(p=>p.id===postId?{...p,reactions}:p));
     await db.from('wall_posts').update({reactions}).eq('id',postId);
+    await loadWall();
   };
 
   const handleNudge = targetName => setFeuerTarget(targetName);
+
+  const handleCallWildcard = async (message) => {
+    const expires = new Date(Date.now() + 24*60*60*1000).toISOString();
+    await db.from('wildcards').insert({called_by:userName, message, expires_at:expires});
+    await loadWildcards();
+    showToast('🎰 WILDCARD gerufen! Das Team hat 24h!');
+  };
+
+  const handleCompleteWildcard = async (wildcardId) => {
+    await db.from('wildcard_completions').insert({wildcard_id:wildcardId, name:userName});
+    await loadWildcards();
+    showToast('⚡ Wildcard abgehakt!');
+  };
+
+  const handleSendKudo = async (toName, message) => {
+    setShowKudoModal(null);
+    await db.from('kudos').insert({from_name:userName, to_name:toName, message});
+    await loadKudos();
+    // Also post to wall as special message
+    await handlePost(`💪 ${userName} gibt ${toName} einen Kudo!
+"${message}"`);
+    showToast(`💪 Kudo an ${toName} gesendet!`);
+  };
 
   const handleFeuerSend = async legend => {
     const target = feuerTarget; setFeuerTarget(null);
@@ -1250,6 +1789,7 @@ function App(){
   return(
     <>
       <Toast msg={toast}/>
+      {showKudoModal&&<KudoModal to={showKudoModal} from={userName} onSend={handleSendKudo} onCancel={()=>setShowKudoModal(null)}/>}
       {feuerTarget&&<FeuermachenModal from={userName} to={feuerTarget} legends={legends} onSend={handleFeuerSend} onCancel={()=>setFeuerTarget(null)}/>}
       {showAvatarEditor&&<AvatarEditorModal profile={profile} legends={legends} onSave={handleSaveAvatar} onCancel={()=>setShowAvatarEditor(false)}/>}
       {showCommunity&&<CommunityQuotes user={userName} legends={legends} submissions={submissions} onSubmit={handleSubmitQuote} onVote={handleVote} onClose={()=>setShowCommunity(false)}/>}
@@ -1257,6 +1797,7 @@ function App(){
         {tab==='home'     && <HomeTab user={userName} completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay} leaders={leaders} profile={profile} legends={legends} onNudge={handleNudge}/>}
         {tab==='calendar' && <CalendarTab completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay}/>}
         {tab==='wall'     && <WallTab user={userName} profile={profile} legends={legends} wall={wall} onPost={handlePost} onReact={handleReact} onOpenCommunity={()=>setShowCommunity(true)}/>}
+        {tab==='stats'    && <StatsTab user={userName} leaders={leaders} legends={legends} completionData={allCompletions} wildcards={wildcards} wildcardCompletions={wildcardCompletions} onCallWildcard={handleCallWildcard} onCompleteWildcard={handleCompleteWildcard}/>}
         <BottomNav tab={tab} setTab={setTab}/>
       </div>
       {workoutDay&&<WorkoutScreen dayNum={workoutDay} completed={completed} completionTypes={compTypes} profile={profile} legends={legends} onComplete={handleComplete} onHalf={handleHalf} onJoker={handleJoker} onUndo={handleUndo} onBack={()=>setWorkoutDay(null)}/>}
