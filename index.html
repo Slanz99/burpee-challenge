@@ -88,39 +88,65 @@ const MOTIVATIONS = [
   "Einmal mehr als gestern!","Dein zukünftiges Ich dankt dir!",
 ];
 
-const APP_VERSION = 'v1.6';
+const APP_VERSION = 'v2.0';
 const WHATS_NEW = [
-  {emoji:'📣', title:'Tages-Status', text:'Setze nach dem Training einen Status — sichtbar unter deinem Avatar'},
-  {emoji:'🤝', title:'Pakt-System', text:'Verbinde dich mit einem Teammitglied — keiner lässt den anderen fallen'},
-  {emoji:'📌', title:'Post anpinnen', text:'Den besten Wall-Post des Tages für alle sichtbar anpinnen'},
-  {emoji:'🔥', title:'Streak-Anzeige', text:'Dein aktueller Streak ist unter deinem Avatar sichtbar'},
-  {emoji:'🌅', title:'Early Bird', text:'Wer heute als erstes trainiert bekommt ein 🌅 Badge'},
-  {emoji:'↩', title:'Antworten', text:'Direkt auf Wall-Posts antworten'},
+  {emoji:'🆘', title:'Legenden-Signal', text:'Kämpfst du gerade? Signal senden — das Team schickt dir Legenden-Power direkt aufs Handy.', big:true},
+  {emoji:'🌟', title:'Comeback-Feier', text:'Nach einer Pause zurück? Das Team wählt die Legende die dich begrüßt. Keine Strafe — nur Feier.', big:true},
+  {emoji:'🛋️', title:'Heute Couch', text:'Ehrlich sein darf man. Badge tragen, Team lacht mit — kein Druck, kein Scham.', big:true},
+  {emoji:'🏆', title:'Milestones', text:'Erster Burpee, Halbzeit, Rückkehr nach Pause — jeder Moment wird gefeiert.', big:false},
+  {emoji:'💪', title:'Kudo mit Legende', text:'Legende wählen → persönlicher Spruch im Charakter der Legende.', big:false},
+  {emoji:'📣', title:'Tages-Status', text:'Nach dem Training Status setzen — sichtbar unter deinem Avatar.', big:false},
 ];
 
 function WhatsNewModal({onClose}){
+  const bigItems = WHATS_NEW.filter(i=>i.big);
+  const smallItems = WHATS_NEW.filter(i=>!i.big);
   return(
-    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:500,display:'flex',alignItems:'flex-end',justifyContent:'center',animation:'fadeIn 0.3s ease'}}>
-      <div style={{width:'100%',maxWidth:'480px',background:'var(--bg)',borderRadius:'24px 24px 0 0',padding:'1.75rem 1.5rem',paddingBottom:'calc(1.75rem + var(--safe-b))'}}>
-        <div style={{textAlign:'center',marginBottom:'1.5rem'}}>
-          <div style={{fontSize:'2.5rem',marginBottom:'6px'}}>💥</div>
-          <div className="bc" style={{fontSize:'1.5rem',fontWeight:900,letterSpacing:'0.05em'}}>WAS IST NEU?</div>
-          <div style={{fontSize:'0.75rem',color:'var(--muted)',marginTop:'4px'}}>{APP_VERSION} · Burpee Challenge</div>
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.96)',zIndex:500,display:'flex',alignItems:'flex-end',justifyContent:'center',animation:'fadeIn 0.3s ease'}}>
+      <div style={{width:'100%',maxWidth:'480px',background:'var(--bg)',borderRadius:'24px 24px 0 0',padding:'1.75rem 1.5rem',paddingBottom:'calc(1.75rem + var(--safe-b))',maxHeight:'92vh',overflowY:'auto'}}>
+
+        {/* Goggins intro */}
+        <div style={{background:'rgba(44,62,80,0.4)',border:'1px solid rgba(44,62,80,0.8)',borderRadius:'14px',padding:'1rem',marginBottom:'1.5rem',display:'flex',gap:'10px',alignItems:'flex-start'}}>
+          <span style={{fontSize:'1.5rem',flexShrink:0}}>⚓</span>
+          <div>
+            <div className="bc" style={{fontSize:'0.65rem',color:'#7f8c8d',letterSpacing:'0.15em',marginBottom:'4px'}}>DAVID GOGGINS SAGT:</div>
+            <p style={{fontSize:'0.9rem',color:'#ddd',fontStyle:'italic',lineHeight:1.5}}>"Version 2.0. Kein Aufwärmen mehr."</p>
+          </div>
         </div>
-        <div style={{display:'flex',flexDirection:'column',gap:'10px',marginBottom:'1.5rem'}}>
-          {WHATS_NEW.map((item,i)=>(
-            <div key={i} style={{display:'flex',alignItems:'center',gap:'12px',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'12px',padding:'0.75rem 1rem'}}>
-              <span style={{fontSize:'1.4rem',flexShrink:0}}>{item.emoji}</span>
+
+        {/* Version badge + headline */}
+        <div style={{textAlign:'center',marginBottom:'1.5rem'}}>
+          <div style={{display:'inline-block',background:'var(--red)',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.75rem',fontWeight:800,letterSpacing:'0.2em',padding:'3px 12px',borderRadius:'100px',marginBottom:'8px'}}>VERSION 2.0</div>
+          <div className="bc" style={{fontSize:'1.6rem',fontWeight:900,letterSpacing:'0.03em',lineHeight:1.1}}>GEMEINSAM<br/><span style={{color:'var(--red)'}}>ODER GAR NICHT</span></div>
+          <div style={{fontSize:'0.78rem',color:'var(--muted)',marginTop:'8px',lineHeight:1.5}}>30 Tage. Kein Druck. Nur Freude,<br/>Lachen und gegenseitiges Antreiben.</div>
+        </div>
+
+        {/* Big 3 features */}
+        <div style={{display:'flex',flexDirection:'column',gap:'10px',marginBottom:'1.25rem'}}>
+          {bigItems.map((item,i)=>(
+            <div key={i} style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'14px',padding:'1rem',display:'flex',gap:'14px',alignItems:'flex-start'}}>
+              <div style={{width:44,height:44,borderRadius:'12px',background:'var(--bg3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.5rem',flexShrink:0}}>{item.emoji}</div>
               <div>
-                <div className="bc" style={{fontSize:'0.9rem',fontWeight:700,letterSpacing:'0.03em'}}>{item.title}</div>
-                <div style={{fontSize:'0.75rem',color:'var(--muted)',marginTop:'2px'}}>{item.text}</div>
+                <div className="bc" style={{fontSize:'1rem',fontWeight:800,letterSpacing:'0.03em',marginBottom:'3px'}}>{item.title}</div>
+                <div style={{fontSize:'0.78rem',color:'#aaa',lineHeight:1.5}}>{item.text}</div>
               </div>
             </div>
           ))}
         </div>
+
+        {/* Small features */}
+        <div style={{display:'flex',gap:'8px',flexWrap:'wrap',marginBottom:'1.5rem'}}>
+          {smallItems.map((item,i)=>(
+            <div key={i} style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'10px',padding:'6px 10px',display:'flex',alignItems:'center',gap:'6px'}}>
+              <span style={{fontSize:'1rem'}}>{item.emoji}</span>
+              <span style={{fontSize:'0.75rem',color:'var(--muted)'}}>{item.title}</span>
+            </div>
+          ))}
+        </div>
+
         <button onClick={onClose}
-          style={{width:'100%',padding:'1rem',background:'var(--red)',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.08em',boxShadow:'0 4px 20px rgba(230,57,70,0.4)'}}>
-          LOS GEHT'S! 🔥
+          style={{width:'100%',padding:'1rem',background:'var(--red)',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.3rem',fontWeight:800,letterSpacing:'0.1em',boxShadow:'0 4px 20px rgba(230,57,70,0.4)'}}>
+          LOS GEHT'S v2.0 🔥
         </button>
       </div>
     </div>
