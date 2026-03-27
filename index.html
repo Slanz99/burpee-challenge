@@ -1226,13 +1226,7 @@ function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile,
         )}
       </div>
 
-      {!completed.has(getChallengeDay())&&getChallengeDay()>0&&(()=>{
-        const pool = legends&&legends.length ? legends : LEGENDS_FALLBACK;
-        const leg = pool[(done)%pool.length];
-        const q = leg && leg.quotes_bekloppt && leg.quotes_bekloppt.length ? rnd(leg.quotes_bekloppt) : (leg&&leg.quotes?rnd(leg.quotes):null);
-        const milestone = totalBurpees >= 1000;
-        return(
-          {getChallengeDay()>0&&!completed.has(getChallengeDay())&&(
+      {getChallengeDay()>0&&!completed.has(getChallengeDay())&&(
         <div style={{display:'flex',gap:'8px',margin:'0 1.25rem 1rem'}}>
           <button onClick={onSos}
             style={{flex:1,padding:'0.85rem',background:'rgba(255,100,0,0.1)',border:'2px solid rgba(255,100,0,0.5)',borderRadius:'14px',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',animation:'shimmer 2s infinite'}}>
@@ -1246,6 +1240,12 @@ function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile,
           </button>
         </div>
       )}
+      {!completed.has(getChallengeDay())&&getChallengeDay()>0&&(()=>{
+        const pool = legends&&legends.length ? legends : LEGENDS_FALLBACK;
+        const leg = pool[(done)%pool.length];
+        const q = leg && leg.quotes_bekloppt && leg.quotes_bekloppt.length ? rnd(leg.quotes_bekloppt) : (leg&&leg.quotes?rnd(leg.quotes):null);
+        const milestone = totalBurpees >= 1000;
+        return(
       <div style={{margin:'0 1.25rem 1.5rem',background:milestone?`${leg?.color||'var(--red)'}15`:'var(--bg2)',border:`1px solid ${milestone?leg?.color+'44'||'var(--red)':'var(--border)'}`,borderRadius:'14px',padding:'0.9rem 1rem'}}>
             {milestone&&leg&&<div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'6px'}}>
               <span style={{fontSize:'1rem'}}>{leg.emoji}</span>
@@ -1260,6 +1260,21 @@ function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile,
           </div>
         );
       })()}
+
+      {getChallengeDay()>0&&!completed.has(getChallengeDay())&&(
+        <div style={{display:'flex',gap:'8px',margin:'0 1.25rem 1rem'}}>
+          <button onClick={onSos}
+            style={{flex:1,padding:'0.85rem',background:'rgba(255,100,0,0.1)',border:'2px solid rgba(255,100,0,0.5)',borderRadius:'14px',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',animation:'shimmer 2s infinite'}}>
+            <span style={{fontSize:'1.1rem'}}>🆘</span>
+            <div className="bc" style={{fontSize:'0.9rem',fontWeight:800,color:'#ff6400',letterSpacing:'0.05em'}}>LEGENDEN-SIGNAL</div>
+          </button>
+          <button onClick={onCouch}
+            style={{padding:'0.85rem 1rem',background:'rgba(100,100,100,0.1)',border:'1px solid var(--border)',borderRadius:'14px',display:'flex',alignItems:'center',gap:'6px'}}>
+            <span style={{fontSize:'1.1rem'}}>🛋️</span>
+            <div className="bc" style={{fontSize:'0.75rem',fontWeight:700,color:'var(--muted)',letterSpacing:'0.03em'}}>HEUTE COUCH</div>
+          </button>
+        </div>
+      )}
 
       {leaders.length>0&&(
         <div style={{padding:'0 1.25rem 1rem'}}>
