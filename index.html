@@ -1033,8 +1033,8 @@ function KudoModal({to, from, legends, onSend, onCancel}){
               <div className="bc" style={{fontSize:'0.65rem',color:selLegend?.color||'var(--gold)',letterSpacing:'0.1em',marginBottom:'3px'}}>{selLegend?.char?.toUpperCase()}</div>
               <p style={{fontSize:'0.82rem',color:'#ddd',fontStyle:'italic',lineHeight:1.45}}>"{legendQuote}"</p>
             </div>
-            <button onClick={()=>{const src=getByCat(selLegend,'motivierend')||selLegend.quotes;setLegendQuote(rnd(src).quote);}}
-              style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.9rem',padding:'0',flexShrink:0,marginLeft:'auto'}} onClick={reroll}>↻</button>
+            <button onClick={reroll}
+              style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.9rem',padding:'0',flexShrink:0,marginLeft:'auto'}}>↻</button>
           </div>
         )}
 
@@ -1062,8 +1062,7 @@ function TeamSection({leaders, user, legends, onNudge, achievements, onKudo, onA
   const today = new Date().toDateString();
   const cur   = getChallengeDay();
 
-  // Early bird: who completed today's challenge first
-  const cur = getChallengeDay();
+  // Early bird: who completed today's challenge first (reuses cur from above)
   const todayCompletions = (completionData||[]).filter(c=>c.day===cur&&c.completed_at);
   todayCompletions.sort((a,b)=>new Date(a.completed_at)-new Date(b.completed_at));
   const earlyBird = todayCompletions.length>0 ? todayCompletions[0].name : null;
@@ -2326,8 +2325,8 @@ ${leg.emoji} ${leg.char}: "${q.quote}"`);
     };
     // Check comeback (3+ day gap)
     if(type==='full'||type==='half'){
-      const cur = getChallengeDay();
-      const daysBefore = Array.from({length:3},(_,i)=>cur-i-1).filter(d=>d>0);
+      const curDay2 = getChallengeDay();
+      const daysBefore = Array.from({length:3},(_,i)=>curDay2-i-1).filter(d=>d>0);
       const hadGap = daysBefore.some(d=>!newCompleted.has(d));
       const wasGone = daysBefore.filter(d=>!newCompleted.has(d)).length>=2;
       if(wasGone && newCompleted.size>1){
@@ -2357,8 +2356,8 @@ ${leg.emoji} ${leg.char}: "${q.quote}"`);
   const handleUpdateStreak = async (newCompleted) => {
     // Calculate current streak from completions
     let streak = 0;
-    const cur = getChallengeDay();
-    for(let d = cur; d >= 1; d--){
+    const curDay3 = getChallengeDay();
+    for(let d = curDay3; d >= 1; d--){
       if(newCompleted.has(d)) streak++;
       else break;
     }
