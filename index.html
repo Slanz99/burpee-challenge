@@ -88,14 +88,14 @@ const MOTIVATIONS = [
   "Einmal mehr als gestern!","Dein zukünftiges Ich dankt dir!",
 ];
 
-const APP_VERSION = 'v1.5';
+const APP_VERSION = 'v1.6';
 const WHATS_NEW = [
-  {emoji:'📊', title:'Stats Tab', text:'Heatmap, Wildcard-Tag und Finale Zeremonie'},
-  {emoji:'💪', title:'Kudos', text:'Tap auf Avatar → Feuer oder Kudo vergeben'},
-  {emoji:'🔔', title:'Benachrichtigungen', text:'Feuer & Kudos erscheinen als Banner'},
-  {emoji:'🎰', title:'Wildcard', text:'Ruf eine Bonus-Runde für das Team aus'},
-  {emoji:'📷', title:'Fotos', text:'Kamera oder Galerie auf der Wall'},
-  {emoji:'📅', title:'Nachtragen', text:'Im Plan-Tab vergangene Tage nachtragen'},
+  {emoji:'📣', title:'Tages-Status', text:'Setze nach dem Training einen Status — sichtbar unter deinem Avatar'},
+  {emoji:'🤝', title:'Pakt-System', text:'Verbinde dich mit einem Teammitglied — keiner lässt den anderen fallen'},
+  {emoji:'📌', title:'Post anpinnen', text:'Den besten Wall-Post des Tages für alle sichtbar anpinnen'},
+  {emoji:'🔥', title:'Streak-Anzeige', text:'Dein aktueller Streak ist unter deinem Avatar sichtbar'},
+  {emoji:'🌅', title:'Early Bird', text:'Wer heute als erstes trainiert bekommt ein 🌅 Badge'},
+  {emoji:'↩', title:'Antworten', text:'Direkt auf Wall-Posts antworten'},
 ];
 
 function WhatsNewModal({onClose}){
@@ -655,6 +655,215 @@ function DailyLegend({legends, cur}){
 
 
 // ─────────────────────────────────────────────────────────
+//  STATUS MODAL
+// ─────────────────────────────────────────────────────────
+function StatusModal({current, onSave, onClose}){
+  const [sel, setSel] = useState(current||null);
+  return(
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:250,display:'flex',alignItems:'flex-end',justifyContent:'center'}} onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div style={{width:'100%',maxWidth:'480px',background:'var(--bg)',borderRadius:'24px 24px 0 0',padding:'1.5rem',paddingBottom:'calc(1.5rem + var(--safe-b))'}}>
+        <div style={{textAlign:'center',marginBottom:'1.25rem'}}>
+          <div style={{fontSize:'2rem',marginBottom:'4px'}}>📣</div>
+          <div className="bc" style={{fontSize:'1.3rem',fontWeight:900,letterSpacing:'0.05em'}}>WIE WAR DEIN TRAINING?</div>
+          <div style={{color:'var(--muted)',fontSize:'0.78rem',marginTop:'4px'}}>Status für heute setzen</div>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'8px',marginBottom:'1.25rem'}}>
+          {STATUS_PRESETS.map(s=>(
+            <button key={s.text} onClick={()=>setSel(s)}
+              style={{background:sel?.text===s.text?'rgba(230,57,70,0.15)':'var(--bg2)',border:`2px solid ${sel?.text===s.text?'var(--red)':'var(--border)'}`,borderRadius:'12px',padding:'10px 6px',display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',transition:'all 0.15s'}}>
+              <span style={{fontSize:'1.4rem'}}>{s.emoji}</span>
+              <span style={{fontSize:'0.65rem',color:sel?.text===s.text?'var(--red)':'var(--muted)',fontWeight:sel?.text===s.text?700:400}}>{s.text}</span>
+            </button>
+          ))}
+        </div>
+        <button onClick={()=>sel&&onSave(sel)} disabled={!sel}
+          style={{width:'100%',padding:'1rem',background:sel?'var(--red)':'var(--bg3)',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.08em',opacity:sel?1:0.4}}>
+          STATUS SETZEN
+        </button>
+        <button onClick={onClose} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.82rem',padding:'0.75rem',width:'100%',marginTop:'4px'}}>Abbrechen</button>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  PAKT MODAL
+// ─────────────────────────────────────────────────────────
+function PaktModal({user, leaders, currentPakt, onSave, onBreak, onClose}){
+  const [sel, setSel] = useState(currentPakt||null);
+  const others = leaders.filter(l=>l.name!==user);
+  return(
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:250,display:'flex',alignItems:'flex-end',justifyContent:'center'}} onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div style={{width:'100%',maxWidth:'480px',background:'var(--bg)',borderRadius:'24px 24px 0 0',padding:'1.5rem',paddingBottom:'calc(1.5rem + var(--safe-b))'}}>
+        <div style={{textAlign:'center',marginBottom:'1.25rem'}}>
+          <div style={{fontSize:'2rem',marginBottom:'4px'}}>🤝</div>
+          <div className="bc" style={{fontSize:'1.3rem',fontWeight:900,letterSpacing:'0.05em'}}>PAKT SCHLIESSEN</div>
+          <div style={{color:'var(--muted)',fontSize:'0.78rem',marginTop:'4px',lineHeight:1.5}}>Schließt du einen Pakt, seid ihr verbunden. Wer aufhört zahlt eine Runde Burpees.</div>
+        </div>
+        {currentPakt?(
+          <div style={{background:'rgba(230,57,70,0.1)',border:'2px solid rgba(230,57,70,0.3)',borderRadius:'14px',padding:'1rem',textAlign:'center',marginBottom:'1rem'}}>
+            <div style={{fontSize:'0.85rem',color:'#ddd',marginBottom:'8px'}}>Aktiver Pakt mit <b style={{color:'var(--text)'}}>{currentPakt}</b></div>
+            <button onClick={onBreak} style={{background:'none',border:'1px solid #444',borderRadius:'8px',padding:'6px 16px',color:'var(--muted)',fontSize:'0.82rem'}}>Pakt auflösen</button>
+          </div>
+        ):(
+          <div style={{display:'flex',flexDirection:'column',gap:'8px',marginBottom:'1.25rem'}}>
+            {others.map(l=>(
+              <button key={l.name} onClick={()=>setSel(l.name)}
+                style={{background:sel===l.name?'rgba(139,92,246,0.15)':'var(--bg2)',border:`2px solid ${sel===l.name?'var(--purple)':'var(--border)'}`,borderRadius:'12px',padding:'0.85rem 1rem',display:'flex',alignItems:'center',gap:'12px',textAlign:'left'}}>
+                <Avatar profile={l} size={36} legends={[]}/>
+                <div>
+                  <div className="bc" style={{fontSize:'1rem',fontWeight:700,color:sel===l.name?'#c4b5fd':'var(--text)'}}>{l.name}</div>
+                  <div style={{fontSize:'0.72rem',color:'var(--muted)'}}>{l.completed_days}/30 Tage</div>
+                </div>
+                {sel===l.name&&<span style={{marginLeft:'auto',fontSize:'1.2rem'}}>🤝</span>}
+              </button>
+            ))}
+          </div>
+        )}
+        {!currentPakt&&<button onClick={()=>sel&&onSave(sel)} disabled={!sel}
+          style={{width:'100%',padding:'1rem',background:sel?'linear-gradient(135deg,#8b5cf6,#7c3aed)':'var(--bg3)',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.08em',opacity:sel?1:0.4,boxShadow:sel?'0 4px 20px rgba(139,92,246,0.4)':'none'}}>
+          🤝 PAKT SCHLIESSEN
+        </button>}
+        <button onClick={onClose} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.82rem',padding:'0.75rem',width:'100%',marginTop:'4px'}}>Schließen</button>
+      </div>
+    </div>
+  );
+}
+
+
+// ─────────────────────────────────────────────────────────
+//  FULLSCREEN OVERLAY (Legend Power / Comeback Reveal)
+// ─────────────────────────────────────────────────────────
+function FullscreenOverlay({type, legend, quote, fromName, onClose}){
+  // type: 'power' | 'comeback'
+  const isComeback = type==='comeback';
+  return(
+    <div style={{position:'fixed',inset:0,background:'#000',zIndex:600,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'2rem',animation:'fadeIn 0.5s ease both'}}
+      onClick={onClose}>
+      {/* Pulsing emoji */}
+      <div style={{fontSize:'6rem',marginBottom:'1rem',animation:'pop 0.6s ease both'}}>{legend?.emoji||'💥'}</div>
+
+      {isComeback?(
+        <>
+          <div className="bc" style={{fontSize:'1rem',color:'var(--gold)',letterSpacing:'0.2em',marginBottom:'4px',textAlign:'center'}}>DAS TEAM HAT GESPROCHEN</div>
+          <div className="bc" style={{fontSize:'2rem',fontWeight:900,color:'#fff',marginBottom:'1.5rem',textAlign:'center',letterSpacing:'0.05em'}}>{legend?.char?.toUpperCase()} BEGRÜSST DICH!</div>
+        </>
+      ):(
+        <>
+          <div className="bc" style={{fontSize:'1rem',color:legend?.color||'var(--red)',letterSpacing:'0.2em',marginBottom:'4px',textAlign:'center'}}>{fromName?.toUpperCase()} SENDET DIR</div>
+          <div className="bc" style={{fontSize:'2rem',fontWeight:900,color:'#fff',marginBottom:'1.5rem',textAlign:'center',letterSpacing:'0.05em'}}>LEGENDEN-POWER VON {legend?.char?.toUpperCase()}</div>
+        </>
+      )}
+
+      <div style={{background:`${legend?.color||'#e63946'}22`,border:`2px solid ${legend?.color||'#e63946'}55`,borderRadius:'20px',padding:'1.5rem',marginBottom:'2rem',maxWidth:'340px'}}>
+        <p style={{fontSize:'1.1rem',lineHeight:1.6,color:'#fff',fontStyle:'italic',textAlign:'center'}}>"{quote}"</p>
+      </div>
+
+      <div style={{color:'rgba(255,255,255,0.4)',fontSize:'0.8rem'}}>Tippen zum Schließen</div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  SOS CARD (on Wall)
+// ─────────────────────────────────────────────────────────
+function SosCard({event, legends, user, onSendPower}){
+  const [sent, setSent] = useState(false);
+  const [selLegend, setSelLegend] = useState(null);
+  const [step, setStep] = useState('prompt'); // prompt | pick
+
+  if(!event) return null;
+
+  const handleSend = async () => {
+    if(!selLegend) return;
+    const q = rnd(getByCat(selLegend,'bekloppt')||selLegend.quotes);
+    await onSendPower(event.from_name, selLegend, q.quote);
+    setSent(true);
+  };
+
+  return(
+    <div style={{background:'rgba(255,100,0,0.1)',border:'2px solid rgba(255,100,0,0.5)',borderRadius:'16px',padding:'1rem',marginBottom:'10px',animation:'slideUp 0.3s ease both'}}>
+      <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'10px'}}>
+        <div style={{width:10,height:10,borderRadius:'50%',background:'#ff6400',animation:'shimmer 1s infinite',flexShrink:0}}/>
+        <div className="bc" style={{fontSize:'1rem',fontWeight:800,color:'#ff6400',letterSpacing:'0.05em'}}>🆘 {event.from_name.toUpperCase()} KÄMPFT GERADE!</div>
+      </div>
+      <p style={{fontSize:'0.85rem',color:'#ddd',marginBottom:'12px'}}>Schicke Legenden-Power — ein Spruch landet direkt auf dem Handy!</p>
+
+      {sent?(
+        <div className="bc" style={{textAlign:'center',color:'var(--green)',fontSize:'1rem',fontWeight:700}}>✓ Legenden-Power gesendet!</div>
+      ):step==='prompt'?(
+        <button onClick={()=>setStep('pick')}
+          style={{width:'100%',padding:'0.85rem',background:'linear-gradient(135deg,#ff6400,#cc4400)',border:'none',borderRadius:'12px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.1rem',fontWeight:800,letterSpacing:'0.08em',boxShadow:'0 4px 16px rgba(255,100,0,0.4)'}}>
+          ⚡ LEGENDEN-POWER SENDEN!
+        </button>
+      ):(
+        <>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'6px',marginBottom:'8px'}}>
+            {(legends||[]).map(l=>(
+              <button key={l.id} onClick={()=>setSelLegend(l)}
+                style={{background:selLegend?.id===l.id?`${l.color}33`:'var(--bg3)',border:`1.5px solid ${selLegend?.id===l.id?l.color:'var(--border)'}`,borderRadius:'10px',padding:'8px 4px',display:'flex',flexDirection:'column',alignItems:'center',gap:'3px'}}>
+                <span style={{fontSize:'1.2rem'}}>{l.emoji}</span>
+                <span style={{fontSize:'0.5rem',color:selLegend?.id===l.id?l.color:'var(--muted)',fontFamily:'Barlow Condensed,sans-serif',fontWeight:700}}>{l.char.split(' ')[0]}</span>
+              </button>
+            ))}
+          </div>
+          <button onClick={handleSend} disabled={!selLegend}
+            style={{width:'100%',padding:'0.85rem',background:selLegend?'linear-gradient(135deg,#ff6400,#cc4400)':'var(--bg3)',border:'none',borderRadius:'12px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.1rem',fontWeight:800,letterSpacing:'0.08em',opacity:selLegend?1:0.4}}>
+            🔥 ABFEUERN!
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  COMEBACK VOTING CARD (on Wall)
+// ─────────────────────────────────────────────────────────
+function ComebackVotingCard({event, legends, userName, onVote, myVote}){
+  if(!event) return null;
+  const totalVotes = event.votes||{};
+  const maxVotes = Math.max(...Object.values(totalVotes),1);
+
+  return(
+    <div style={{background:'rgba(245,158,11,0.1)',border:'2px solid rgba(245,158,11,0.5)',borderRadius:'16px',padding:'1rem',marginBottom:'10px',animation:'slideUp 0.3s ease both'}}>
+      <div style={{textAlign:'center',marginBottom:'12px'}}>
+        <div style={{fontSize:'1.5rem',marginBottom:'4px'}}>🌟</div>
+        <div className="bc" style={{fontSize:'1.1rem',fontWeight:900,color:'var(--gold)',letterSpacing:'0.05em'}}>{event.for_name.toUpperCase()} IST ZURÜCK!</div>
+        <div style={{fontSize:'0.8rem',color:'var(--muted)',marginTop:'4px'}}>Wählt die Legende die ihn/sie begrüßt!</div>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'6px',marginBottom:'10px'}}>
+        {(legends||[]).slice(0,8).map(l=>{
+          const voteCount = totalVotes[l.id]||0;
+          const isMyVote = myVote===l.id;
+          return(
+            <button key={l.id} onClick={()=>!myVote&&onVote(event.for_name,l.id)}
+              style={{background:isMyVote?`${l.color}33`:'var(--bg3)',border:`1.5px solid ${isMyVote?l.color:'var(--border)'}`,borderRadius:'10px',padding:'8px 4px',display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',opacity:myVote&&!isMyVote?0.5:1}}>
+              <span style={{fontSize:'1.2rem'}}>{l.emoji}</span>
+              <span style={{fontSize:'0.5rem',color:isMyVote?l.color:'var(--muted)',fontFamily:'Barlow Condensed,sans-serif',fontWeight:700}}>{l.char.split(' ')[0]}</span>
+              {voteCount>0&&<span style={{fontSize:'0.55rem',color:'var(--gold)',fontWeight:700}}>{voteCount}×</span>}
+            </button>
+          );
+        })}
+      </div>
+      {myVote&&<div className="bc" style={{textAlign:'center',color:'var(--gold)',fontSize:'0.85rem'}}>✓ Deine Stimme ist gezählt!</div>}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  MILESTONE OVERLAY
+// ─────────────────────────────────────────────────────────
+const MILESTONES_DEF = [
+  {type:'first_ever',   emoji:'🥇', title:'ERSTER BURPEE!',      text:'Der erste ist der schwerste. Und du hast ihn gemacht.',          days:1},
+  {type:'comeback',     emoji:'🔥', title:'DU BIST ZURÜCK!',     text:'Nach der Pause wieder da. Das ist echter Charakter.',            days:null},
+  {type:'streak5',      emoji:'💫', title:'5 TAGE IN FOLGE!',    text:'Eine Woche fast durch. Der Rhythmus ist da.',                    days:5},
+  {type:'halfway',      emoji:'🏆', title:'HALBZEIT! TAG 15!',   text:'Die Hälfte liegt hinter dir. Jetzt läuft es.',                  days:15},
+  {type:'half_portion', emoji:'💪', title:'IRGENDWAS IST ALLES!',text:'Halbe Portion ist tausendmal besser als gar nichts. Respekt.',  days:null},
+];
+
+
+// ─────────────────────────────────────────────────────────
 //  NOTIFICATION BANNER
 // ─────────────────────────────────────────────────────────
 function NotificationBanner({notif, onDismiss}){
@@ -755,6 +964,17 @@ function RewardQuote(){
 // ─────────────────────────────────────────────────────────
 //  KUDO MODAL
 // ─────────────────────────────────────────────────────────
+const STATUS_PRESETS = [
+  {emoji:'💀', text:'brutal'},
+  {emoji:'🔥', text:'on fire'},
+  {emoji:'🌅', text:'früh raus'},
+  {emoji:'😤', text:'kämpferisch'},
+  {emoji:'⚡', text:'easy'},
+  {emoji:'🥵', text:'am Limit'},
+  {emoji:'💪', text:'stark'},
+  {emoji:'🤯', text:'krass'},
+];
+
 const KUDO_PRESETS = [
   "Früh aufgestanden und direkt geliefert! 🌅",
   "Trotz schlechtem Tag durchgezogen — Respect! 🙏",
@@ -766,34 +986,66 @@ const KUDO_PRESETS = [
   "Vorbildfunktion aktiviert. Das Team schaut auf dich! 👑",
 ];
 
-function KudoModal({to, from, onSend, onCancel}){
-  const [msg, setMsg] = useState('');
+function KudoModal({to, from, legends, onSend, onCancel}){
+  const pool = (legends&&legends.length) ? legends : LEGENDS_FALLBACK;
+  const [selLegend, setSelLegend] = useState(null);
+  const [legendQuote, setLegendQuote] = useState('');
+  const [customMsg, setCustomMsg] = useState('');
+
+  const pickLegend = (leg) => {
+    setSelLegend(leg);
+    const src = getByCat(leg,'kudo') || getByCat(leg,'motivierend') || leg.quotes;
+    setLegendQuote(rnd(src).quote);
+  };
+  const reroll = () => {
+    if(!selLegend) return;
+    const src = getByCat(selLegend,'kudo') || getByCat(selLegend,'motivierend') || selLegend.quotes;
+    setLegendQuote(rnd(src).quote);
+  };
+
+  const finalMsg = customMsg.trim() || legendQuote;
 
   return(
     <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:250,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',animation:'slideUp 0.3s ease both'}} onClick={e=>e.target===e.currentTarget&&onCancel()}>
       <div style={{width:'100%',maxWidth:'480px',background:'var(--bg)',borderRadius:'24px 24px 0 0',padding:'1.5rem',paddingBottom:'calc(1.5rem + var(--safe-b))'}}>
         <div style={{textAlign:'center',marginBottom:'1.25rem'}}>
           <div style={{fontSize:'2rem',marginBottom:'4px'}}>💪</div>
-          <div className="bc" style={{fontSize:'1.4rem',fontWeight:900,letterSpacing:'0.05em',color:'var(--gold)'}}>KUDO VERGEBEN</div>
-          <div style={{color:'var(--muted)',fontSize:'0.82rem',marginTop:'4px'}}>für <b style={{color:'var(--text)'}}>{to}</b></div>
+          <div className="bc" style={{fontSize:'1.4rem',fontWeight:900,letterSpacing:'0.05em',color:'var(--gold)'}}>KUDO FÜR {to.toUpperCase()}</div>
+          <div style={{color:'var(--muted)',fontSize:'0.78rem',marginTop:'4px'}}>Wähle eine Legende — oder schreib selbst</div>
         </div>
 
-        {/* Presets */}
-        <div style={{display:'flex',flexDirection:'column',gap:'7px',marginBottom:'1rem'}}>
-          {KUDO_PRESETS.map(p=>(
-            <button key={p} onClick={()=>setMsg(p)}
-              style={{background:msg===p?'rgba(245,158,11,0.15)':'var(--bg2)',border:`1.5px solid ${msg===p?'var(--gold)':'var(--border)'}`,borderRadius:'10px',padding:'0.7rem 1rem',textAlign:'left',fontSize:'0.85rem',color:msg===p?'var(--gold)':'var(--text)',transition:'all 0.15s'}}>
-              {p}
+        {/* Legend picker */}
+        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'6px',marginBottom:'1rem'}}>
+          {pool.slice(0,8).map(l=>(
+            <button key={l.id} onClick={()=>pickLegend(l)}
+              style={{background:selLegend?.id===l.id?`${l.color}22`:'var(--bg2)',border:`1.5px solid ${selLegend?.id===l.id?l.color:'var(--border)'}`,borderRadius:'10px',padding:'8px 4px',display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',transition:'all 0.15s'}}>
+              <span style={{fontSize:'1.2rem'}}>{l.emoji}</span>
+              <span style={{fontSize:'0.5rem',color:selLegend?.id===l.id?l.color:'var(--muted)',fontFamily:'Barlow Condensed,sans-serif',fontWeight:700,textAlign:'center'}}>{l.char.split(' ')[0]}</span>
             </button>
           ))}
         </div>
 
-        {/* Custom */}
-        <input value={msg} onChange={e=>setMsg(e.target.value)} placeholder="Oder eigene Nachricht..."
-          style={{width:'100%',padding:'0.8rem 1rem',background:'var(--bg3)',border:'2px solid var(--border)',borderRadius:'12px',color:'var(--text)',fontSize:'0.9rem',outline:'none',marginBottom:'0.75rem'}}/>
+        {/* Quote preview */}
+        {legendQuote&&!customMsg&&(
+          <div style={{background:`${selLegend?.color||'var(--gold)'}18`,border:`1px solid ${selLegend?.color||'var(--gold)'}44`,borderRadius:'12px',padding:'0.85rem 1rem',marginBottom:'0.75rem',display:'flex',gap:'8px',alignItems:'flex-start'}}>
+            <span style={{fontSize:'1.1rem',flexShrink:0}}>{selLegend?.emoji}</span>
+            <div>
+              <div className="bc" style={{fontSize:'0.65rem',color:selLegend?.color||'var(--gold)',letterSpacing:'0.1em',marginBottom:'3px'}}>{selLegend?.char?.toUpperCase()}</div>
+              <p style={{fontSize:'0.82rem',color:'#ddd',fontStyle:'italic',lineHeight:1.45}}>"{legendQuote}"</p>
+            </div>
+            <button onClick={()=>{const src=getByCat(selLegend,'motivierend')||selLegend.quotes;setLegendQuote(rnd(src).quote);}}
+              style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.9rem',padding:'0',flexShrink:0,marginLeft:'auto'}} onClick={reroll}>↻</button>
+          </div>
+        )}
 
-        <button onClick={()=>msg.trim()&&onSend(to,msg.trim())} disabled={!msg.trim()}
-          style={{width:'100%',padding:'1rem',background:msg.trim()?'linear-gradient(135deg,#f59e0b,#d97706)':'var(--bg3)',border:'none',borderRadius:'14px',color:'#000',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.08em',opacity:msg.trim()?1:0.4,boxShadow:msg.trim()?'0 4px 20px rgba(245,158,11,0.4)':'none'}}>
+        {/* Custom text */}
+        <textarea value={customMsg} onChange={e=>setCustomMsg(e.target.value)}
+          placeholder={legendQuote?"Oder eigene Worte hinzufügen...":"Eigene Nachricht schreiben..."}
+          style={{width:'100%',padding:'0.8rem 1rem',background:'var(--bg3)',border:'2px solid var(--border)',borderRadius:'12px',color:'var(--text)',fontSize:'0.9rem',outline:'none',resize:'none',minHeight:'70px',lineHeight:1.5,marginBottom:'0.75rem'}}/>
+
+        <button onClick={()=>finalMsg&&onSend(to, selLegend ? `${selLegend.emoji} ${selLegend.char} für ${to}:
+"${customMsg.trim()||legendQuote}"` : customMsg.trim())} disabled={!finalMsg}
+          style={{width:'100%',padding:'1rem',background:finalMsg?'linear-gradient(135deg,#f59e0b,#d97706)':'var(--bg3)',border:'none',borderRadius:'14px',color:'#000',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.08em',opacity:finalMsg?1:0.4,boxShadow:finalMsg?'0 4px 20px rgba(245,158,11,0.4)':'none'}}>
           💪 KUDO SENDEN!
         </button>
         <button onClick={onCancel} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.82rem',padding:'0.75rem',width:'100%',marginTop:'4px'}}>Abbrechen</button>
@@ -806,9 +1058,15 @@ function KudoModal({to, from, onSend, onCancel}){
 // ─────────────────────────────────────────────────────────
 //  TEAM SECTION (replaces leaderboard)
 // ─────────────────────────────────────────────────────────
-function TeamSection({leaders, user, legends, onNudge, achievements, onKudo, onAvatarTap}){
+function TeamSection({leaders, user, legends, onNudge, achievements, onKudo, onAvatarTap, onStatusTap, onPaktTap, completionData}){
   const today = new Date().toDateString();
   const cur   = getChallengeDay();
+
+  // Early bird: who completed today's challenge first
+  const cur = getChallengeDay();
+  const todayCompletions = (completionData||[]).filter(c=>c.day===cur&&c.completed_at);
+  todayCompletions.sort((a,b)=>new Date(a.completed_at)-new Date(b.completed_at));
+  const earlyBird = todayCompletions.length>0 ? todayCompletions[0].name : null;
 
   // Real team burpees: sum of all completed days' burpee counts
   const teamBurpees = leaders.reduce((a,u) => {
@@ -843,13 +1101,13 @@ function TeamSection({leaders, user, legends, onNudge, achievements, onKudo, onA
             const pct = Math.round((u.completed_days||0)/30*100);
             const isMe = u.name===user;
             return(
-              <div key={u.name} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',minWidth:'52px'}}
-                onClick={!isMe?()=>onAvatarTap(u.name):undefined}
-                style={{cursor:isMe?'default':'pointer'}}>
+              <div key={u.name} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',minWidth:'52px',cursor:isMe?'default':'pointer'}}
+                onClick={!isMe?()=>onAvatarTap(u.name):undefined}>
                 <div style={{position:'relative'}}>
                   <Avatar profile={u} size={44} legends={legends}/>
                   <div style={{position:'absolute',inset:-3,borderRadius:'50%',border:`2px solid ${pct===100?'var(--green)':pct>50?'var(--gold)':'var(--border)'}`,pointerEvents:'none'}}/>
                   {/* Achievement badges */}
+                  {earlyBird===u.name&&<span style={{position:'absolute',top:-6,left:'50%',transform:'translateX(-50%)',fontSize:'0.7rem',background:'#3a2800',borderRadius:'100px',padding:'1px 5px',border:'1px solid var(--gold)',whiteSpace:'nowrap'}}>🌅 früh</span>}
                   {achievements&&achievements.some(a=>a.name===u.name&&a.type==='erster')&&
                     <span style={{position:'absolute',top:-4,right:-4,fontSize:'0.7rem',background:'#1a3a5e',borderRadius:'50%',width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center',border:'1px solid #60a5fa'}}>⚡</span>}
                   {achievements&&achievements.some(a=>a.name===u.name&&a.type==='streak')&&
@@ -863,6 +1121,12 @@ function TeamSection({leaders, user, legends, onNudge, achievements, onKudo, onA
                 <div className="bc" style={{fontSize:'0.65rem',color:pct===100?'var(--green)':pct>50?'var(--gold)':'var(--muted)',fontWeight:700}}>
                   {u.completed_days}/30
                 </div>
+                {(u.current_streak||0)>1&&<div style={{fontSize:'0.6rem',color:'var(--red)',fontWeight:700}}>🔥{u.current_streak}</div>}
+                {u.daily_status&&u.daily_status_date===new Date().toISOString().split('T')[0]&&(
+                  <div style={{fontSize:'0.65rem',textAlign:'center',background:'var(--bg3)',borderRadius:'6px',padding:'2px 5px',maxWidth:'52px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{u.daily_status}</div>
+                )}
+                {u.pact_with&&<div style={{fontSize:'0.6rem',color:'#c4b5fd'}}>🤝{u.pact_with===user?'Du':u.pact_with.split(' ')[0]}</div>}
+                {isMe&&<button onClick={onStatusTap} style={{fontSize:'0.55rem',background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:'4px',padding:'2px 4px',color:'var(--muted)',marginTop:'2px'}}>+Status</button>}
                 {!isMe&&(
                   <div style={{display:'flex',gap:'4px'}}>
                     <button onClick={()=>onNudge(u.name)}
@@ -879,8 +1143,9 @@ function TeamSection({leaders, user, legends, onNudge, achievements, onKudo, onA
             );
           })}
         </div>
-        <div style={{marginTop:'0.75rem',paddingTop:'0.75rem',borderTop:'1px solid var(--border)',textAlign:'center',fontSize:'0.68rem',color:'var(--muted)',letterSpacing:'0.03em'}}>
-          Tap auf fremden Avatar → Feuer machen oder Kudo vergeben
+        <div style={{marginTop:'0.75rem',paddingTop:'0.75rem',borderTop:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <div style={{fontSize:'0.65rem',color:'var(--muted)'}}>Tap auf Avatar → 🔥 Feuer · 💪 Kudo</div>
+          <button onClick={onPaktTap} style={{background:'rgba(139,92,246,0.1)',border:'1px solid rgba(139,92,246,0.3)',borderRadius:'8px',padding:'4px 10px',color:'#c4b5fd',fontSize:'0.7rem',fontFamily:'Barlow Condensed,sans-serif',fontWeight:700,letterSpacing:'0.05em'}}>🤝 PAKT</button>
         </div>
       </div>
     </div>
@@ -891,7 +1156,7 @@ function TeamSection({leaders, user, legends, onNudge, achievements, onKudo, onA
 // ─────────────────────────────────────────────────────────
 //  HOME TAB
 // ─────────────────────────────────────────────────────────
-function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile, legends, onNudge, achievements, onKudo, onAvatarTap}){
+function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile, legends, onNudge, achievements, onKudo, onAvatarTap, onStatusTap, onPaktTap, onPinPost, allCompletions, onSos, onCouch, sosEvents}){
   const [motto, setMotto] = useState(()=>rnd(MOTIVATIONS));
   const done    = completed.size;
   const pct     = Math.round((done/30)*100);
@@ -968,7 +1233,21 @@ function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile,
         const q = leg && leg.quotes_bekloppt && leg.quotes_bekloppt.length ? rnd(leg.quotes_bekloppt) : (leg&&leg.quotes?rnd(leg.quotes):null);
         const milestone = totalBurpees >= 1000;
         return(
-          <div style={{margin:'0 1.25rem 1.5rem',background:milestone?`${leg?.color||'var(--red)'}15`:'var(--bg2)',border:`1px solid ${milestone?leg?.color+'44'||'var(--red)':'var(--border)'}`,borderRadius:'14px',padding:'0.9rem 1rem'}}>
+          {getChallengeDay()>0&&!completed.has(getChallengeDay())&&(
+        <div style={{display:'flex',gap:'8px',margin:'0 1.25rem 1rem'}}>
+          <button onClick={onSos}
+            style={{flex:1,padding:'0.85rem',background:'rgba(255,100,0,0.1)',border:'2px solid rgba(255,100,0,0.5)',borderRadius:'14px',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',animation:'shimmer 2s infinite'}}>
+            <span style={{fontSize:'1.1rem'}}>🆘</span>
+            <div className="bc" style={{fontSize:'0.9rem',fontWeight:800,color:'#ff6400',letterSpacing:'0.05em'}}>LEGENDEN-SIGNAL</div>
+          </button>
+          <button onClick={onCouch}
+            style={{padding:'0.85rem 1rem',background:'rgba(100,100,100,0.1)',border:'1px solid var(--border)',borderRadius:'14px',display:'flex',alignItems:'center',gap:'6px'}}>
+            <span style={{fontSize:'1.1rem'}}>🛋️</span>
+            <div className="bc" style={{fontSize:'0.75rem',fontWeight:700,color:'var(--muted)',letterSpacing:'0.03em'}}>HEUTE COUCH</div>
+          </button>
+        </div>
+      )}
+      <div style={{margin:'0 1.25rem 1.5rem',background:milestone?`${leg?.color||'var(--red)'}15`:'var(--bg2)',border:`1px solid ${milestone?leg?.color+'44'||'var(--red)':'var(--border)'}`,borderRadius:'14px',padding:'0.9rem 1rem'}}>
             {milestone&&leg&&<div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'6px'}}>
               <span style={{fontSize:'1rem'}}>{leg.emoji}</span>
               <div className="bc" style={{fontSize:'0.65rem',fontWeight:700,color:leg.color,letterSpacing:'0.12em'}}>{leg.char.toUpperCase()} — 1000 BURPEES ERREICHT! 🎉</div>
@@ -985,7 +1264,7 @@ function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile,
 
       {leaders.length>0&&(
         <div style={{padding:'0 1.25rem 1rem'}}>
-          <TeamSection leaders={leaders} user={user} legends={legends} onNudge={onNudge} achievements={achievements} onKudo={onKudo} onAvatarTap={onAvatarTap}/>
+          <TeamSection leaders={leaders} user={user} legends={legends} onNudge={onNudge} achievements={achievements} onKudo={onKudo} onAvatarTap={onAvatarTap} onStatusTap={onStatusTap} onPaktTap={onPaktTap} completionData={allCompletions}/>
         </div>
       )}
       {leaders.length < 12 && <InviteCard groupSize={leaders.length} leaders={leaders} user={user}/>}
@@ -1041,7 +1320,7 @@ function CalendarTab({completed, completionTypes, onOpenDay}){
 // ─────────────────────────────────────────────────────────
 //  WALL TAB
 // ─────────────────────────────────────────────────────────
-function WallTab({user, profile, legends, wall, onPost, onReact, onOpenCommunity}){
+function WallTab({user, profile, legends, wall, onPost, onReact, onOpenCommunity, onPinPost, sosEvents, comebackVotes, legendPowers, onSendPower, onComebackVote, userName}){
   const [text, setText]       = useState('');
   const [posting, setPosting] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -1111,6 +1390,22 @@ function WallTab({user, profile, legends, wall, onPost, onReact, onOpenCommunity
       </div>
       <div style={{flex:1,overflowY:'auto',padding:'0.75rem 1.25rem'}}>
         {wall.length===0&&<div style={{textAlign:'center',padding:'4rem 1rem'}}><div style={{fontSize:'3rem',marginBottom:'0.75rem'}}>💬</div><p style={{color:'var(--muted)',fontSize:'0.9rem'}}>Noch keine Posts!</p></div>}
+        {(sosEvents||[]).filter(s=>s.active&&s.from_name!==userName).map(s=>(
+          <SosCard key={s.id} event={s} legends={legends} user={userName} onSendPower={onSendPower}/>
+        ))}
+        {[...new Set((comebackVotes||[]).map(v=>v.for_name))].filter(n=>n!==userName).map(forName=>{
+          const votes={};
+          (comebackVotes||[]).filter(v=>v.for_name===forName).forEach(v=>{votes[v.legend_id]=(votes[v.legend_id]||0)+1;});
+          const myVote=(comebackVotes||[]).find(v=>v.for_name===forName&&v.voter_name===userName)?.legend_id;
+          return <ComebackVotingCard key={forName} event={{for_name:forName,votes}} legends={legends} userName={userName} onVote={onComebackVote} myVote={myVote}/>;
+        })}
+        {wall.filter(p=>p.pinned).map(p=>(
+          <div key={`pin-${p.id}`} style={{background:'rgba(245,158,11,0.08)',border:'2px solid rgba(245,158,11,0.4)',borderRadius:'16px',padding:'0.75rem 1rem',marginBottom:'8px',display:'flex',alignItems:'center',gap:'8px'}}>
+            <span style={{fontSize:'0.9rem',flexShrink:0}}>📌</span>
+            <p style={{fontSize:'0.85rem',color:'#ddd',flex:1,fontStyle:'italic',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.message}</p>
+            <span style={{fontSize:'0.7rem',color:'var(--muted)',flexShrink:0}}>{p.name}</span>
+          </div>
+        ))}
         {wall.map((p,i)=>(
           <div key={p.id} style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'16px',padding:'1rem',marginBottom:'10px',animation:`slideUp 0.3s ${i*0.04}s ease both`}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'8px'}}>
@@ -1136,8 +1431,12 @@ function WallTab({user, profile, legends, wall, onPost, onReact, onOpenCommunity
                 );
               })}
               <button onClick={()=>{setReplyTo({id:p.id,name:p.name});}}
-                style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:'8px',padding:'4px 10px',fontSize:'0.75rem',color:'var(--muted)',marginLeft:'auto',fontFamily:'Barlow Condensed,sans-serif',fontWeight:700,letterSpacing:'0.05em'}}>
+                style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:'8px',padding:'4px 10px',fontSize:'0.75rem',color:'var(--muted)',fontFamily:'Barlow Condensed,sans-serif',fontWeight:700,letterSpacing:'0.05em'}}>
                 ↩ Antwort
+              </button>
+              <button onClick={()=>onPinPost(p.id)}
+                style={{background:'none',border:'none',fontSize:'0.85rem',color:p.pinned?'var(--gold)':'var(--muted)',padding:'4px 6px'}} title="Anheften">
+                📌
               </button>
             </div>
             {p.reply_to&&wall.find(r=>r.id===p.reply_to)&&(
@@ -1658,6 +1957,16 @@ function App(){
   const [notifications,   setNotifications]   = useState([]);
   const [activeNotif,     setActiveNotif]     = useState(null);
   const [avatarMenu,      setAvatarMenu]      = useState(null);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [showPaktModal,   setShowPaktModal]   = useState(false);
+  const [sosEvents,       setSosEvents]       = useState([]);
+  const [legendPowers,    setLegendPowers]    = useState([]);
+  const [comebackVotes,   setComebackVotes]   = useState([]);
+  const [activeSos,       setActiveSos]       = useState(null);
+  const [pendingOverlay,  setPendingOverlay]  = useState(null); // {type,legend,quote,from}
+  const [milestones,      setMilestones]      = useState([]);
+  const [showCouch,       setShowCouch]       = useState(false);
+  const [showSosBtn,      setShowSosBtn]      = useState(false);
   const [showWhatsNew,    setShowWhatsNew]    = useState(()=>{
     return localStorage.getItem('seen_version') !== APP_VERSION;
   }); // {name, x, y}
@@ -1686,6 +1995,26 @@ function App(){
     if(prof) setProfile(prof);
     setScreen('main');
     loadNotifications(name);
+    // Check for pending legend power
+    const {data:pending} = await db.from('legend_powers').select('*').eq('to_name',name).eq('seen',false).order('created_at',{ascending:false}).limit(1);
+    if(pending&&pending.length>0){
+      const p=pending[0];
+      const leg=LEGENDS_FALLBACK.find(l=>l.id===p.legend_id)||LEGENDS_FALLBACK[0];
+      setPendingOverlay({type:'power',legend:leg,quote:p.quote,from:p.from_name,id:p.id});
+    }
+    // Check for comeback reveal
+    const {data:comVotes} = await db.from('comeback_votes').select('*').eq('for_name',name);
+    const {data:profData} = await db.from('profiles').select('comeback_seen,comeback_day').eq('name',name).single();
+    if(comVotes&&comVotes.length>0&&profData&&!profData.comeback_seen){
+      // Find winning legend
+      const voteCounts={};
+      comVotes.forEach(v=>{voteCounts[v.legend_id]=(voteCounts[v.legend_id]||0)+1;});
+      const winnerId=Object.entries(voteCounts).sort((a,b)=>b[1]-a[1])[0]?.[0];
+      const winLeg=LEGENDS_FALLBACK.find(l=>l.id===winnerId)||LEGENDS_FALLBACK[0];
+      const q=rnd((getByCat&&getByCat(winLeg,'motivierend'))||winLeg.quotes);
+      setPendingOverlay({type:'comeback',legend:winLeg,quote:q.quote,from:'Das Team'});
+      await db.from('profiles').update({comeback_seen:true}).eq('name',name);
+    }
   },[]);
 
   const loadLeaders = useCallback(async () => {
@@ -1705,6 +2034,7 @@ function App(){
       const grouped = legs.map(l=>({
         ...l,
         quotes:           qs.filter(q=>q.legend_id===l.id),
+        quotes_kudo:      qs.filter(q=>q.legend_id===l.id && q.category==='kudo'),
         quotes_bekloppt:  qs.filter(q=>q.legend_id===l.id && q.category==='bekloppt'),
         quotes_original:  qs.filter(q=>q.legend_id===l.id && q.category==='original'),
         quotes_motivierend:qs.filter(q=>q.legend_id===l.id && q.category==='motivierend'),
@@ -1751,11 +2081,22 @@ function App(){
     if(data) setAchievements(data);
   },[]);
 
+  const loadSosData = useCallback(async () => {
+    const {data:sos}    = await db.from('sos_events').select('*').eq('active',true).order('created_at',{ascending:false}).limit(5);
+    const {data:powers} = await db.from('legend_powers').select('*').order('created_at',{ascending:false}).limit(20);
+    const {data:cv}     = await db.from('comeback_votes').select('*').order('created_at',{ascending:false});
+    const {data:ms}     = await db.from('milestones').select('*');
+    if(sos)    setSosEvents(sos);
+    if(powers) setLegendPowers(powers);
+    if(cv)     setComebackVotes(cv);
+    if(ms)     setMilestones(ms);
+  },[]);
+
   // ── Init ──
   useEffect(()=>{
     const saved = localStorage.getItem('burpee_name');
     if(saved){ setUserName(saved); loadUser(saved); } else setScreen('onboarding');
-    loadLeaders(); loadWall(); loadLegends(); loadSubmissions(); loadKudos(); loadAchievements(); loadAllCompletions(); loadWildcards();
+    loadLeaders(); loadWall(); loadLegends(); loadSubmissions(); loadKudos(); loadAchievements(); loadAllCompletions(); loadWildcards(); loadSosData();
     const savedName = localStorage.getItem('burpee_name');
     if(savedName) loadNotifications(savedName);
     const ch = db.channel('live')
@@ -1798,6 +2139,7 @@ function App(){
     setCompleted(next); setCompTypes({...compTypes,[dayNum]:'full'});
     await db.from('day_completions').upsert({name:userName,day:dayNum,type:'full'},{onConflict:'name,day'});
     await db.from('profiles').update({completed_days:next.size,updated_at:new Date().toISOString()}).eq('name',userName);
+    const freshCompleted = next; await handleUpdateStreak(freshCompleted);
     await refreshProfile(userName); loadLeaders();
 
     // ── Achievement detection ──
@@ -1836,6 +2178,7 @@ function App(){
     const reward = {char:leg.char, emoji:leg.emoji, color:leg.color, quote:q.quote, date:new Date().toDateString()};
     localStorage.setItem('burpee_reward', JSON.stringify(reward));
     showToast('🎉 Tag '+dayNum+' geschafft!');
+    await checkMilestones(dayNum, 'full', next);
   };
 
   const handleHalf = async dayNum => {
@@ -1846,6 +2189,7 @@ function App(){
     await db.from('profiles').update({completed_days:next.size,half_used:newH,updated_at:new Date().toISOString()}).eq('name',userName);
     const p = await refreshProfile(userName); loadLeaders();
     showToast(`🌙 Halbe reicht auch! (${2+(p?.joker_swapped?1:0)-newH} übrig)`);
+    await checkMilestones(dayNum, 'half', next);
   };
 
   const handleJoker = async (dayNum, action) => {
@@ -1897,6 +2241,129 @@ function App(){
   };
 
   const handleNudge = targetName => setFeuerTarget(targetName);
+
+  const handleSetStatus = async (status) => {
+    setShowStatusModal(false);
+    const today = new Date().toISOString().split('T')[0];
+    await db.from('profiles').update({daily_status:`${status.emoji} ${status.text}`, daily_status_date:today}).eq('name',userName);
+    await refreshProfile(userName); loadLeaders();
+    showToast(`${status.emoji} Status gesetzt: ${status.text}`);
+  };
+
+  const handleSetPakt = async (targetName) => {
+    setShowPaktModal(false);
+    await db.from('profiles').update({pact_with:targetName}).eq('name',userName);
+    // Also set for the other person
+    await db.from('profiles').update({pact_with:userName}).eq('name',targetName);
+    await refreshProfile(userName); loadLeaders();
+    showToast(`🤝 Pakt mit ${targetName} geschlossen!`);
+    await handlePost(`🤝 ${userName} und ${targetName} haben einen Pakt geschlossen! Keiner lässt den anderen fallen! 💪`);
+  };
+
+  const handleBreakPakt = async () => {
+    const paktWith = profile?.pact_with;
+    setShowPaktModal(false);
+    await db.from('profiles').update({pact_with:null}).eq('name',userName);
+    if(paktWith) await db.from('profiles').update({pact_with:null}).eq('name',paktWith);
+    await refreshProfile(userName); loadLeaders();
+    showToast('Pakt aufgelöst.');
+  };
+
+  // ── SOS / Legenden-Signal ──
+  const handleSos = async () => {
+    // Deactivate old SOS first
+    await db.from('sos_events').update({active:false}).eq('from_name',userName);
+    await db.from('sos_events').insert({from_name:userName,active:true});
+    await handlePost(`🆘 ${userName} kämpft gerade mit der Schwerkraft! Wer sendet Legenden-Power?!`);
+    await loadSosData();
+    showToast('🆘 Legenden-Signal gesendet!');
+  };
+
+  const handleSendPower = async (toName, legend, quote) => {
+    await db.from('legend_powers').insert({to_name:toName, from_name:userName, legend_id:legend.id, quote, seen:false});
+    // Deactivate SOS
+    await db.from('sos_events').update({active:false}).eq('from_name',toName);
+    await loadSosData();
+    showToast(`⚡ Legenden-Power an ${toName} gesendet!`);
+  };
+
+  const handleComebackVote = async (forName, legendId) => {
+    await db.from('comeback_votes').upsert({for_name:forName,voter_name:userName,legend_id:legendId},{onConflict:'for_name,voter_name',ignoreDuplicates:false});
+    await loadSosData();
+  };
+
+  const handleCouchBadge = async () => {
+    const today = new Date().toISOString().split('T')[0];
+    await db.from('profiles').update({couch_badge_date:today}).eq('name',userName);
+    await handlePost(`🛋️ ${userName} ist heute Couch-Experte... und steht dazu! Respekt für die Ehrlichkeit! 😂`);
+    await refreshProfile(userName);
+    showToast('🛋️ Couch-Experte Badge aktiviert!');
+  };
+
+  const handleDismissOverlay = async () => {
+    if(pendingOverlay?.id){
+      await db.from('legend_powers').update({seen:true}).eq('id',pendingOverlay.id);
+    }
+    setPendingOverlay(null);
+  };
+
+  // ── Milestone check ──
+  const checkMilestones = async (dayNum, type, newCompleted) => {
+    const check = async (mtype, condition) => {
+      if(!condition) return;
+      const {data:existing} = await db.from('milestones').select('type').eq('name',userName).eq('type',mtype).single();
+      if(existing) return;
+      const mdef = MILESTONES_DEF.find(m=>m.type===mtype);
+      if(!mdef) return;
+      await db.from('milestones').insert({name:userName,type:mtype});
+      const pool = legends&&legends.length?legends:LEGENDS_FALLBACK;
+      const leg = rnd(pool);
+      const src = getByCat(leg,'motivierend')||leg.quotes;
+      const q = rnd(src);
+      await handlePost(`${mdef.emoji} ${userName} ${mdef.title}
+${leg.emoji} ${leg.char}: "${q.quote}"`);
+      showToast(`${mdef.emoji} ${mdef.title}`);
+    };
+    // Check comeback (3+ day gap)
+    if(type==='full'||type==='half'){
+      const cur = getChallengeDay();
+      const daysBefore = Array.from({length:3},(_,i)=>cur-i-1).filter(d=>d>0);
+      const hadGap = daysBefore.some(d=>!newCompleted.has(d));
+      const wasGone = daysBefore.filter(d=>!newCompleted.has(d)).length>=2;
+      if(wasGone && newCompleted.size>1){
+        await check('comeback',true);
+        // Trigger comeback voting
+        const {data:existing} = await db.from('comeback_votes').select('id').eq('for_name',userName).limit(1);
+        if(!existing||existing.length===0){
+          await db.from('profiles').update({comeback_seen:false}).eq('name',userName);
+          await handlePost(`🌟 ${userName} ist zurück! Wählt die Legende die ihn/sie begrüßt — tippt auf den Voting-Button! 👇`);
+        }
+      }
+    }
+    await check('first_ever', newCompleted.size===1);
+    await check('streak5', (profile?.current_streak||0)>=4);
+    await check('halfway', dayNum===15&&(type==='full'||type==='half'));
+    await check('half_portion', type==='half');
+  };
+
+  const handlePinPost = async (postId) => {
+    // Unpin all first, then pin this one
+    await db.from('wall_posts').update({pinned:false}).eq('pinned',true);
+    await db.from('wall_posts').update({pinned:true}).eq('id',postId);
+    await loadWall();
+    showToast('📌 Post angeheftet!');
+  };
+
+  const handleUpdateStreak = async (newCompleted) => {
+    // Calculate current streak from completions
+    let streak = 0;
+    const cur = getChallengeDay();
+    for(let d = cur; d >= 1; d--){
+      if(newCompleted.has(d)) streak++;
+      else break;
+    }
+    await db.from('profiles').update({current_streak:streak}).eq('name',userName);
+  };
 
   const dismissNotif = async () => {
     if(!activeNotif) return;
@@ -1977,14 +2444,17 @@ function App(){
       {showWhatsNew&&screen==='main'&&<WhatsNewModal onClose={()=>{localStorage.setItem('seen_version',APP_VERSION);setShowWhatsNew(false);}}/>}
       <NotificationBanner notif={activeNotif} onDismiss={dismissNotif}/>
       {avatarMenu&&<AvatarContextMenu targetName={avatarMenu} onFeuer={setFeuerTarget} onKudo={setShowKudoModal} onClose={()=>setAvatarMenu(null)}/>}
-      {showKudoModal&&<KudoModal to={showKudoModal} from={userName} onSend={handleSendKudo} onCancel={()=>setShowKudoModal(null)}/>}
+      {showKudoModal&&<KudoModal to={showKudoModal} from={userName} legends={legends} onSend={handleSendKudo} onCancel={()=>setShowKudoModal(null)}/>}
+      {pendingOverlay&&<FullscreenOverlay type={pendingOverlay.type} legend={pendingOverlay.legend} quote={pendingOverlay.quote} fromName={pendingOverlay.from} onClose={handleDismissOverlay}/>}
       {feuerTarget&&<FeuermachenModal from={userName} to={feuerTarget} legends={legends} onSend={handleFeuerSend} onCancel={()=>setFeuerTarget(null)}/>}
       {showAvatarEditor&&<AvatarEditorModal profile={profile} legends={legends} onSave={handleSaveAvatar} onCancel={()=>setShowAvatarEditor(false)}/>}
+      {showStatusModal&&<StatusModal current={profile?.daily_status} onSave={handleSetStatus} onClose={()=>setShowStatusModal(false)}/>}
+      {showPaktModal&&<PaktModal user={userName} leaders={leaders} currentPakt={profile?.pact_with} onSave={handleSetPakt} onBreak={handleBreakPakt} onClose={()=>setShowPaktModal(false)}/>}
       {showCommunity&&<CommunityQuotes user={userName} legends={legends} submissions={submissions} onSubmit={handleSubmitQuote} onVote={handleVote} onClose={()=>setShowCommunity(false)}/>}
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',paddingTop:'var(--safe-t)'}}>
-        {tab==='home'     && <HomeTab user={userName} completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay} leaders={leaders} profile={profile} legends={legends} onNudge={handleNudge} achievements={achievements} onKudo={setShowKudoModal} onAvatarTap={setAvatarMenu}/>}
+        {tab==='home'     && <HomeTab user={userName} completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay} leaders={leaders} profile={profile} legends={legends} onNudge={handleNudge} achievements={achievements} onKudo={setShowKudoModal} onAvatarTap={setAvatarMenu} onStatusTap={()=>setShowStatusModal(true)} onPaktTap={()=>setShowPaktModal(true)} onPinPost={handlePinPost} allCompletions={allCompletions} onSos={handleSos} onCouch={handleCouchBadge} profile={profile} sosEvents={sosEvents}/>}
         {tab==='calendar' && <CalendarTab completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay}/>}
-        {tab==='wall'     && <WallTab user={userName} profile={profile} legends={legends} wall={wall} onPost={handlePost} onReact={handleReact} onOpenCommunity={()=>setShowCommunity(true)}/>}
+        {tab==='wall'     && <WallTab user={userName} profile={profile} legends={legends} wall={wall} onPost={handlePost} onReact={handleReact} onOpenCommunity={()=>setShowCommunity(true)} onPinPost={handlePinPost} sosEvents={sosEvents} comebackVotes={comebackVotes} legendPowers={legendPowers} onSendPower={handleSendPower} onComebackVote={handleComebackVote} userName={userName}/>}
         {tab==='stats'    && <StatsTab user={userName} leaders={leaders} legends={legends} completionData={allCompletions} wildcards={wildcards} wildcardCompletions={wildcardCompletions} onCallWildcard={handleCallWildcard} onCompleteWildcard={handleCompleteWildcard}/>}
         <BottomNav tab={tab} setTab={setTab}/>
       </div>
