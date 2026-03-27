@@ -1033,8 +1033,8 @@ function KudoModal({to, from, legends, onSend, onCancel}){
               <div className="bc" style={{fontSize:'0.65rem',color:selLegend?.color||'var(--gold)',letterSpacing:'0.1em',marginBottom:'3px'}}>{selLegend?.char?.toUpperCase()}</div>
               <p style={{fontSize:'0.82rem',color:'#ddd',fontStyle:'italic',lineHeight:1.45}}>"{legendQuote}"</p>
             </div>
-            <button onClick={()=>{const src=getByCat(selLegend,'motivierend')||selLegend.quotes;setLegendQuote(rnd(src).quote);}}
-              style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.9rem',padding:'0',flexShrink:0,marginLeft:'auto'}} onClick={reroll}>↻</button>
+            <button onClick={reroll}
+              style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.9rem',padding:'0',flexShrink:0,marginLeft:'auto'}}>↻</button>
           </div>
         )}
 
