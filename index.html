@@ -810,11 +810,8 @@ function TeamSection({leaders, user, legends, onNudge, achievements, onKudo, onA
   const today = new Date().toDateString();
   const cur   = getChallengeDay();
 
-  // Team burpees: reguläre Tage + abgehakte Wildcards
-  const wcBurpees = (wildcardCompletions||[]).reduce((a,c)=>{
-    const wc = (wildcards||[]).find(w=>w.id===c.wildcard_id);
-    return a + (wc?.burpee_count||0);
-  },0);
+  // Team burpees: reguläre Tage + tatsächlich eingetragene Wildcard-Burpees
+  const wcBurpees = (wildcardCompletions||[]).reduce((a,c)=>a+(c.burpee_count||0),0);
   const teamBurpees = leaders.reduce((a,u) => {
     const days = u.completed_days || 0;
     return a + DAYS.slice(0, Math.min(days, 30)).reduce((s,d) => s + tot(d), 0);
@@ -891,18 +888,7 @@ function TeamSection({leaders, user, legends, onNudge, achievements, onKudo, onA
                 <div className="bc" style={{fontSize:'0.65rem',color:pct===100?'var(--green)':pct>50?'var(--gold)':'var(--muted)',fontWeight:700}}>
                   {u.completed_days}/30
                 </div>
-                {!isMe&&(
-                  <div style={{display:'flex',gap:'4px'}}>
-                    <button onClick={()=>onNudge(u.name)}
-                      style={{background:'rgba(230,57,70,0.1)',border:'1px solid rgba(230,57,70,0.25)',borderRadius:'6px',padding:'3px 6px',fontSize:'0.7rem',color:'var(--red)',fontFamily:'Barlow Condensed,sans-serif',fontWeight:700}}>
-                      🔥
-                    </button>
-                    <button onClick={()=>onKudo(u.name)}
-                      style={{background:'rgba(245,158,11,0.1)',border:'1px solid rgba(245,158,11,0.25)',borderRadius:'6px',padding:'3px 6px',fontSize:'0.7rem',color:'var(--gold)',fontFamily:'Barlow Condensed,sans-serif',fontWeight:700}}>
-                      🏅
-                    </button>
-                  </div>
-                )}
+                {/* Tap auf Avatar → AvatarContextMenu (Feuer / Kudo) */}
               </div>
             );
           })}
@@ -919,8 +905,9 @@ function TeamSection({leaders, user, legends, onNudge, achievements, onKudo, onA
 // ─────────────────────────────────────────────────────────
 //  HOME TAB
 // ─────────────────────────────────────────────────────────
-function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile, legends, onNudge, achievements, onKudo, onAvatarTap, wildcards, wildcardCompletions}){
-  const [motto, setMotto] = useState(()=>rnd(MOTIVATIONS));
+function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile, legends, onNudge, achievements, onKudo, onAvatarTap, wildcards, wildcardCompletions, onCompleteWildcard}){
+  const [motto,       setMotto]       = useState(()=>rnd(MOTIVATIONS));
+  const [showWCModal, setShowWCModal] = useState(false);
   const done    = completed.size;
   const pct     = Math.round((done/30)*100);
   const cur     = getChallengeDay();
@@ -931,6 +918,11 @@ function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile,
     const b = tot(d);
     return a + (t==='half'?Math.ceil(b/2):t==='joker'?0:b);
   },0);
+
+  // Aktive Wildcard für Home-Banner
+  const nowHome    = new Date();
+  const activeWCHome = (wildcards||[]).find(w=>new Date(w.expires_at)>nowHome);
+  const hasCompletedWCHome = activeWCHome && (wildcardCompletions||[]).some(c=>c.wildcard_id===activeWCHome.id&&c.name===user);
 
   return(
     <div style={{flex:1,overflowY:'auto',paddingBottom:'0.5rem'}}>
@@ -1011,12 +1003,44 @@ function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile,
         );
       })()}
 
+      {/* ── Aktive Wildcard Banner ── */}
+      {activeWCHome&&!hasCompletedWCHome&&(
+        <div style={{margin:'0 1.25rem 1rem'}}>
+          <button onClick={()=>setShowWCModal(true)} style={{width:'100%',background:'linear-gradient(135deg,rgba(139,92,246,0.18),rgba(109,40,217,0.12))',border:'2px solid var(--purple)',borderRadius:'16px',padding:'1rem',textAlign:'left',animation:'shimmer 2.5s infinite'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px'}}>
+              <div className="bc" style={{fontSize:'0.65rem',color:'var(--purple)',letterSpacing:'0.15em'}}>🎰 AKTIVE WILDCARD</div>
+              <WildcardCountdown expires={activeWCHome.expires_at}/>
+            </div>
+            <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+              <div className="bc" style={{fontSize:'2rem',fontWeight:900,color:'#c4b5fd',lineHeight:1}}>{activeWCHome.burpee_count}</div>
+              <div>
+                <div style={{fontSize:'0.82rem',color:'#ddd',fontStyle:'italic'}}>"{activeWCHome.message}"</div>
+                <div style={{fontSize:'0.7rem',color:'var(--muted)',marginTop:'2px'}}>von {activeWCHome.called_by}</div>
+              </div>
+            </div>
+            <div className="bc" style={{marginTop:'10px',textAlign:'center',background:'rgba(139,92,246,0.3)',borderRadius:'10px',padding:'8px',fontSize:'0.95rem',fontWeight:800,color:'#e9d5ff',letterSpacing:'0.06em'}}>
+              💪 ICH BIN DABEI — EINTRAGEN!
+            </div>
+          </button>
+        </div>
+      )}
+      {activeWCHome&&hasCompletedWCHome&&(
+        <div style={{margin:'0 1.25rem 1rem',background:'rgba(74,222,128,0.08)',border:'1px solid #2d5a2d',borderRadius:'12px',padding:'0.75rem 1rem',display:'flex',alignItems:'center',gap:'10px'}}>
+          <span style={{fontSize:'1.3rem'}}>✅</span>
+          <div>
+            <div className="bc" style={{fontSize:'0.8rem',color:'var(--green)',fontWeight:700}}>WILDCARD ERLEDIGT!</div>
+            <div style={{fontSize:'0.7rem',color:'var(--muted)'}}>Du hast mitgemacht · Burpees zählen zum Team-Total</div>
+          </div>
+        </div>
+      )}
+
       {leaders.length>0&&(
         <div style={{padding:'0 1.25rem 1rem'}}>
           <TeamSection leaders={leaders} user={user} legends={legends} onNudge={onNudge} achievements={achievements} onKudo={onKudo} onAvatarTap={onAvatarTap} wildcards={wildcards} wildcardCompletions={wildcardCompletions}/>
         </div>
       )}
       {leaders.length < 12 && <InviteCard groupSize={leaders.length} leaders={leaders} user={user}/>}
+      {showWCModal&&activeWCHome&&<WildcardCompletionModal wildcard={activeWCHome} onComplete={cnt=>{setShowWCModal(false);onCompleteWildcard(activeWCHome.id,cnt);}} onCancel={()=>setShowWCModal(false)}/>}
     </div>
   );
 }
@@ -1500,6 +1524,51 @@ function WildcardModal({onCall, onCancel}){
 }
 
 // ─────────────────────────────────────────────────────────
+//  WILDCARD COMPLETION MODAL — "Jeder Burpee zählt!"
+// ─────────────────────────────────────────────────────────
+function WildcardCompletionModal({wildcard, onComplete, onCancel}){
+  const target = wildcard.burpee_count || 10;
+  const [count, setCount] = useState(target);
+  const change = delta => setCount(prev => Math.min(target, Math.max(1, prev + delta)));
+  const isMax = count >= target;
+  return(
+    <div onClick={e=>e.target===e.currentTarget&&onCancel()} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:260,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',animation:'slideUp 0.3s ease both'}}>
+      <div style={{width:'100%',maxWidth:'480px',background:'var(--bg)',borderRadius:'24px 24px 0 0',padding:'1.5rem',paddingBottom:'calc(1.5rem + var(--safe-b))'}}>
+        <div style={{textAlign:'center',marginBottom:'1.25rem'}}>
+          <div style={{fontSize:'2.5rem',marginBottom:'4px'}}>🎰</div>
+          <div className="bc" style={{fontSize:'1.3rem',fontWeight:900,color:'#c4b5fd',letterSpacing:'0.05em'}}>WILDCARD EINTRAGEN</div>
+          <p style={{color:'var(--muted)',fontSize:'0.82rem',marginTop:'6px',fontStyle:'italic'}}>"{wildcard.message}"</p>
+        </div>
+        {/* Stepper */}
+        <div style={{background:'var(--bg2)',border:`2px solid ${isMax?'var(--green)':'var(--purple)'}`,borderRadius:'16px',padding:'1.25rem',marginBottom:'1rem',textAlign:'center',transition:'border-color 0.3s'}}>
+          <div className="bc" style={{fontSize:'0.65rem',color:'var(--muted)',letterSpacing:'0.15em',marginBottom:'0.75rem'}}>
+            {isMax ? '💪 VOLL DURCHGEZOGEN!' : `ZIEL: ${target} BURPEES`}
+          </div>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'1.25rem'}}>
+            <button onClick={()=>change(-1)}
+              style={{width:'48px',height:'48px',borderRadius:'50%',background:'var(--bg3)',border:'1px solid var(--border)',color:'var(--text)',fontSize:'1.5rem',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>−</button>
+            <div className="bc" style={{fontSize:'4rem',fontWeight:900,color:isMax?'var(--green)':'#c4b5fd',minWidth:'80px',lineHeight:1,transition:'color 0.3s'}}>{count}</div>
+            <button onClick={()=>change(1)} disabled={count>=target}
+              style={{width:'48px',height:'48px',borderRadius:'50%',background:'var(--bg3)',border:'1px solid var(--border)',color:count>=target?'var(--muted)':'var(--text)',fontSize:'1.5rem',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,opacity:count>=target?0.35:1}}>+</button>
+          </div>
+          <div style={{fontSize:'0.75rem',color:'var(--muted)',marginTop:'8px'}}>
+            {isMax ? '🏆 Respect! Volles Programm!' : '💪 Weniger geht auch — trag ein was du geschafft hast!'}
+          </div>
+        </div>
+        <div style={{background:'rgba(139,92,246,0.08)',border:'1px solid rgba(139,92,246,0.2)',borderRadius:'10px',padding:'0.6rem 1rem',marginBottom:'1rem',textAlign:'center'}}>
+          <span style={{fontSize:'0.8rem',color:'#c4b5fd'}}>💡 <strong>Jeder Burpee zählt!</strong> Auch {count < target ? count : target} Stück bringen das Team dem nächsten Meilenstein näher.</span>
+        </div>
+        <button onClick={()=>onComplete(count)}
+          style={{width:'100%',padding:'1rem',background:isMax?'linear-gradient(135deg,#22c55e,#16a34a)':'linear-gradient(135deg,#8b5cf6,#7c3aed)',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:900,letterSpacing:'0.08em',boxShadow:isMax?'0 4px 20px rgba(34,197,94,0.4)':'0 4px 20px rgba(139,92,246,0.4)'}}>
+          {isMax ? '🏆 VOLL DURCHGEZOGEN! FEIERN!' : `💪 ${count} BURPEES EINTRAGEN!`}
+        </button>
+        <button onClick={onCancel} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.82rem',padding:'0.75rem',width:'100%',marginTop:'4px'}}>Abbrechen</button>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
 //  TEAM MILESTONE OVERLAY
 // ─────────────────────────────────────────────────────────
 function TeamMilestoneOverlay({milestone, onClose}){
@@ -1523,7 +1592,8 @@ function TeamMilestoneOverlay({milestone, onClose}){
 //  STATS TAB (Heatmap + Wildcard + Finale)
 // ─────────────────────────────────────────────────────────
 function StatsTab({user, leaders, legends, completionData, wildcards, wildcardCompletions, onCallWildcard, onCompleteWildcard}){
-  const [showWildcardModal, setShowWildcardModal] = useState(false);
+  const [showWildcardModal,    setShowWildcardModal]    = useState(false);
+  const [showWCCompletion,     setShowWCCompletion]     = useState(false);
   const cur = getChallengeDay();
   const names = leaders.map(l=>l.name);
 
@@ -1556,10 +1626,8 @@ function StatsTab({user, leaders, legends, completionData, wildcards, wildcardCo
 
   // ── Finale ──
   const isFinale = cur >= 30 && leaders.every(l=>l.completed_days>=30);
-  const wcTotalBurpees = wildcardCompletions.reduce((a,c)=>{
-    const wc = wildcards.find(w=>w.id===c.wildcard_id);
-    return a+(wc?.burpee_count||0);
-  },0);
+  // Tatsächlich eingetragene Wildcard-Burpees (nicht das Ziel, was wirklich gemacht wurde)
+  const wcTotalBurpees = wildcardCompletions.reduce((a,c)=>a+(c.burpee_count||0),0);
   const totalTeamBurpees = leaders.reduce((a,l)=>{
     return a + DAYS.slice(0,l.completed_days||0).reduce((s,d)=>s+tot(d),0);
   },0) + wcTotalBurpees;
@@ -1617,12 +1685,15 @@ function StatsTab({user, leaders, legends, completionData, wildcards, wildcardCo
             })}
           </div>
           {!hasCompletedWC&&(
-            <button onClick={()=>onCompleteWildcard(activeWC.id)}
+            <button onClick={()=>setShowWCCompletion(true)}
               style={{width:'100%',padding:'0.9rem',background:'linear-gradient(135deg,#8b5cf6,#7c3aed)',border:'none',borderRadius:'12px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.1rem',fontWeight:800,letterSpacing:'0.08em'}}>
-              ⚡ {activeWC.burpee_count ? `${activeWC.burpee_count} BURPEES ERLEDIGT!` : 'WILDCARD ABGEHAKT!'}
+              💪 JEDER BURPEE ZÄHLT — EINTRAGEN!
             </button>
           )}
-          {hasCompletedWC&&<div className="bc" style={{textAlign:'center',color:'var(--green)',fontSize:'1rem',fontWeight:700}}>✓ Du hast mitgemacht!</div>}
+          {hasCompletedWC&&(()=>{
+            const myEntry = wildcardCompletions.find(c=>c.wildcard_id===activeWC.id&&c.name===user);
+            return <div className="bc" style={{textAlign:'center',color:'var(--green)',fontSize:'1rem',fontWeight:700}}>✓ Eingetragen: {myEntry?.burpee_count||'?'} Burpees!</div>;
+          })()}
         </div>
       ):(
         <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'16px',padding:'1.25rem',marginBottom:'1.5rem',textAlign:'center'}}>
@@ -1695,6 +1766,7 @@ function StatsTab({user, leaders, legends, completionData, wildcards, wildcardCo
       </div>
 
       {showWildcardModal&&<WildcardModal onCall={(msg,cnt)=>{setShowWildcardModal(false);onCallWildcard(msg,cnt);}} onCancel={()=>setShowWildcardModal(false)}/>}
+      {showWCCompletion&&activeWC&&<WildcardCompletionModal wildcard={activeWC} onComplete={cnt=>{setShowWCCompletion(false);onCompleteWildcard(activeWC.id,cnt);}} onCancel={()=>setShowWCCompletion(false)}/>}
     </div>
   );
 }
@@ -1856,10 +1928,7 @@ function App(){
   // ── Team Milestone Check ──
   useEffect(()=>{
     if(!leaders.length||!userName) return;
-    const wcB = wildcardCompletions.reduce((a,c)=>{
-      const wc = wildcards.find(w=>w.id===c.wildcard_id);
-      return a+(wc?.burpee_count||0);
-    },0);
+    const wcB = wildcardCompletions.reduce((a,c)=>a+(c.burpee_count||0),0);
     const teamBurpees = leaders.reduce((a,u)=>a+DAYS.slice(0,Math.min(u.completed_days||0,30)).reduce((s,d)=>s+tot(d),0),0) + wcB;
     const seen = JSON.parse(localStorage.getItem('burpee_ms_seen')||'[]');
     const newMs = TEAM_MILESTONES.filter(m=>teamBurpees>=m.value&&!seen.includes(m.value));
@@ -2032,10 +2101,17 @@ function App(){
     showToast(`🎰 WILDCARD! ${burpeeCount||10} Burpees — Das Team hat 24h!`);
   };
 
-  const handleCompleteWildcard = async (wildcardId) => {
-    await db.from('wildcard_completions').insert({wildcard_id:wildcardId, name:userName});
+  const handleCompleteWildcard = async (wildcardId, count) => {
+    const burpees = count || 1;
+    await db.from('wildcard_completions').insert({wildcard_id:wildcardId, name:userName, burpee_count:burpees});
     await loadWildcards();
-    showToast('⚡ Wildcard abgehakt!');
+    const wc = wildcards.find(w=>w.id===wildcardId);
+    const target = wc?.burpee_count || 10;
+    if(burpees>=target){
+      showToast(`🏆 ${burpees} BURPEES! VOLL DURCHGEZOGEN! Das Team feiert!`);
+    } else {
+      showToast(`💪 ${burpees} von ${target} Burpees! JEDER BURPEE ZÄHLT! Das Team feiert dich!`);
+    }
   };
 
   const handleSendKudo = async (toName, message) => {
@@ -2102,7 +2178,7 @@ function App(){
       {showCommunity&&<CommunityQuotes user={userName} legends={legends} submissions={submissions} onSubmit={handleSubmitQuote} onVote={handleVote} onClose={()=>setShowCommunity(false)}/>}
       {milestoneOverlay&&screen==='main'&&<TeamMilestoneOverlay milestone={milestoneOverlay} onClose={()=>setMilestoneOverlay(null)}/>}
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',paddingTop:'var(--safe-t)'}}>
-        {tab==='home'     && <HomeTab user={userName} completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay} leaders={leaders} profile={profile} legends={legends} onNudge={handleNudge} achievements={achievements} onKudo={setShowKudoModal} onAvatarTap={setAvatarMenu} wildcards={wildcards} wildcardCompletions={wildcardCompletions}/>}
+        {tab==='home'     && <HomeTab user={userName} completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay} leaders={leaders} profile={profile} legends={legends} onNudge={handleNudge} achievements={achievements} onKudo={setShowKudoModal} onAvatarTap={setAvatarMenu} wildcards={wildcards} wildcardCompletions={wildcardCompletions} onCompleteWildcard={handleCompleteWildcard}/>}
         {tab==='calendar' && <CalendarTab completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay}/>}
         {tab==='wall'     && <WallTab user={userName} profile={profile} legends={legends} wall={wall} onPost={handlePost} onReact={handleReact} onOpenCommunity={()=>setShowCommunity(true)}/>}
         {tab==='stats'    && <StatsTab user={userName} leaders={leaders} legends={legends} completionData={allCompletions} wildcards={wildcards} wildcardCompletions={wildcardCompletions} onCallWildcard={handleCallWildcard} onCompleteWildcard={handleCompleteWildcard}/>}
