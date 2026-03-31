@@ -1048,14 +1048,23 @@ function WallTab({user, profile, legends, wall, onPost, onReact, onOpenCommunity
   const [posting, setPosting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [replyTo, setReplyTo] = useState(null); // {id, name}
+  const [replyText, setReplyText] = useState('');
   const fileRef = useRef();
   const galleryRef = useRef();
 
   const submit = async (imageUrl=null) => {
     if((!text.trim()&&!imageUrl)||posting) return;
     setPosting(true);
-    await onPost(text.trim()||'📸', imageUrl, replyTo?.id||null);
+    await onPost(text.trim()||'📸', imageUrl, null);
     setText('');
+    setPosting(false);
+  };
+
+  const submitReply = async () => {
+    if(!replyText.trim()||!replyTo||posting) return;
+    setPosting(true);
+    await onPost(replyText.trim(), null, replyTo.id);
+    setReplyText('');
     setReplyTo(null);
     setPosting(false);
   };
@@ -1089,10 +1098,6 @@ function WallTab({user, profile, legends, wall, onPost, onReact, onOpenCommunity
           <div className="bc" style={{fontSize:'1.6rem',fontWeight:800,letterSpacing:'0.05em'}}>🔥 MOTIVATION WALL</div>
           <button onClick={onOpenCommunity} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:'10px',padding:'6px 12px',color:'var(--text)',fontFamily:'Barlow Condensed,sans-serif',fontWeight:700,fontSize:'0.8rem',letterSpacing:'0.05em'}}>💬 SPRÜCHE</button>
         </div>
-        {replyTo&&<div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'6px',background:'var(--bg3)',borderRadius:'10px',padding:'6px 10px'}}>
-          <span style={{fontSize:'0.75rem',color:'var(--muted)'}}>↩ Antwort an <b style={{color:'var(--text)'}}>{replyTo.name}</b></span>
-          <button onClick={()=>setReplyTo(null)} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.8rem',marginLeft:'auto',padding:'0'}}>✕</button>
-        </div>}
         <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
           <Avatar profile={profile} size={36} legends={legends}/>
           <input value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()} placeholder="Motiviere dein Team..."
@@ -1137,8 +1142,8 @@ function WallTab({user, profile, legends, wall, onPost, onReact, onOpenCommunity
                   </button>
                 );
               })}
-              <button onClick={()=>{setReplyTo({id:p.id,name:p.name});}}
-                style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:'8px',padding:'4px 10px',fontSize:'0.75rem',color:'var(--muted)',marginLeft:'auto',fontFamily:'Barlow Condensed,sans-serif',fontWeight:700,letterSpacing:'0.05em'}}>
+              <button onClick={()=>{setReplyTo(replyTo?.id===p.id?null:{id:p.id,name:p.name});setReplyText('');}}
+                style={{background:replyTo?.id===p.id?'rgba(230,57,70,0.15)':'var(--bg3)',border:`1px solid ${replyTo?.id===p.id?'rgba(230,57,70,0.4)':'var(--border)'}`,borderRadius:'8px',padding:'4px 10px',fontSize:'0.75rem',color:replyTo?.id===p.id?'var(--red)':'var(--muted)',marginLeft:'auto',fontFamily:'Barlow Condensed,sans-serif',fontWeight:700,letterSpacing:'0.05em'}}>
                 ↩ Antwort
               </button>
             </div>
@@ -1146,6 +1151,18 @@ function WallTab({user, profile, legends, wall, onPost, onReact, onOpenCommunity
               <div style={{marginTop:'6px',paddingLeft:'10px',borderLeft:'2px solid var(--border)',opacity:0.6}}>
                 <span style={{fontSize:'0.7rem',color:'var(--muted)'}}>↩ {wall.find(r=>r.id===p.reply_to)?.name}: </span>
                 <span style={{fontSize:'0.72rem',color:'var(--muted)',fontStyle:'italic'}}>{wall.find(r=>r.id===p.reply_to)?.message?.slice(0,60)}{wall.find(r=>r.id===p.reply_to)?.message?.length>60?'...':''}</span>
+              </div>
+            )}
+            {replyTo?.id===p.id&&(
+              <div style={{marginTop:'8px',paddingLeft:'12px',borderLeft:'2px solid var(--red)',animation:'slideUp 0.2s ease'}}>
+                <div style={{display:'flex',gap:'6px',alignItems:'center'}}>
+                  <input autoFocus value={replyText} onChange={e=>setReplyText(e.target.value)}
+                    onKeyDown={e=>{if(e.key==='Enter')submitReply();if(e.key==='Escape'){setReplyTo(null);setReplyText('');}}}
+                    placeholder={`Antwort an ${p.name}...`}
+                    style={{flex:1,padding:'0.6rem 0.8rem',background:'var(--bg3)',border:'1px solid rgba(230,57,70,0.3)',borderRadius:'10px',color:'var(--text)',fontSize:'0.82rem',outline:'none'}}/>
+                  <button onClick={submitReply} disabled={!replyText.trim()||posting}
+                    style={{background:'var(--red)',border:'none',borderRadius:'10px',padding:'0 0.8rem',color:'#fff',fontSize:'1rem',height:'36px',opacity:(!replyText.trim()||posting)?0.4:1,flexShrink:0}}>→</button>
+                </div>
               </div>
             )}
           </div>
