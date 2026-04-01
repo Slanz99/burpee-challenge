@@ -90,7 +90,7 @@ const MOTIVATIONS = [
   "Einmal mehr als gestern!","Dein zukünftiges Ich dankt dir!",
 ];
 
-const APP_VERSION = 'v1.5';
+const APP_VERSION = 'v2.0';
 const WHATS_NEW = [
   {emoji:'🎯', title:'TEAM-MEILENSTEINE!!! 🚀🔥💥', text:'Jetzt zählen wir gemeinsam! Auf dem Home-Tab siehst du wie nah ihr dem nächsten Wahnsinnsziel seid. Und wenn ihr es knackt — EXPLOSION. FEIER. CHAOS. So wie Gott es wollte.'},
   {emoji:'🏆', title:'MEILENSTEIN-FEIER OVERLAY 👑', text:'500 Burpees?! 1000?! Das bleibt nicht unbemerkt. Das Team bekommt ein Fullscreen-Festval das man nicht ignorieren kann. Weil: JEDER BURPEE ZÄHLT.'},
@@ -1782,7 +1782,7 @@ function WildcardCountdown({expires}){
       const m=Math.floor((diff%3600000)/60000);
       setLeft(`${h}h ${m}m`);
     };
-    calc();const iv=setInterval(calc,60000);return()=>clearInterval(iv);
+    calc();const iv=setInterval(calc,30000);return()=>clearInterval(iv);
   },[expires]);
   return <div className="bc" style={{fontSize:'0.85rem',fontWeight:700,color:'#c4b5fd',background:'rgba(139,92,246,0.2)',padding:'4px 10px',borderRadius:'8px'}}>{left}</div>;
 }
@@ -1842,6 +1842,7 @@ function App(){
   const [showCommunity,   setShowCommunity]   = useState(false);
   const [toast,           setToast]           = useState('');
   const toastTimer = useRef(null);
+  const userNameRef = useRef('');
 
   const showToast = msg => {
     setToast(msg);
@@ -1942,10 +1943,8 @@ function App(){
   // ── Init ──
   useEffect(()=>{
     const saved = localStorage.getItem('burpee_name');
-    if(saved){ setUserName(saved); loadUser(saved); } else setScreen('onboarding');
+    if(saved){ userNameRef.current = saved; setUserName(saved); loadUser(saved); } else setScreen('onboarding');
     loadLeaders(); loadWall(); loadLegends(); loadSubmissions(); loadKudos(); loadAchievements(); loadAllCompletions(); loadWildcards();
-    const savedName = localStorage.getItem('burpee_name');
-    if(savedName) loadNotifications(savedName);
     const ch = db.channel('live')
       .on('postgres_changes',{event:'*',schema:'public',table:'wall_posts'},loadWall)
       .on('postgres_changes',{event:'*',schema:'public',table:'profiles'},loadLeaders)
@@ -1954,7 +1953,7 @@ function App(){
       .on('postgres_changes',{event:'*',schema:'public',table:'achievements'},loadAchievements)
       .on('postgres_changes',{event:'*',schema:'public',table:'wildcards'},loadWildcards)
       .on('postgres_changes',{event:'*',schema:'public',table:'wildcard_completions'},loadWildcards)
-      .on('postgres_changes',{event:'*',schema:'public',table:'notifications'},()=>loadNotifications(userName))
+      .on('postgres_changes',{event:'*',schema:'public',table:'notifications'},()=>loadNotifications(userNameRef.current))
       .on('postgres_changes',{event:'*',schema:'public',table:'day_completions'},loadAllCompletions)
       .subscribe();
     return () => ch.unsubscribe();
@@ -1970,7 +1969,7 @@ function App(){
   const handleJoin = async (name, legendId, pose) => {
     await db.from('profiles').upsert({name, avatar:legendId, avatar_legend:legendId, avatar_pose:pose, completed_days:0, jokers_used:0, half_used:0, joker_swapped:false},{onConflict:'name',ignoreDuplicates:false});
     localStorage.setItem('burpee_name', name);
-    setUserName(name); await loadUser(name);
+    userNameRef.current = name; setUserName(name); await loadUser(name);
     showToast(`🎉 Willkommen, ${name}!`);
   };
 
@@ -1989,13 +1988,15 @@ function App(){
     await refreshProfile(userName); loadLeaders();
 
     // ── Achievement detection ──
+    let achievementToast = '';
+
     // ⚡ Erster im Team heute
     const {count} = await db.from('day_completions')
       .select('*', {count:'exact',head:true})
       .eq('day', dayNum);
     if(count===1){
       await db.from('achievements').upsert({name:userName,type:'erster',day:dayNum},{onConflict:'name,type,day',ignoreDuplicates:true});
-      showToast('🥇 ERSTER im Team heute!');
+      achievementToast = '🥇 ERSTER im Team heute!';
       await loadAchievements();
     }
 
@@ -2004,7 +2005,7 @@ function App(){
     const hasStreak = lastDays.length===7 && lastDays.every(d=>next.has(d));
     if(hasStreak){
       await db.from('achievements').upsert({name:userName,type:'streak',day:dayNum},{onConflict:'name,type,day',ignoreDuplicates:true});
-      showToast('💫 7-TAGE STREAK! Unaufhaltbar!');
+      achievementToast = '💫 7-TAGE STREAK! Unaufhaltbar!';
       await loadAchievements();
     }
 
@@ -2012,7 +2013,7 @@ function App(){
     const freshProfile = await refreshProfile(userName);
     if(next.size===30 && (freshProfile?.jokers_used||0)===0 && (freshProfile?.half_used||0)===0){
       await db.from('achievements').upsert({name:userName,type:'eisenmensch',day:30},{onConflict:'name,type,day',ignoreDuplicates:true});
-      showToast('🦾 STAHLARM! 30 Tage, kein Joker, kein Halbe!');
+      achievementToast = '🦾 STAHLARM! 30 Tage, kein Joker, kein Halbe!';
       await loadAchievements();
     }
 
@@ -2023,7 +2024,8 @@ function App(){
     const q = rnd(src);
     const reward = {char:leg.char, emoji:leg.emoji, color:leg.color, quote:q.quote, date:new Date().toDateString()};
     localStorage.setItem('burpee_reward', JSON.stringify(reward));
-    showToast('🎉 Tag '+dayNum+' geschafft!');
+    // Achievement-Toast hat Vorrang, sonst Standard-Completion-Toast
+    showToast(achievementToast || '🎉 Tag '+dayNum+' geschafft!');
   };
 
   const handleHalf = async dayNum => {
@@ -2095,6 +2097,9 @@ function App(){
   };
 
   const handleCallWildcard = async (message, burpeeCount) => {
+    // Guard: keine zweite Wildcard wenn bereits eine aktiv
+    const alreadyActive = wildcards.find(w => new Date(w.expires_at) > new Date());
+    if(alreadyActive){ showToast('⚠️ Es gibt bereits eine aktive Wildcard!'); return; }
     const expires = new Date(Date.now() + 24*60*60*1000).toISOString();
     await db.from('wildcards').insert({called_by:userName, message, expires_at:expires, burpee_count:burpeeCount||10});
     await loadWildcards();
@@ -2204,6 +2209,7 @@ class ErrorBoundary extends React.Component {
           <b>{this.state.error.toString()}</b>
         </div>
         <pre style={{whiteSpace:'pre-wrap',opacity:0.7,fontSize:'0.75rem'}}>{this.state.error.stack}</pre>
+        <button onClick={()=>window.location.reload()} style={{marginTop:'1.5rem',padding:'0.75rem 2rem',background:'#cc0000',border:'none',borderRadius:'8px',color:'#fff',fontFamily:'monospace',fontSize:'0.9rem',cursor:'pointer',letterSpacing:'0.05em'}}>🔄 App neu laden</button>
       </div>
     );
     return this.props.children;
