@@ -95,6 +95,8 @@ const WHATS_NEW = [
   {type:'feature', emoji:'🎯', title:'TEAM-MEILENSTEINE!!! 🚀🔥💥', text:'Jetzt zählen wir gemeinsam! Auf dem Home-Tab siehst du wie nah ihr dem nächsten Wahnsinnsziel seid. Und wenn ihr es knackt — EXPLOSION. FEIER. CHAOS. So wie Gott es wollte.'},
   {type:'feature', emoji:'🏆', title:'MEILENSTEIN-FEIER OVERLAY 👑', text:'500 Burpees?! 1000?! Das bleibt nicht unbemerkt. Das Team bekommt ein Fullscreen-Festival das man nicht ignorieren kann. Weil: JEDER BURPEE ZÄHLT.'},
   {type:'feature', emoji:'🎰', title:'WILDCARD 2.0 — JETZT MIT ANZAHL 💪', text:'Wildcard rufen war gestern. Ab jetzt legst du SELBST fest: 5 bis 50 Bonus-Burpees. Die zählen direkt zum Team-Total dazu. Extra Burpees = extra Stolz = extra Meter zum Meilenstein.'},
+  {type:'feature', emoji:'🌒', title:'JEDER BURPEE ZÄHLT 🌕', text:'Nicht alles geschafft? EGAL. Trag ein was du hast — 🌒🌓🌔🌕 je nach Prozentsatz. Das Team sieht es, das Team feiert es. Kein Burpee bleibt ungewürdigt.'},
+  {type:'feature', emoji:'⏱', title:'PAUSEN-TIMER IM WORKOUT', text:'Bei Mehrfach-Sätzen kannst du jetzt einen Pausen-Timer starten — 10, 20 oder 30 Sekunden, manuell, wenn du bereit bist.'},
   {type:'fix', emoji:'🔧', title:'Wildcard-Sperre behoben', text:'Nach einer abgelaufenen Wildcard war der Button dauerhaft gesperrt.'},
   {type:'fix', emoji:'🔧', title:'UI bereinigt', text:'Überflüssige Buttons im Team-Grid entfernt — alles läuft jetzt über das Kontext-Menü.'},
 ];
@@ -147,6 +149,70 @@ function WhatsNewModal({onClose}){
 }
 
 const EMOJIS = ["🔥","🤯","⚡","🎉","👑","🥵","🫀","🚀"];
+
+// ─────────────────────────────────────────────────────────
+//  MONDPHASEN HELPER
+// ─────────────────────────────────────────────────────────
+const getMoonPhase = (count, target) => {
+  const pct = count / target;
+  if(pct >= 0.80) return '🌕';
+  if(pct >= 0.55) return '🌔';
+  if(pct >= 0.30) return '🌓';
+  return '🌒';
+};
+
+// ─────────────────────────────────────────────────────────
+//  PARTIAL MODAL
+// ─────────────────────────────────────────────────────────
+function PartialModal({dayNum, target, onConfirm, onCancel}){
+  const [count, setCount] = useState(Math.floor(target/2));
+  const change = delta => setCount(prev => Math.min(target-1, Math.max(1, prev+delta)));
+  const moon   = getMoonPhase(count, target);
+  const pct    = Math.round((count/target)*100);
+
+  return(
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.88)',zIndex:200,display:'flex',alignItems:'flex-end',justifyContent:'center'}}>
+      <div style={{width:'100%',maxWidth:'480px',background:'var(--bg)',borderRadius:'24px 24px 0 0',padding:'2rem 1.5rem',paddingBottom:'calc(2rem + var(--safe-b))'}}>
+        <div style={{textAlign:'center',marginBottom:'1.5rem'}}>
+          <div style={{fontSize:'3rem',marginBottom:'6px'}}>{moon}</div>
+          <div className="bc" style={{fontSize:'1.4rem',fontWeight:900,letterSpacing:'0.05em'}}>JEDER BURPEE ZÄHLT</div>
+          <div style={{fontSize:'0.78rem',color:'var(--muted)',marginTop:'4px'}}>Tag {dayNum} · Ziel: {target} Burpees</div>
+        </div>
+
+        {/* Stepper */}
+        <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'1.5rem',marginBottom:'1.25rem'}}>
+          <button onClick={()=>change(-5)} style={{width:44,height:44,borderRadius:'50%',background:'var(--bg2)',border:'1px solid var(--border)',color:'var(--text)',fontSize:'1.1rem',cursor:'pointer'}}>−5</button>
+          <button onClick={()=>change(-1)} style={{width:44,height:44,borderRadius:'50%',background:'var(--bg2)',border:'1px solid var(--border)',color:'var(--text)',fontSize:'1.3rem',cursor:'pointer'}}>−</button>
+          <div style={{textAlign:'center',minWidth:'80px'}}>
+            <div className="bc" style={{fontSize:'3.5rem',fontWeight:900,color:'var(--text)',lineHeight:1}}>{count}</div>
+            <div style={{fontSize:'0.7rem',color:'var(--muted)',marginTop:'2px'}}>{pct}% von {target}</div>
+          </div>
+          <button onClick={()=>change(1)}  style={{width:44,height:44,borderRadius:'50%',background:'var(--bg2)',border:'1px solid var(--border)',color:'var(--text)',fontSize:'1.3rem',cursor:'pointer'}}>+</button>
+          <button onClick={()=>change(5)}  style={{width:44,height:44,borderRadius:'50%',background:'var(--bg2)',border:'1px solid var(--border)',color:'var(--text)',fontSize:'1.1rem',cursor:'pointer'}}>+5</button>
+        </div>
+
+        {/* Mondphasen-Legende */}
+        <div style={{display:'flex',justifyContent:'center',gap:'14px',marginBottom:'1.5rem'}}>
+          {[['🌒','<30%'],['🌓','30%'],['🌔','55%'],['🌕','80%+']].map(([e,l])=>(
+            <div key={l} style={{textAlign:'center',opacity:moon===e?1:0.3}}>
+              <div style={{fontSize:'1.2rem'}}>{e}</div>
+              <div style={{fontSize:'0.6rem',color:'var(--muted)'}}>{l}</div>
+            </div>
+          ))}
+        </div>
+
+        <button onClick={()=>onConfirm(count)}
+          style={{width:'100%',padding:'1rem',background:'#1a2e1a',border:'2px solid #2d5a2d',borderRadius:'14px',color:'var(--green)',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.08em',marginBottom:'8px'}}>
+          {moon} {count} BURPEES EINTRAGEN
+        </button>
+        <button onClick={onCancel}
+          style={{width:'100%',padding:'0.75rem',background:'none',border:'none',color:'var(--muted)',fontSize:'0.85rem',cursor:'pointer'}}>
+          Abbrechen
+        </button>
+      </div>
+    </div>
+  );
+}
 
 // ─────────────────────────────────────────────────────────
 //  LEGENDEN FALLBACK (aus Supabase geladen, dies ist Notfall)
@@ -825,16 +891,17 @@ function KudoModal({to, from, onSend, onCancel}){
 // ─────────────────────────────────────────────────────────
 //  TEAM SECTION (replaces leaderboard)
 // ─────────────────────────────────────────────────────────
-function TeamSection({leaders, user, legends, onNudge, achievements, onKudo, onAvatarTap, wildcards, wildcardCompletions}){
+function TeamSection({leaders, user, legends, onNudge, achievements, onKudo, onAvatarTap, wildcards, wildcardCompletions, allCompletions}){
   const today = new Date().toDateString();
   const cur   = getChallengeDay();
 
-  // Team burpees: reguläre Tage + tatsächlich eingetragene Wildcard-Burpees
-  const wcBurpees = (wildcardCompletions||[]).reduce((a,c)=>a+(c.burpee_count||0),0);
+  // Team burpees: reguläre Tage + Wildcard-Burpees + Partial-Burpees
+  const wcBurpees      = (wildcardCompletions||[]).reduce((a,c)=>a+(c.burpee_count||0),0);
+  const partialBurpees = (allCompletions||[]).filter(c=>c.type==='partial').reduce((a,c)=>a+(c.burpee_count||0),0);
   const teamBurpees = leaders.reduce((a,u) => {
     const days = u.completed_days || 0;
     return a + DAYS.slice(0, Math.min(days, 30)).reduce((s,d) => s + tot(d), 0);
-  }, 0) + wcBurpees;
+  }, 0) + wcBurpees + partialBurpees;
   const teamTotal = leaders.reduce((a,u) => a + (u.completed_days||0), 0);
 
   // Meilenstein-Berechnung
@@ -924,7 +991,7 @@ function TeamSection({leaders, user, legends, onNudge, achievements, onKudo, onA
 // ─────────────────────────────────────────────────────────
 //  HOME TAB
 // ─────────────────────────────────────────────────────────
-function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile, legends, onNudge, achievements, onKudo, onAvatarTap, wildcards, wildcardCompletions, onCompleteWildcard}){
+function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile, legends, onNudge, achievements, onKudo, onAvatarTap, wildcards, wildcardCompletions, onCompleteWildcard, allCompletions}){
   const [motto,       setMotto]       = useState(()=>rnd(MOTIVATIONS));
   const [showWCModal, setShowWCModal] = useState(false);
   const done    = completed.size;
@@ -1055,7 +1122,7 @@ function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile,
 
       {leaders.length>0&&(
         <div style={{padding:'0 1.25rem 1rem'}}>
-          <TeamSection leaders={leaders} user={user} legends={legends} onNudge={onNudge} achievements={achievements} onKudo={onKudo} onAvatarTap={onAvatarTap} wildcards={wildcards} wildcardCompletions={wildcardCompletions}/>
+          <TeamSection leaders={leaders} user={user} legends={legends} onNudge={onNudge} achievements={achievements} onKudo={onKudo} onAvatarTap={onAvatarTap} wildcards={wildcards} wildcardCompletions={wildcardCompletions} allCompletions={allCompletions}/>
         </div>
       )}
       {leaders.length < 12 && <InviteCard groupSize={leaders.length} leaders={leaders} user={user}/>}
@@ -1067,7 +1134,7 @@ function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile,
 // ─────────────────────────────────────────────────────────
 //  CALENDAR TAB
 // ─────────────────────────────────────────────────────────
-function CalendarTab({completed, completionTypes, onOpenDay}){
+function CalendarTab({completed, completionTypes, partialCounts, onOpenDay}){
   const cur = getChallengeDay();
   return(
     <div style={{flex:1,overflowY:'auto',padding:'1.25rem'}}>
@@ -1077,28 +1144,36 @@ function CalendarTab({completed, completionTypes, onOpenDay}){
       </div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:'8px'}}>
         {DAYS.map(d=>{
-          const isDone  = completed.has(d.day);
-          const type    = completionTypes[d.day];
-          const isToday = d.day===cur&&!isDone;
-          const t = tot(d);
+          const isDone   = completed.has(d.day);
+          const type     = completionTypes[d.day];
+          const isToday  = d.day===cur&&!isDone;
+          const t        = tot(d);
+          const isPartial = type==='partial';
+          const pCount   = partialCounts?.[d.day];
+          const moon     = isPartial&&pCount ? getMoonPhase(pCount, t) : null;
           let bg='var(--bg2)',border='1.5px solid var(--border)',color='var(--text)';
           if(isDone){
-            if(type==='joker')     {bg='rgba(100,100,100,0.1)';border='1.5px solid #333';color='#444';}
-            else if(type==='half') {bg='rgba(30,58,95,0.3)';border='1.5px solid #1e3a5f';color='#60a5fa';}
-            else                   {bg='rgba(74,222,128,0.1)';border='1.5px solid #2d5a2d';color='var(--green)';}
-          } else if(isToday)       {bg='rgba(230,57,70,0.12)';border='1.5px solid var(--red)';color='var(--red)';}
+            if(type==='joker')       {bg='rgba(100,100,100,0.1)';border='1.5px solid #333';color='#444';}
+            else if(type==='half')   {bg='rgba(30,58,95,0.3)';border='1.5px solid #1e3a5f';color='#60a5fa';}
+            else if(isPartial)       {bg='rgba(245,158,11,0.08)';border='1.5px solid #78580a';color='#f59e0b';}
+            else                     {bg='rgba(74,222,128,0.1)';border='1.5px solid #2d5a2d';color='var(--green)';}
+          } else if(isToday)         {bg='rgba(230,57,70,0.12)';border='1.5px solid var(--red)';color='var(--red)';}
           return(
             <button key={d.day} onClick={()=>onOpenDay(d.day)}
               style={{background:bg,border,borderRadius:'12px',padding:'10px 6px',display:'flex',flexDirection:'column',alignItems:'center',gap:'3px',minHeight:'68px'}}>
-              <span style={{fontSize:'0.58rem',color:isDone?color:isToday?'var(--red)':'var(--muted)',fontWeight:600}}>{isDone?(type==='joker'?'🃏':type==='half'?'🌙':'✓'):isToday?'●':d.day}</span>
-              <span className="bc" style={{fontSize:'1.15rem',fontWeight:800,color,lineHeight:1}}>{type==='joker'?'–':type==='half'?Math.ceil(t/2):t}</span>
+              <span style={{fontSize:'0.58rem',color:isDone?color:isToday?'var(--red)':'var(--muted)',fontWeight:600}}>
+                {isDone?(type==='joker'?'🃏':type==='half'?'🌙':isPartial?(moon||'🌒'):'✓'):isToday?'●':d.day}
+              </span>
+              <span className="bc" style={{fontSize:'1.15rem',fontWeight:800,color,lineHeight:1}}>
+                {type==='joker'?'–':type==='half'?Math.ceil(t/2):isPartial?(pCount||'?'):t}
+              </span>
               {d.oneGo&&type!=='joker'&&<span style={{fontSize:'0.45rem',color:isDone?color:'#8b1a1a',fontWeight:700}}>1GO</span>}
             </button>
           );
         })}
       </div>
       <div style={{display:'flex',gap:'0.75rem',marginTop:'1.25rem',flexWrap:'wrap'}}>
-        {[['var(--green)','✓ Voll'],['#60a5fa','🌙 Halb'],['#555','🃏 Joker'],['var(--red)','Heute']].map(([c,l])=>(
+        {[['var(--green)','✓ Voll'],['#60a5fa','🌙 Halb'],['#f59e0b','🌒 Teilweise'],['#555','🃏 Joker'],['var(--red)','Heute']].map(([c,l])=>(
           <div key={l} style={{display:'flex',alignItems:'center',gap:'5px'}}>
             <div style={{width:'10px',height:'10px',borderRadius:'3px',background:c}}/>
             <span style={{fontSize:'0.75rem',color:'var(--muted)'}}>{l}</span>
@@ -1244,16 +1319,38 @@ function WallTab({user, profile, legends, wall, onPost, onReact, onOpenCommunity
 // ─────────────────────────────────────────────────────────
 //  WORKOUT SCREEN
 // ─────────────────────────────────────────────────────────
-function WorkoutScreen({dayNum, completed, completionTypes, profile, legends, onComplete, onHalf, onJoker, onUndo, onBack}){
-  const [showJoker, setShowJoker] = useState(false);
+function WorkoutScreen({dayNum, completed, completionTypes, partialCounts, profile, legends, onComplete, onHalf, onJoker, onPartial, onUndo, onBack}){
+  const [showJoker,    setShowJoker]    = useState(false);
+  const [showPartial,  setShowPartial]  = useState(false);
+  const [restDur,      setRestDur]      = useState(20);   // 10 | 20 | 30
+  const [restActive,   setRestActive]   = useState(null); // set-index laufend
+  const [restLeft,     setRestLeft]     = useState(0);
+  const restRef = useRef(null);
   const jokerQuote = useRef(getJokerQuote(legends)).current;
-  const d       = DAYS[dayNum-1];
-  const t       = tot(d);
-  const isDone  = completed.has(dayNum);
-  const type    = completionTypes[dayNum];
-  const halfT   = Math.ceil(t/2);
+  const d         = DAYS[dayNum-1];
+  const t         = tot(d);
+  const isDone    = completed.has(dayNum);
+  const type      = completionTypes[dayNum];
+  const isPartial = type==='partial';
+  const pCount    = partialCounts?.[dayNum];
+  const halfT     = Math.ceil(t/2);
   const jokersLeft = 1-(profile?.jokers_used||0)-(profile?.joker_swapped?1:0);
   const halfLeft   = 2+(profile?.joker_swapped?1:0)-(profile?.half_used||0);
+
+  useEffect(()=>()=>clearInterval(restRef.current), []);
+
+  const startRest = idx => {
+    clearInterval(restRef.current);
+    setRestActive(idx);
+    setRestLeft(restDur);
+    restRef.current = setInterval(()=>{
+      setRestLeft(prev=>{
+        if(prev<=1){ clearInterval(restRef.current); setRestActive(null); return 0; }
+        return prev-1;
+      });
+    }, 1000);
+  };
+  const cancelRest = ()=>{ clearInterval(restRef.current); setRestActive(null); setRestLeft(0); };
 
   return(
     <>
@@ -1285,8 +1382,23 @@ function WorkoutScreen({dayNum, completed, completionTypes, profile, legends, on
             </div>
           ):(
             <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'18px',padding:'1.25rem',marginBottom:'1rem'}}>
+              {/* Pausen-Dauer Wähler */}
+              <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'0.75rem',paddingBottom:'0.75rem',borderBottom:'1px solid var(--border)'}}>
+                <span style={{fontSize:'0.65rem',color:'var(--muted)',letterSpacing:'0.08em',textTransform:'uppercase',marginRight:'4px'}}>Pause</span>
+                {[10,20,30].map(s=>(
+                  <button key={s} onClick={()=>{setRestDur(s);cancelRest();}}
+                    style={{padding:'3px 10px',borderRadius:'100px',border:'1px solid',fontSize:'0.72rem',fontWeight:700,fontFamily:'Barlow Condensed,sans-serif',cursor:'pointer',transition:'all 0.15s',
+                      background:restDur===s?'var(--red)':'transparent',
+                      borderColor:restDur===s?'var(--red)':'var(--border)',
+                      color:restDur===s?'#fff':'var(--muted)'}}>
+                    {s}s
+                  </button>
+                ))}
+              </div>
               {d.sets.map((s,i)=>{
                 const hs = Math.ceil(s/2);
+                const isResting = restActive===i;
+                const pct = isResting ? restLeft/restDur : 0;
                 return(
                   <div key={i}>
                     <div style={{display:'flex',alignItems:'center',padding:'0.6rem 0',gap:'1rem'}}>
@@ -1294,7 +1406,30 @@ function WorkoutScreen({dayNum, completed, completionTypes, profile, legends, on
                       <span className="bc" style={{flex:1,fontSize:'1.3rem',fontWeight:700}}>{type==='half'?hs:s} Burpees</span>
                       {type==='half'&&<span style={{fontSize:'0.7rem',color:'#60a5fa'}}>🌙</span>}
                     </div>
-                    {i<d.sets.length-1&&<div style={{textAlign:'center',fontSize:'0.72rem',color:'var(--muted)',padding:'3px 0',borderTop:'1px dashed var(--border)',borderBottom:'1px dashed var(--border)',margin:'0 2rem'}}>↓ &nbsp;20 Sek. Pause</div>}
+                    {i<d.sets.length-1&&(
+                      isResting ? (
+                        <button onClick={cancelRest}
+                          style={{width:'100%',margin:'2px 0',padding:'7px 0',background:'rgba(230,57,70,0.08)',border:'1px solid rgba(230,57,70,0.3)',borderRadius:'10px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'10px'}}>
+                          <div style={{position:'relative',width:28,height:28}}>
+                            <svg width="28" height="28" style={{transform:'rotate(-90deg)'}}>
+                              <circle cx="14" cy="14" r="11" fill="none" stroke="var(--border)" strokeWidth="2.5"/>
+                              <circle cx="14" cy="14" r="11" fill="none" stroke="var(--red)" strokeWidth="2.5"
+                                strokeDasharray={`${2*Math.PI*11}`}
+                                strokeDashoffset={`${2*Math.PI*11*(1-pct)}`}
+                                style={{transition:'stroke-dashoffset 0.9s linear'}}/>
+                            </svg>
+                            <span style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.65rem',fontWeight:700,color:'var(--red)',fontFamily:'Barlow Condensed,sans-serif'}}>{restLeft}</span>
+                          </div>
+                          <span className="bc" style={{fontSize:'0.85rem',fontWeight:700,color:'var(--red)',letterSpacing:'0.05em'}}>PAUSE · TIPPEN ZUM ABBRECHEN</span>
+                        </button>
+                      ) : (
+                        <button onClick={()=>startRest(i)}
+                          style={{width:'100%',margin:'2px 0',padding:'6px 0',background:'transparent',border:'1px dashed var(--border)',borderRadius:'10px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',color:'var(--muted)'}}>
+                          <span style={{fontSize:'0.72rem'}}>⏱</span>
+                          <span className="bc" style={{fontSize:'0.78rem',fontWeight:700,letterSpacing:'0.05em'}}>{restDur} SEK. PAUSE STARTEN</span>
+                        </button>
+                      )
+                    )}
                   </div>
                 );
               })}
@@ -1311,18 +1446,34 @@ function WorkoutScreen({dayNum, completed, completionTypes, profile, legends, on
                 {halfLeft>0&&<button onClick={()=>onHalf(dayNum)} style={{flex:1,padding:'0.85rem',background:'rgba(30,58,95,0.3)',border:'2px solid #1e3a5f',borderRadius:'14px',color:'#60a5fa',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.95rem',fontWeight:700,letterSpacing:'0.05em'}}>🌙 Halbe ({halfLeft}×)</button>}
                 <button onClick={()=>setShowJoker(true)} style={{flex:1,padding:'0.85rem',background:'rgba(100,100,100,0.1)',border:'2px solid #2a2a2a',borderRadius:'14px',color:'var(--muted)',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.95rem',fontWeight:700,letterSpacing:'0.05em'}}>🃏 Joker {jokersLeft>0?'(1×)':'(0×)'}</button>
               </div>
+              <button onClick={()=>setShowPartial(true)}
+                style={{width:'100%',padding:'0.7rem',background:'transparent',border:'1px dashed #78580a',borderRadius:'12px',color:'#f59e0b',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.9rem',fontWeight:700,letterSpacing:'0.05em',cursor:'pointer'}}>
+                🌒 Nicht alles geschafft? Trotzdem eintragen
+              </button>
             </div>
           ):(
             <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
-              <div className="bc" style={{background:type==='joker'?'rgba(60,60,60,0.2)':type==='half'?'rgba(30,58,95,0.2)':'rgba(74,222,128,0.1)',border:type==='joker'?'2px solid #333':type==='half'?'2px solid #1e3a5f':'2px solid #2d5a2d',borderRadius:'16px',padding:'1.1rem',textAlign:'center',fontSize:'1.3rem',fontWeight:800,letterSpacing:'0.05em',color:type==='joker'?'#666':type==='half'?'#60a5fa':'var(--green)'}}>
-                {type==='joker'?'🃏 JOKER':type==='half'?'🌙 HALBE DONE':'✓ TAG '+dayNum+' DONE!'}
-              </div>
+              {isPartial?(
+                <div style={{display:'flex',gap:'8px',alignItems:'center',background:'rgba(245,158,11,0.08)',border:'2px solid #78580a',borderRadius:'16px',padding:'0.9rem 1rem'}}>
+                  <span style={{fontSize:'1.8rem'}}>{getMoonPhase(pCount,t)}</span>
+                  <div>
+                    <div className="bc" style={{fontSize:'1.1rem',fontWeight:800,color:'#f59e0b',letterSpacing:'0.05em'}}>{pCount} VON {t} BURPEES</div>
+                    <div style={{fontSize:'0.7rem',color:'#78580a',marginTop:'2px'}}>zählen fürs Team ✓</div>
+                  </div>
+                  <button onClick={()=>setShowPartial(true)} style={{marginLeft:'auto',background:'none',border:'1px solid #78580a',borderRadius:'8px',padding:'4px 10px',color:'#f59e0b',fontSize:'0.72rem',fontFamily:'Barlow Condensed,sans-serif',fontWeight:700,cursor:'pointer'}}>Ändern</button>
+                </div>
+              ):(
+                <div className="bc" style={{background:type==='joker'?'rgba(60,60,60,0.2)':type==='half'?'rgba(30,58,95,0.2)':'rgba(74,222,128,0.1)',border:type==='joker'?'2px solid #333':type==='half'?'2px solid #1e3a5f':'2px solid #2d5a2d',borderRadius:'16px',padding:'1.1rem',textAlign:'center',fontSize:'1.3rem',fontWeight:800,letterSpacing:'0.05em',color:type==='joker'?'#666':type==='half'?'#60a5fa':'var(--green)'}}>
+                  {type==='joker'?'🃏 JOKER':type==='half'?'🌙 HALBE DONE':'✓ TAG '+dayNum+' DONE!'}
+                </div>
+              )}
               <button onClick={()=>onUndo(dayNum)} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'0.8rem',padding:'0.5rem'}}>Als unerledigt markieren</button>
             </div>
           )}
         </div>
       </div>
       {showJoker&&<JokerModal profile={profile} jokerQuote={jokerQuote} onCancel={()=>setShowJoker(false)} onConfirm={async()=>{setShowJoker(false);await onJoker(dayNum);}} onSwap={async()=>{setShowJoker(false);await onJoker(dayNum,'swap');}}/>}
+      {showPartial&&<PartialModal dayNum={dayNum} target={t} onConfirm={async count=>{setShowPartial(false);await onPartial(dayNum,count);}} onCancel={()=>setShowPartial(false)}/>}
     </>
   );
 }
@@ -1837,6 +1988,7 @@ function App(){
   const [userName,        setUserName]        = useState('');
   const [completed,       setCompleted]       = useState(new Set());
   const [compTypes,       setCompTypes]       = useState({});
+  const [partialCounts,   setPartialCounts]   = useState({});  // {[day]: actualCount}
   const [profile,         setProfile]         = useState(null);
   const [legends,         setLegends]         = useState([]);
   const [leaders,         setLeaders]         = useState([]);
@@ -1871,10 +2023,12 @@ function App(){
 
   // ── Loaders ──
   const loadUser = useCallback(async name => {
-    const {data:comp} = await db.from('day_completions').select('day,type').eq('name',name);
+    const {data:comp} = await db.from('day_completions').select('day,type,burpee_count').eq('name',name);
     if(comp){
       setCompleted(new Set(comp.map(d=>d.day)));
-      const t={}; comp.forEach(d=>{t[d.day]=d.type||'full';}); setCompTypes(t);
+      const t={}, p={};
+      comp.forEach(d=>{ t[d.day]=d.type||'full'; if(d.type==='partial'&&d.burpee_count) p[d.day]=d.burpee_count; });
+      setCompTypes(t); setPartialCounts(p);
     }
     const {data:prof} = await db.from('profiles').select('*').eq('name',name).single();
     if(prof) setProfile(prof);
@@ -1919,7 +2073,7 @@ function App(){
   },[]);
 
   const loadAllCompletions = useCallback(async () => {
-    const {data} = await db.from('day_completions').select('name,day,type,completed_at');
+    const {data} = await db.from('day_completions').select('name,day,type,burpee_count,completed_at');
     if(data) setAllCompletions(data);
   },[]);
 
@@ -1948,8 +2102,9 @@ function App(){
   // ── Team Milestone Check ──
   useEffect(()=>{
     if(!leaders.length||!userName) return;
-    const wcB = wildcardCompletions.reduce((a,c)=>a+(c.burpee_count||0),0);
-    const teamBurpees = leaders.reduce((a,u)=>a+DAYS.slice(0,Math.min(u.completed_days||0,30)).reduce((s,d)=>s+tot(d),0),0) + wcB;
+    const wcB      = wildcardCompletions.reduce((a,c)=>a+(c.burpee_count||0),0);
+    const partialB = allCompletions.filter(c=>c.type==='partial').reduce((a,c)=>a+(c.burpee_count||0),0);
+    const teamBurpees = leaders.reduce((a,u)=>a+DAYS.slice(0,Math.min(u.completed_days||0,30)).reduce((s,d)=>s+tot(d),0),0) + wcB + partialB;
     const seen = JSON.parse(localStorage.getItem('burpee_ms_seen')||'[]');
     const newMs = TEAM_MILESTONES.filter(m=>teamBurpees>=m.value&&!seen.includes(m.value));
     if(newMs.length>0){
@@ -1957,7 +2112,7 @@ function App(){
       localStorage.setItem('burpee_ms_seen',JSON.stringify([...seen,...newMs.map(m=>m.value)]));
       setMilestoneOverlay(top);
     }
-  },[leaders, userName, wildcards, wildcardCompletions]);
+  },[leaders, userName, wildcards, wildcardCompletions, allCompletions]);
 
   // ── Init ──
   useEffect(()=>{
@@ -2057,6 +2212,19 @@ function App(){
     showToast(`🌙 Halbe reicht auch! (${2+(p?.joker_swapped?1:0)-newH} übrig)`);
   };
 
+  const handlePartial = async (dayNum, count) => {
+    const target = tot(DAYS[dayNum-1]);
+    const moon   = getMoonPhase(count, target);
+    const next   = new Set(completed); next.add(dayNum);
+    setCompleted(next);
+    setCompTypes({...compTypes,[dayNum]:'partial'});
+    setPartialCounts({...partialCounts,[dayNum]:count});
+    await db.from('day_completions').upsert({name:userName,day:dayNum,type:'partial',burpee_count:count},{onConflict:'name,day'});
+    // partial zählt NICHT zu completed_days — kein Streak-Einfluss
+    await loadAllCompletions();
+    showToast(`${moon} ${count} von ${target} Burpees — zählen für das Team!`);
+  };
+
   const handleJoker = async (dayNum, action) => {
     if(action==='swap'){
       const next = new Set(completed); next.add(dayNum);
@@ -2081,12 +2249,17 @@ function App(){
     const type = compTypes[dayNum];
     const next = new Set(completed); next.delete(dayNum);
     const nextT = {...compTypes}; delete nextT[dayNum];
-    setCompleted(next); setCompTypes(nextT);
+    const nextP = {...partialCounts}; delete nextP[dayNum];
+    setCompleted(next); setCompTypes(nextT); setPartialCounts(nextP);
     await db.from('day_completions').delete().eq('name',userName).eq('day',dayNum);
-    let updates = {completed_days:next.size};
-    if(type==='half')  updates.half_used   = Math.max((profile?.half_used||0)-1,0);
-    if(type==='joker') updates.jokers_used = Math.max((profile?.jokers_used||0)-1,0);
-    await db.from('profiles').update(updates).eq('name',userName);
+    // partial hat keine completed_days erhöht — also auch keine Reduktion
+    if(type!=='partial'){
+      let updates = {completed_days:next.size};
+      if(type==='half')  updates.half_used   = Math.max((profile?.half_used||0)-1,0);
+      if(type==='joker') updates.jokers_used = Math.max((profile?.jokers_used||0)-1,0);
+      await db.from('profiles').update(updates).eq('name',userName);
+    }
+    if(type==='partial') await loadAllCompletions();
     await refreshProfile(userName); loadLeaders();
   };
 
@@ -2202,13 +2375,13 @@ function App(){
       {showCommunity&&<CommunityQuotes user={userName} legends={legends} submissions={submissions} onSubmit={handleSubmitQuote} onVote={handleVote} onClose={()=>setShowCommunity(false)}/>}
       {milestoneOverlay&&screen==='main'&&<TeamMilestoneOverlay milestone={milestoneOverlay} onClose={()=>setMilestoneOverlay(null)}/>}
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',paddingTop:'var(--safe-t)'}}>
-        {tab==='home'     && <HomeTab user={userName} completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay} leaders={leaders} profile={profile} legends={legends} onNudge={handleNudge} achievements={achievements} onKudo={setShowKudoModal} onAvatarTap={setAvatarMenu} wildcards={wildcards} wildcardCompletions={wildcardCompletions} onCompleteWildcard={handleCompleteWildcard}/>}
-        {tab==='calendar' && <CalendarTab completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay}/>}
+        {tab==='home'     && <HomeTab user={userName} completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay} leaders={leaders} profile={profile} legends={legends} onNudge={handleNudge} achievements={achievements} onKudo={setShowKudoModal} onAvatarTap={setAvatarMenu} wildcards={wildcards} wildcardCompletions={wildcardCompletions} onCompleteWildcard={handleCompleteWildcard} allCompletions={allCompletions}/>}
+        {tab==='calendar' && <CalendarTab completed={completed} completionTypes={compTypes} partialCounts={partialCounts} onOpenDay={setWorkoutDay}/>}
         {tab==='wall'     && <WallTab user={userName} profile={profile} legends={legends} wall={wall} onPost={handlePost} onReact={handleReact} onOpenCommunity={()=>setShowCommunity(true)}/>}
         {tab==='stats'    && <StatsTab user={userName} leaders={leaders} legends={legends} completionData={allCompletions} wildcards={wildcards} wildcardCompletions={wildcardCompletions} onCallWildcard={handleCallWildcard} onCompleteWildcard={handleCompleteWildcard}/>}
         <BottomNav tab={tab} setTab={setTab}/>
       </div>
-      {workoutDay&&<WorkoutScreen dayNum={workoutDay} completed={completed} completionTypes={compTypes} profile={profile} legends={legends} onComplete={handleComplete} onHalf={handleHalf} onJoker={handleJoker} onUndo={handleUndo} onBack={()=>setWorkoutDay(null)}/>}
+      {workoutDay&&<WorkoutScreen dayNum={workoutDay} completed={completed} completionTypes={compTypes} partialCounts={partialCounts} profile={profile} legends={legends} onComplete={handleComplete} onHalf={handleHalf} onJoker={handleJoker} onPartial={handlePartial} onUndo={handleUndo} onBack={()=>setWorkoutDay(null)}/>}
     </>
   );
 }
