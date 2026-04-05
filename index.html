@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no"/>
   <meta name="mobile-web-app-capable" content="yes"/>
   <meta name="theme-color" content="#090909"/>
+  <link rel="manifest" href="/manifest.json"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Burpee"/>
   <title>Burpee Challenge 💥</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -31,6 +35,8 @@
     @keyframes pop{0%{transform:scale(0.85);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
     @keyframes shimmer{0%,100%{opacity:1}50%{opacity:0.35}}
     @keyframes slideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
+    @keyframes pulseRing{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.6;transform:scale(1.07)}}
+    @keyframes glowPulse{0%,100%{box-shadow:0 0 8px rgba(245,158,11,0.5)}50%{box-shadow:0 0 16px rgba(245,158,11,0.85)}}
     .bc{font-family:'Barlow Condensed',sans-serif;}
   </style>
 </head>
@@ -90,23 +96,31 @@ const MOTIVATIONS = [
   "Einmal mehr als gestern!","Dein zukünftiges Ich dankt dir!",
 ];
 
-const APP_VERSION = 'v2.1';
+const APP_VERSION = 'v3.0';
 const WHATS_NEW = [
-  {type:'feature', emoji:'🎯', title:'TEAM-MEILENSTEINE!!! 🚀🔥💥', text:'Jetzt zählen wir gemeinsam! Auf dem Home-Tab siehst du wie nah ihr dem nächsten Wahnsinnsziel seid. Und wenn ihr es knackt — EXPLOSION. FEIER. CHAOS. So wie Gott es wollte.'},
-  {type:'feature', emoji:'🏆', title:'MEILENSTEIN-FEIER OVERLAY 👑', text:'500 Burpees?! 1000?! Das bleibt nicht unbemerkt. Das Team bekommt ein Fullscreen-Festival das man nicht ignorieren kann. Weil: JEDER BURPEE ZÄHLT.'},
-  {type:'feature', emoji:'🎰', title:'WILDCARD 2.0 — JETZT MIT ANZAHL 💪', text:'Wildcard rufen war gestern. Ab jetzt legst du SELBST fest: 5 bis 50 Bonus-Burpees. Die zählen direkt zum Team-Total dazu. Extra Burpees = extra Stolz = extra Meter zum Meilenstein.'},
-  {type:'feature', emoji:'🌒', title:'JEDER BURPEE ZÄHLT 🌕', text:'Nicht alles geschafft? EGAL. Trag ein was du hast — 🌒🌓🌔🌕 je nach Prozentsatz. Das Team sieht es, das Team feiert es. Kein Burpee bleibt ungewürdigt.'},
-  {type:'feature', emoji:'⏱', title:'PAUSEN-TIMER IM WORKOUT', text:'Bei Mehrfach-Sätzen kannst du jetzt einen Pausen-Timer starten — 10, 20 oder 30 Sekunden, manuell, wenn du bereit bist.'},
+  {type:'feature', emoji:'💥', title:'PULS v3.0 — DAS TEAM LEBT!', text:'Das Avatar-Grid ist jetzt das Erste was du siehst. Grüner Ring = trainiert. Oranger Ring pulsierend = kämpft gerade. Bernstein-Glow = hat heute geholfen. Du siehst auf einen Blick wo dein Team steht.'},
+  {type:'feature', emoji:'🌟', title:'STATUS NACH DEM WORKOUT', text:'Nach jedem GESCHAFFT! wähle wie es war — Brutal 💀, Stark 💪, On Fire 🔥 oder Couch-Modus 🛋️. Dein Status erscheint im Team-Grid. Ein Tap, fertig.'},
+  {type:'feature', emoji:'📱', title:'PUSH-BENACHRICHTIGUNGEN', text:'Wenn jemand dir Feuer macht oder einen Kudo schickt, bekommst du es direkt aufs Handy. Kein Reload nötig — das Team meldet sich bei dir.'},
+  {type:'feature', emoji:'🃏', title:'JOKER NEU GEDACHT', text:'Joker drücken zeigt jetzt: "Nur einer. Mehr brauchst du heute nicht." Ein Tap und du trägst einen Burpee ein — zählt für das Team, kein Guilt-Trip.'},
+  {type:'feature', emoji:'⏱', title:'PAUSEN-TIMER VERBESSERT', text:'Pause per +10/−10 genau einstellen statt 3 Preset-Buttons. Startet immer bei 20 Sek, anpassbar nach Bedarf.'},
   {type:'fix', emoji:'🔧', title:'Wildcard-Sperre behoben', text:'Nach einer abgelaufenen Wildcard war der Button dauerhaft gesperrt.'},
-  {type:'fix', emoji:'🔧', title:'UI bereinigt', text:'Überflüssige Buttons im Team-Grid entfernt — alles läuft jetzt über das Kontext-Menü.'},
 ];
 
-function WhatsNewModal({onClose}){
+function WhatsNewModal({onClose, installPrompt, onSubscribePush}){
+  const [step, setStep] = React.useState(1); // 1=Features, 2=PWA-Setup
   const features = WHATS_NEW.filter(i=>i.type==='feature');
   const fixes    = WHATS_NEW.filter(i=>i.type==='fix');
-  return(
+
+  const isIOS        = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.navigator.standalone;
+  const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+  const showPwaStep  = !isStandalone; // Schritt 2 überspringen wenn bereits installiert
+
+  const handleNext = () => { if(showPwaStep) setStep(2); else onClose(); };
+
+  // ── Schritt 1: Was ist neu ──
+  if(step===1) return(
     <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:500,display:'flex',alignItems:'flex-end',justifyContent:'center',animation:'fadeIn 0.3s ease'}}>
-      <div style={{width:'100%',maxWidth:'480px',background:'var(--bg)',borderRadius:'24px 24px 0 0',padding:'1.75rem 1.5rem',paddingBottom:'calc(1.75rem + var(--safe-b))'}}>
+      <div style={{width:'100%',maxWidth:'480px',background:'var(--bg)',borderRadius:'24px 24px 0 0',padding:'1.75rem 1.5rem 1.25rem',paddingBottom:'calc(1.25rem + var(--safe-b))',maxHeight:'90vh',overflowY:'auto'}}>
         <div style={{textAlign:'center',marginBottom:'1.5rem'}}>
           <div style={{fontSize:'2.5rem',marginBottom:'6px'}}>💥</div>
           <div className="bc" style={{fontSize:'1.5rem',fontWeight:900,letterSpacing:'0.05em'}}>WAS IST NEU?</div>
@@ -123,25 +137,120 @@ function WhatsNewModal({onClose}){
             </div>
           ))}
         </div>
-        {fixes.length>0 && (
-          <div style={{marginBottom:'1.5rem'}}>
+        {fixes.length>0&&(
+          <div style={{marginBottom:'1.25rem'}}>
             <div style={{fontSize:'0.65rem',color:'#444',letterSpacing:'0.08em',textTransform:'uppercase',marginBottom:'6px',paddingLeft:'2px'}}>Fixes</div>
             <div style={{display:'flex',flexDirection:'column',gap:'4px'}}>
               {fixes.map((item,i)=>(
                 <div key={i} style={{display:'flex',alignItems:'center',gap:'8px',padding:'0.45rem 0.75rem',borderRadius:'8px',background:'var(--bg2)',border:'1px solid #1a1a1a'}}>
                   <span style={{fontSize:'0.75rem',opacity:0.4,flexShrink:0}}>{item.emoji}</span>
                   <div style={{fontSize:'0.72rem',color:'#444'}}>
-                    <span style={{color:'#3a3a3a',fontWeight:600}}>{item.title} — </span>
-                    {item.text}
+                    <span style={{color:'#3a3a3a',fontWeight:600}}>{item.title} — </span>{item.text}
                   </div>
                 </div>
               ))}
             </div>
           </div>
         )}
+        {showPwaStep&&(
+          <div style={{display:'flex',justifyContent:'center',gap:'6px',marginBottom:'1rem'}}>
+            <div style={{width:'24px',height:'4px',borderRadius:'2px',background:'var(--red)'}}/>
+            <div style={{width:'24px',height:'4px',borderRadius:'2px',background:'#333'}}/>
+          </div>
+        )}
+        <button onClick={handleNext}
+          style={{width:'100%',padding:'1rem',background:'var(--red)',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.08em',boxShadow:'0 4px 20px rgba(230,57,70,0.4)'}}>
+          {showPwaStep ? 'WEITER — APP SETUP 📱' : 'LOS GEHT\'S! 🔥'}
+        </button>
+      </div>
+    </div>
+  );
+
+  // ── Schritt 2: PWA installieren + Push aktivieren ──
+  const [pushDone,   setPushDone]   = React.useState(Notification.permission==='granted');
+  const [installing, setInstalling] = React.useState(false);
+
+  const handleInstall = async () => {
+    if(installPrompt){ setInstalling(true); await installPrompt.prompt(); setInstalling(false); }
+  };
+  const handlePush = async () => {
+    if(onSubscribePush) await onSubscribePush();
+    setPushDone(true);
+  };
+
+  return(
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:500,display:'flex',alignItems:'flex-end',justifyContent:'center',animation:'fadeIn 0.3s ease'}}>
+      <div style={{width:'100%',maxWidth:'480px',background:'var(--bg)',borderRadius:'24px 24px 0 0',padding:'1.75rem 1.5rem 1.25rem',paddingBottom:'calc(1.25rem + var(--safe-b))'}}>
+        <div style={{textAlign:'center',marginBottom:'1.5rem'}}>
+          <div style={{fontSize:'2.5rem',marginBottom:'6px'}}>📱</div>
+          <div className="bc" style={{fontSize:'1.5rem',fontWeight:900,letterSpacing:'0.05em'}}>APP SETUP</div>
+          <div style={{fontSize:'0.75rem',color:'var(--muted)',marginTop:'4px'}}>Einmal einrichten — dann läuft alles</div>
+        </div>
+
+        {/* Karte 1: App installieren */}
+        <div style={{background:'var(--bg2)',border:`1px solid ${isIOS||installPrompt?'rgba(230,57,70,0.35)':'#222'}`,borderRadius:'16px',padding:'1rem 1.25rem',marginBottom:'10px'}}>
+          <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'8px'}}>
+            <span style={{fontSize:'1.5rem'}}>🏠</span>
+            <div>
+              <div className="bc" style={{fontSize:'0.95rem',fontWeight:800,letterSpacing:'0.04em'}}>ZUM HOME-SCREEN</div>
+              <div style={{fontSize:'0.7rem',color:'var(--muted)'}}>Startet wie eine echte App — kein Browser-Tab</div>
+            </div>
+          </div>
+          {isIOS?(
+            <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
+              {[
+                {n:1,icon:'⬆️',text:'Tippe unten in Safari auf den Teile-Button'},
+                {n:2,icon:'➕',text:'"Zum Home-Bildschirm" auswählen'},
+                {n:3,icon:'✅',text:'"Hinzufügen" antippen — fertig!'},
+              ].map(s=>(
+                <div key={s.n} style={{display:'flex',alignItems:'center',gap:'10px',background:'rgba(255,255,255,0.03)',borderRadius:'10px',padding:'0.5rem 0.75rem'}}>
+                  <span style={{fontSize:'0.85rem',color:'var(--muted)',fontWeight:700,minWidth:'16px'}}>{s.n}.</span>
+                  <span style={{fontSize:'1rem'}}>{s.icon}</span>
+                  <span style={{fontSize:'0.78rem',color:'#bbb'}}>{s.text}</span>
+                </div>
+              ))}
+            </div>
+          ):installPrompt?(
+            <button onClick={handleInstall} disabled={installing}
+              style={{width:'100%',padding:'0.75rem',background:'var(--red)',border:'none',borderRadius:'12px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1rem',fontWeight:700,cursor:'pointer',opacity:installing?0.6:1}}>
+              {installing?'Warte auf Bestätigung…':'📲 JETZT INSTALLIEREN'}
+            </button>
+          ):(
+            <div style={{fontSize:'0.73rem',color:'#444',fontStyle:'italic'}}>Öffne diese Seite in Chrome oder Safari und tippe "Installieren".</div>
+          )}
+        </div>
+
+        {/* Karte 2: Push aktivieren */}
+        <div style={{background:'var(--bg2)',border:`1px solid ${pushDone?'rgba(34,197,94,0.4)':'rgba(230,57,70,0.25)'}`,borderRadius:'16px',padding:'1rem 1.25rem',marginBottom:'1.25rem'}}>
+          <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:pushDone?0:'10px'}}>
+            <span style={{fontSize:'1.5rem'}}>{pushDone?'✅':'🔔'}</span>
+            <div>
+              <div className="bc" style={{fontSize:'0.95rem',fontWeight:800,letterSpacing:'0.04em'}}>PUSH-BENACHRICHTIGUNGEN</div>
+              <div style={{fontSize:'0.7rem',color:'var(--muted)'}}>
+                {pushDone?'Aktiviert — du wirst informiert wenn das Team feuert.':'Kudo, Feuer, SOS — direkt aufs Handy'}
+              </div>
+            </div>
+          </div>
+          {!pushDone&&(
+            <button onClick={handlePush}
+              style={{width:'100%',padding:'0.75rem',background:'rgba(230,57,70,0.12)',border:'1px solid rgba(230,57,70,0.4)',borderRadius:'12px',color:'var(--red)',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1rem',fontWeight:700,cursor:'pointer'}}>
+              🔔 PUSH AKTIVIEREN
+            </button>
+          )}
+        </div>
+
+        {/* Step indicator */}
+        <div style={{display:'flex',justifyContent:'center',gap:'6px',marginBottom:'1rem'}}>
+          <div style={{width:'24px',height:'4px',borderRadius:'2px',background:'#333'}}/>
+          <div style={{width:'24px',height:'4px',borderRadius:'2px',background:'var(--red)'}}/>
+        </div>
+
         <button onClick={onClose}
           style={{width:'100%',padding:'1rem',background:'var(--red)',border:'none',borderRadius:'14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.2rem',fontWeight:800,letterSpacing:'0.08em',boxShadow:'0 4px 20px rgba(230,57,70,0.4)'}}>
           LOS GEHT'S! 🔥
+        </button>
+        <button onClick={onClose} style={{display:'block',width:'100%',marginTop:'8px',padding:'0.5rem',background:'none',border:'none',color:'#444',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.78rem',cursor:'pointer',letterSpacing:'0.05em'}}>
+          Später einrichten
         </button>
       </div>
     </div>
@@ -149,6 +258,35 @@ function WhatsNewModal({onClose}){
 }
 
 const EMOJIS = ["🔥","🤯","⚡","🎉","👑","🥵","🫀","🚀"];
+
+// ── VAPID / Push ──
+const VAPID_PUBLIC_KEY = 'BJ3BLa52AsQG4c8bV_EI0VvHxiiJS7Enxw32tkKyIfoXfjc36Soi6SRU6BDpRQDBMsAMa1AjNdnh31MTmonRbuI';
+const urlBase64ToUint8Array = b64 => {
+  const pad = b64.length % 4 === 0 ? '' : '='.repeat(4 - b64.length % 4);
+  const base64 = (b64 + pad).replace(/-/g,'+').replace(/_/g,'/');
+  const raw = atob(base64);
+  return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
+};
+
+// ── Status-Emojis nach Workout ──
+const STATUS_EMOJIS = [
+  {emoji:'💀',label:'Brutal'},
+  {emoji:'😤',label:'Hart'},
+  {emoji:'💪',label:'Stark'},
+  {emoji:'🔥',label:'On Fire'},
+  {emoji:'😅',label:'Überlebt'},
+  {emoji:'🥱',label:'Easy'},
+  {emoji:'🤪',label:'Bekloppt'},
+  {emoji:'🛋️',label:'Couch'},
+];
+
+const getMotivierendQuote = legends => {
+  const pool = (legends||[]).filter(l=>(l.quotes_motivierend||[]).length>0);
+  if(!pool.length) return null;
+  const l = rnd(pool);
+  const q = rnd(l.quotes_motivierend);
+  return {...l, quote:q.quote};
+};
 
 // ─────────────────────────────────────────────────────────
 //  MONDPHASEN HELPER
@@ -164,8 +302,8 @@ const getMoonPhase = (count, target) => {
 // ─────────────────────────────────────────────────────────
 //  PARTIAL MODAL
 // ─────────────────────────────────────────────────────────
-function PartialModal({dayNum, target, onConfirm, onCancel}){
-  const [count, setCount] = useState(Math.floor(target/2));
+function PartialModal({dayNum, target, onConfirm, onCancel, initialCount}){
+  const [count, setCount] = useState(initialCount !== undefined ? initialCount : Math.floor(target/2));
   const change = delta => setCount(prev => Math.min(target-1, Math.max(1, prev+delta)));
   const moon   = getMoonPhase(count, target);
   const pct    = Math.round((count/target)*100);
@@ -209,6 +347,70 @@ function PartialModal({dayNum, target, onConfirm, onCancel}){
           style={{width:'100%',padding:'0.75rem',background:'none',border:'none',color:'var(--muted)',fontSize:'0.85rem',cursor:'pointer'}}>
           Abbrechen
         </button>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  STATUS PICKER MODAL (nach GESCHAFFT!)
+// ─────────────────────────────────────────────────────────
+function StatusPickerModal({onPick, onSkip}){
+  return(
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.88)',zIndex:310,display:'flex',alignItems:'flex-end',justifyContent:'center',animation:'slideUp 0.3s ease both'}}>
+      <div style={{width:'100%',maxWidth:'480px',background:'var(--bg)',borderRadius:'24px 24px 0 0',padding:'1.75rem 1.5rem',paddingBottom:'calc(1.75rem + var(--safe-b))'}}>
+        <div style={{textAlign:'center',marginBottom:'1.5rem'}}>
+          <div className="bc" style={{fontSize:'1.4rem',fontWeight:900,letterSpacing:'0.05em'}}>WIE WAR'S HEUTE?</div>
+          <div style={{fontSize:'0.78rem',color:'var(--muted)',marginTop:'4px'}}>Ein Tap — wird im Team sichtbar</div>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'8px',marginBottom:'1rem'}}>
+          {STATUS_EMOJIS.map(({emoji,label})=>(
+            <button key={emoji} onClick={()=>onPick(emoji)}
+              style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'14px',padding:'0.85rem 0.25rem',cursor:'pointer',transition:'all 0.15s'}}
+              onMouseOver={e=>{e.currentTarget.style.border='1px solid var(--red)';e.currentTarget.style.background='rgba(230,57,70,0.1)';}}
+              onMouseOut={e=>{e.currentTarget.style.border='1px solid var(--border)';e.currentTarget.style.background='var(--bg2)';}}>
+              <span style={{fontSize:'1.8rem'}}>{emoji}</span>
+              <span className="bc" style={{fontSize:'0.6rem',color:'var(--muted)',fontWeight:700,letterSpacing:'0.04em'}}>{label.toUpperCase()}</span>
+            </button>
+          ))}
+        </div>
+        <button onClick={onSkip} style={{background:'none',border:'none',color:'#333',fontSize:'0.78rem',width:'100%',padding:'0.5rem',cursor:'pointer'}}>Überspringen</button>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+//  JOKER NUDGE MODAL (ersetzt alten JokerModal im Workout)
+// ─────────────────────────────────────────────────────────
+function JokerNudgeModal({legends, jokersLeft, onPartialOne, onUseJoker, onCancel}){
+  const motivQuote = getMotivierendQuote(legends);
+  return(
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:200,display:'flex',alignItems:'flex-end',justifyContent:'center'}} onClick={e=>e.target===e.currentTarget&&onCancel()}>
+      <div style={{width:'100%',maxWidth:'480px',background:'var(--bg)',borderRadius:'24px 24px 0 0',padding:'2rem 1.5rem',paddingBottom:'calc(2rem + var(--safe-b))'}}>
+        {motivQuote&&(
+          <div style={{textAlign:'center',marginBottom:'1.25rem'}}>
+            <div style={{fontSize:'2rem',marginBottom:'6px'}}>{motivQuote.emoji}</div>
+            <p style={{fontSize:'0.88rem',lineHeight:1.55,color:'#bbb',fontStyle:'italic'}}>"{motivQuote.quote}"</p>
+          </div>
+        )}
+        <div style={{textAlign:'center',marginBottom:'1.5rem'}}>
+          <div className="bc" style={{fontSize:'clamp(5rem,22vw,8rem)',fontWeight:900,color:'var(--red)',lineHeight:0.9}}>1</div>
+          <div style={{color:'var(--muted)',fontSize:'0.88rem',marginTop:'8px'}}>Nur einer. Mehr brauchst du heute nicht.</div>
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+          <button onClick={onPartialOne}
+            style={{width:'100%',padding:'1.1rem',background:'linear-gradient(135deg,var(--red),var(--red2))',border:'none',borderRadius:'16px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.25rem',fontWeight:800,letterSpacing:'0.08em',boxShadow:'0 4px 20px rgba(230,57,70,0.4)'}}>
+            🌒 Jeder Burpee zählt ✓
+          </button>
+          {jokersLeft>0&&(
+            <button onClick={onUseJoker}
+              style={{width:'100%',padding:'0.9rem',background:'#111',border:'1px solid #333',borderRadius:'14px',color:'#666',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.95rem',fontWeight:700,letterSpacing:'0.05em'}}>
+              Nicht heute — Joker einsetzen
+            </button>
+          )}
+          <button onClick={onCancel} style={{background:'none',border:'none',color:'#333',fontSize:'0.78rem',padding:'0.5rem',cursor:'pointer'}}>Abbrechen</button>
+        </div>
       </div>
     </div>
   );
@@ -807,6 +1009,31 @@ function AvatarContextMenu({targetName, onFeuer, onKudo, onClose}){
 
 
 // ─────────────────────────────────────────────────────────
+//  PWA INSTALL BANNER
+// ─────────────────────────────────────────────────────────
+function PWAInstallBanner({prompt, onDismiss}){
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.navigator.standalone;
+  if(!prompt && !isIOS) return null;
+  return(
+    <div style={{margin:'0 1.25rem 0.75rem',background:'rgba(230,57,70,0.08)',border:'1px solid rgba(230,57,70,0.25)',borderRadius:'12px',padding:'0.75rem 1rem',display:'flex',alignItems:'center',gap:'10px',animation:'slideDown 0.3s ease both'}}>
+      <span style={{fontSize:'1.2rem',flexShrink:0}}>📱</span>
+      <div style={{flex:1}}>
+        <div className="bc" style={{fontSize:'0.82rem',fontWeight:700,letterSpacing:'0.03em'}}>APP INSTALLIEREN</div>
+        <div style={{fontSize:'0.68rem',color:'var(--muted)',marginTop:'1px'}}>
+          {isIOS?'Teile-Button → "Zum Home-Bildschirm"':'Schnellzugriff vom Home-Screen'}
+        </div>
+      </div>
+      {prompt&&!isIOS&&(
+        <button onClick={()=>prompt.prompt()} style={{background:'var(--red)',border:'none',borderRadius:'8px',padding:'6px 14px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',flexShrink:0}}>
+          Install
+        </button>
+      )}
+      <button onClick={onDismiss} style={{background:'none',border:'none',color:'var(--muted)',fontSize:'1rem',padding:'4px',cursor:'pointer',flexShrink:0}}>✕</button>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
 //  REWARD QUOTE (visible on home until midnight)
 // ─────────────────────────────────────────────────────────
 function RewardQuote(){
@@ -891,9 +1118,10 @@ function KudoModal({to, from, onSend, onCancel}){
 // ─────────────────────────────────────────────────────────
 //  TEAM SECTION (replaces leaderboard)
 // ─────────────────────────────────────────────────────────
-function TeamSection({leaders, user, legends, onNudge, achievements, onKudo, onAvatarTap, wildcards, wildcardCompletions, allCompletions}){
+function TeamSection({leaders, user, legends, onNudge, achievements, onKudo, onAvatarTap, wildcards, wildcardCompletions, allCompletions, sosEvents, kudos, legendPowers}){
   const today = new Date().toDateString();
   const cur   = getChallengeDay();
+  const todayStr = new Date().toISOString().split('T')[0];
 
   // Team burpees: reguläre Tage + Wildcard-Burpees + Partial-Burpees
   const wcBurpees      = (wildcardCompletions||[]).reduce((a,c)=>a+(c.burpee_count||0),0);
@@ -946,35 +1174,67 @@ function TeamSection({leaders, user, legends, onNudge, achievements, onKudo, onA
         </div>
       </div>
 
-      {/* Avatar Grid */}
+      {/* Avatar Grid mit Ring-System */}
       <div className="bc" style={{fontSize:'0.65rem',color:'var(--muted)',letterSpacing:'0.15em',marginBottom:'0.65rem'}}>DEIN TEAM</div>
       <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'16px',padding:'1rem'}}>
-        <div style={{display:'flex',flexWrap:'wrap',gap:'12px',justifyContent:'flex-start'}}>
+        <div style={{display:'flex',flexWrap:'wrap',gap:'14px',justifyContent:'flex-start'}}>
           {leaders.map(u=>{
-            const pct = Math.round((u.completed_days||0)/30*100);
             const isMe = u.name===user;
+            // Ring-System
+            const todayComp = (allCompletions||[]).find(c=>c.name===u.name&&c.day===cur);
+            const isCompleted = todayComp&&todayComp.type!=='joker';
+            const dayData = DAYS[cur-1];
+            const dayTarget = dayData?tot(dayData):1;
+            let ringFill = 0;
+            if(isCompleted){
+              if(todayComp.type==='full') ringFill=1;
+              else if(todayComp.type==='half') ringFill=0.5;
+              else if(todayComp.type==='partial') ringFill=Math.min((todayComp.burpee_count||0)/dayTarget,1);
+            }
+            const isSOS = (sosEvents||[]).some(s=>s.from_name===u.name&&s.active)||
+              (u.daily_status&&['💀','😤'].includes(u.daily_status)&&u.daily_status_date===todayStr);
+            const isGefaehrte = (kudos||[]).some(k=>k.from_name===u.name&&(k.created_at||'').startsWith(todayStr))||
+              (legendPowers||[]).some(lp=>lp.from_name===u.name&&(lp.created_at||'').startsWith(todayStr));
+            // SVG ring
+            const R=25; const C=2*Math.PI*R;
             return(
-              <div key={u.name} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',minWidth:'52px'}}
-                onClick={!isMe?()=>onAvatarTap(u.name):undefined}
-                style={{cursor:isMe?'default':'pointer'}}>
-                <div style={{position:'relative'}}>
-                  <Avatar profile={u} size={44} legends={legends}/>
-                  <div style={{position:'absolute',inset:-3,borderRadius:'50%',border:`2px solid ${pct===100?'var(--green)':pct>50?'var(--gold)':'var(--border)'}`,pointerEvents:'none'}}/>
+              <div key={u.name} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',minWidth:'54px',cursor:isMe?'default':'pointer'}}
+                onClick={!isMe?()=>onAvatarTap(u.name):undefined}>
+                <div style={{position:'relative',width:58,height:58,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  {/* Bernstein-Glow */}
+                  {isGefaehrte&&<div style={{position:'absolute',inset:-2,borderRadius:'50%',boxShadow:'0 0 14px rgba(245,158,11,0.7)',animation:'glowPulse 2s ease-in-out infinite',pointerEvents:'none'}}/>}
+                  {/* SVG Grün-Ring */}
+                  {isCompleted&&(
+                    <svg style={{position:'absolute',inset:0,transform:'rotate(-90deg)'}} width="58" height="58">
+                      <circle cx="29" cy="29" r={R} fill="none" stroke="rgba(74,222,128,0.18)" strokeWidth="3"/>
+                      <circle cx="29" cy="29" r={R} fill="none" stroke="#4ade80" strokeWidth="3"
+                        strokeDasharray={C} strokeDashoffset={C*(1-ringFill)} strokeLinecap="round"/>
+                    </svg>
+                  )}
+                  {/* Orange SOS-Ring */}
+                  {isSOS&&!isCompleted&&<div style={{position:'absolute',inset:0,borderRadius:'50%',border:'3px solid #f97316',animation:'pulseRing 1.5s ease-in-out infinite',pointerEvents:'none'}}/>}
+                  {/* Status Emoji */}
+                  {u.daily_status&&u.daily_status_date===todayStr&&(
+                    <div style={{position:'absolute',top:-4,right:-4,fontSize:'0.75rem',background:'var(--bg3)',borderRadius:'50%',width:18,height:18,display:'flex',alignItems:'center',justifyContent:'center',border:'1px solid var(--border)',zIndex:2}}>{u.daily_status}</div>
+                  )}
+                  {/* Avatar */}
+                  <div style={{position:'absolute',top:7,left:7}}>
+                    <Avatar profile={u} size={44} legends={legends}/>
+                  </div>
                   {/* Achievement badges */}
                   {achievements&&achievements.some(a=>a.name===u.name&&a.type==='erster')&&
-                    <span style={{position:'absolute',top:-4,right:-4,fontSize:'0.7rem',background:'#1a3a5e',borderRadius:'50%',width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center',border:'1px solid #60a5fa'}}>⚡</span>}
+                    <span style={{position:'absolute',bottom:-2,right:-2,fontSize:'0.65rem',background:'#1a3a5e',borderRadius:'50%',width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center',border:'1px solid #60a5fa',zIndex:3}}>⚡</span>}
                   {achievements&&achievements.some(a=>a.name===u.name&&a.type==='streak')&&
-                    <span style={{position:'absolute',top:-4,left:-4,fontSize:'0.7rem',background:'#3a1a00',borderRadius:'50%',width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center',border:'1px solid var(--red)'}}>🔥</span>}
+                    <span style={{position:'absolute',bottom:-2,left:-2,fontSize:'0.65rem',background:'#3a1a00',borderRadius:'50%',width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center',border:'1px solid var(--red)',zIndex:3}}>🔥</span>}
                   {achievements&&achievements.some(a=>a.name===u.name&&a.type==='eisenmensch')&&
-                    <span style={{position:'absolute',bottom:-4,left:-4,fontSize:'0.7rem',background:'#1a1a1a',borderRadius:'50%',width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center',border:'1px solid #555'}}>🦾</span>}
+                    <span style={{position:'absolute',top:-2,left:-2,fontSize:'0.65rem',background:'#1a1a1a',borderRadius:'50%',width:16,height:16,display:'flex',alignItems:'center',justifyContent:'center',border:'1px solid #555',zIndex:3}}>🦾</span>}
                 </div>
-                <div style={{fontSize:'0.6rem',color:isMe?'var(--red)':'var(--muted)',fontWeight:isMe?700:400,textAlign:'center',maxWidth:'52px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                <div style={{fontSize:'0.6rem',color:isMe?'var(--red)':'var(--muted)',fontWeight:isMe?700:400,textAlign:'center',maxWidth:'56px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
                   {isMe?'Du':u.name.split(' ')[0]}
                 </div>
-                <div className="bc" style={{fontSize:'0.65rem',color:pct===100?'var(--green)':pct>50?'var(--gold)':'var(--muted)',fontWeight:700}}>
+                <div className="bc" style={{fontSize:'0.65rem',color:(u.completed_days||0)===30?'var(--green)':(u.completed_days||0)>15?'var(--gold)':'var(--muted)',fontWeight:700}}>
                   {u.completed_days}/30
                 </div>
-                {/* Tap auf Avatar → AvatarContextMenu (Feuer / Kudo) */}
               </div>
             );
           })}
@@ -991,7 +1251,7 @@ function TeamSection({leaders, user, legends, onNudge, achievements, onKudo, onA
 // ─────────────────────────────────────────────────────────
 //  HOME TAB
 // ─────────────────────────────────────────────────────────
-function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile, legends, onNudge, achievements, onKudo, onAvatarTap, wildcards, wildcardCompletions, onCompleteWildcard, allCompletions}){
+function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile, legends, onNudge, achievements, onKudo, onAvatarTap, wildcards, wildcardCompletions, onCompleteWildcard, allCompletions, sosEvents, kudos, legendPowers, installPrompt, onDismissInstall}){
   const [motto,       setMotto]       = useState(()=>rnd(MOTIVATIONS));
   const [showWCModal, setShowWCModal] = useState(false);
   const done    = completed.size;
@@ -1012,8 +1272,15 @@ function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile,
 
   return(
     <div style={{flex:1,overflowY:'auto',paddingBottom:'0.5rem'}}>
-      <div style={{padding:'1.25rem 1.25rem 0'}}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.25rem'}}>
+      {/* ── Avatar-Grid mit Ringen — OBEN (Öffnungs-Moment / Dopamin-Antizipation) ── */}
+      {leaders.length>0&&(
+        <div style={{padding:'1rem 1.25rem 0'}}>
+          <TeamSection leaders={leaders} user={user} legends={legends} onNudge={onNudge} achievements={achievements} onKudo={onKudo} onAvatarTap={onAvatarTap} wildcards={wildcards} wildcardCompletions={wildcardCompletions} allCompletions={allCompletions} sosEvents={sosEvents} kudos={kudos} legendPowers={legendPowers}/>
+        </div>
+      )}
+
+      <div style={{padding:'0.75rem 1.25rem 0'}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
           <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
             <Avatar profile={profile} size={46} legends={legends}/>
             <div>
@@ -1037,6 +1304,7 @@ function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile,
         </div>
       </div>
 
+      <PWAInstallBanner prompt={installPrompt} onDismiss={onDismissInstall}/>
       <DailyLegend legends={legends} cur={getChallengeDay()}/>
       {((1-(profile?.jokers_used||0)-(profile?.joker_swapped?1:0))>0 || (2+(profile?.joker_swapped?1:0)-(profile?.half_used||0))>0) && <TokenBar profile={profile}/>}
       <RewardQuote/>
@@ -1120,11 +1388,7 @@ function HomeTab({user, completed, completionTypes, onOpenDay, leaders, profile,
         </div>
       )}
 
-      {leaders.length>0&&(
-        <div style={{padding:'0 1.25rem 1rem'}}>
-          <TeamSection leaders={leaders} user={user} legends={legends} onNudge={onNudge} achievements={achievements} onKudo={onKudo} onAvatarTap={onAvatarTap} wildcards={wildcards} wildcardCompletions={wildcardCompletions} allCompletions={allCompletions}/>
-        </div>
-      )}
+      {/* TeamSection ist jetzt oben (Avatar-Grid als erster Öffnungsmoment) */}
       {leaders.length < 12 && <InviteCard groupSize={leaders.length} leaders={leaders} user={user}/>}
       {showWCModal&&activeWCHome&&<WildcardCompletionModal wildcard={activeWCHome} onComplete={cnt=>{setShowWCModal(false);onCompleteWildcard(activeWCHome.id,cnt);}} onCancel={()=>setShowWCModal(false)}/>}
     </div>
@@ -1319,23 +1583,32 @@ function WallTab({user, profile, legends, wall, onPost, onReact, onOpenCommunity
 // ─────────────────────────────────────────────────────────
 //  WORKOUT SCREEN
 // ─────────────────────────────────────────────────────────
-function WorkoutScreen({dayNum, completed, completionTypes, partialCounts, profile, legends, onComplete, onHalf, onJoker, onPartial, onUndo, onBack}){
-  const [showJoker,    setShowJoker]    = useState(false);
-  const [showPartial,  setShowPartial]  = useState(false);
-  const [restDur,      setRestDur]      = useState(20);   // 10 | 20 | 30
-  const [restActive,   setRestActive]   = useState(null); // set-index laufend
-  const [restLeft,     setRestLeft]     = useState(0);
+function WorkoutScreen({dayNum, completed, completionTypes, partialCounts, profile, legends, onComplete, onHalf, onJoker, onPartial, onUndo, onBack, allCompletions, user}){
+  const [showJokerNudge, setShowJokerNudge] = useState(false);
+  const [showPartial,    setShowPartial]    = useState(false);
+  const [partialInit,    setPartialInit]    = useState(undefined);
+  const [restDur,        setRestDur]        = useState(20);
+  const [restActive,     setRestActive]     = useState(null);
+  const [restLeft,       setRestLeft]       = useState(0);
+  const [coPraesenz,     setCoPraesenz]     = useState(true); // show co-presence line
   const restRef = useRef(null);
-  const jokerQuote = useRef(getJokerQuote(legends)).current;
   const d         = DAYS[dayNum-1];
   const t         = tot(d);
   const isDone    = completed.has(dayNum);
   const type      = completionTypes[dayNum];
   const isPartial = type==='partial';
   const pCount    = partialCounts?.[dayNum];
-  const halfT     = Math.ceil(t/2);
   const jokersLeft = 1-(profile?.jokers_used||0)-(profile?.joker_swapped?1:0);
-  const halfLeft   = 2+(profile?.joker_swapped?1:0)-(profile?.half_used||0);
+
+  // Co-Präsenz: Wer hat heute schon trainiert (außer mir)?
+  const cur = getChallengeDay();
+  const coPraesenzNames = [...new Set(
+    (allCompletions||[]).filter(c=>c.day===cur && c.name!==user).map(c=>c.name)
+  )].slice(0,3);
+  const coPraesenzText = coPraesenzNames.length===0 ? '' :
+    coPraesenzNames.length===1 ? `${coPraesenzNames[0]} hat heute schon geschwitzt.` :
+    coPraesenzNames.length===2 ? `${coPraesenzNames[0]} und ${coPraesenzNames[1]} haben heute schon geschwitzt.` :
+    `${coPraesenzNames.slice(0,-1).join(', ')} und ${coPraesenzNames.slice(-1)[0]} haben heute schon geschwitzt.`;
 
   useEffect(()=>()=>clearInterval(restRef.current), []);
 
@@ -1383,17 +1656,13 @@ function WorkoutScreen({dayNum, completed, completionTypes, partialCounts, profi
           ):(
             <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:'18px',padding:'1.25rem',marginBottom:'1rem'}}>
               {/* Pausen-Dauer Wähler */}
-              <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'0.75rem',paddingBottom:'0.75rem',borderBottom:'1px solid var(--border)'}}>
-                <span style={{fontSize:'0.65rem',color:'var(--muted)',letterSpacing:'0.08em',textTransform:'uppercase',marginRight:'4px'}}>Pause</span>
-                {[10,20,30].map(s=>(
-                  <button key={s} onClick={()=>{setRestDur(s);cancelRest();}}
-                    style={{padding:'3px 10px',borderRadius:'100px',border:'1px solid',fontSize:'0.72rem',fontWeight:700,fontFamily:'Barlow Condensed,sans-serif',cursor:'pointer',transition:'all 0.15s',
-                      background:restDur===s?'var(--red)':'transparent',
-                      borderColor:restDur===s?'var(--red)':'var(--border)',
-                      color:restDur===s?'#fff':'var(--muted)'}}>
-                    {s}s
-                  </button>
-                ))}
+              <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'0.75rem',paddingBottom:'0.75rem',borderBottom:'1px solid var(--border)'}}>
+                <span style={{fontSize:'0.65rem',color:'var(--muted)',letterSpacing:'0.08em',textTransform:'uppercase',flex:1}}>Pause</span>
+                <button onClick={()=>{setRestDur(d=>Math.max(10,d-10));cancelRest();}}
+                  style={{width:34,height:28,borderRadius:'8px',background:'var(--bg3)',border:'1px solid var(--border)',color:'var(--muted)',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.85rem',fontWeight:700,cursor:'pointer'}}>−10</button>
+                <span className="bc" style={{minWidth:'38px',textAlign:'center',fontSize:'0.95rem',fontWeight:800,color:'var(--text)'}}>{restDur}s</span>
+                <button onClick={()=>{setRestDur(d=>Math.min(90,d+10));cancelRest();}}
+                  style={{width:34,height:28,borderRadius:'8px',background:'var(--bg3)',border:'1px solid var(--border)',color:'var(--muted)',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.85rem',fontWeight:700,cursor:'pointer'}}>+10</button>
               </div>
               {d.sets.map((s,i)=>{
                 const hs = Math.ceil(s/2);
@@ -1440,14 +1709,19 @@ function WorkoutScreen({dayNum, completed, completionTypes, partialCounts, profi
 
         <div style={{padding:'1rem 1.25rem',paddingBottom:'calc(1rem + var(--safe-b))',flexShrink:0,borderTop:'1px solid var(--border)'}}>
           {!isDone?(
-            <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
-              <button onClick={()=>onComplete(dayNum)} style={{width:'100%',padding:'1.1rem',background:'var(--red)',border:'none',borderRadius:'16px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.4rem',fontWeight:800,letterSpacing:'0.08em',boxShadow:'0 6px 28px rgba(230,57,70,0.4)'}}>✓ GESCHAFFT!</button>
-              <div style={{display:'flex',gap:'8px'}}>
-                {halfLeft>0&&<button onClick={()=>onHalf(dayNum)} style={{flex:1,padding:'0.85rem',background:'rgba(30,58,95,0.3)',border:'2px solid #1e3a5f',borderRadius:'14px',color:'#60a5fa',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.95rem',fontWeight:700,letterSpacing:'0.05em'}}>🌙 Halbe ({halfLeft}×)</button>}
-                <button onClick={()=>setShowJoker(true)} style={{flex:1,padding:'0.85rem',background:'rgba(100,100,100,0.1)',border:'2px solid #2a2a2a',borderRadius:'14px',color:'var(--muted)',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.95rem',fontWeight:700,letterSpacing:'0.05em'}}>🃏 Joker {jokersLeft>0?'(1×)':'(0×)'}</button>
-              </div>
-              <button onClick={()=>setShowPartial(true)}
-                style={{width:'100%',padding:'0.7rem',background:'transparent',border:'1px dashed #78580a',borderRadius:'12px',color:'#f59e0b',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.9rem',fontWeight:700,letterSpacing:'0.05em',cursor:'pointer'}}>
+            <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+              {/* Co-Präsenz-Zeile */}
+              {coPraesenz&&coPraesenzText&&(
+                <div style={{background:'rgba(74,222,128,0.06)',border:'1px solid rgba(74,222,128,0.15)',borderRadius:'10px',padding:'8px 12px',display:'flex',alignItems:'center',gap:'8px'}}>
+                  <span style={{fontSize:'0.9rem'}}>👥</span>
+                  <span style={{fontSize:'0.75rem',color:'#4ade8088',fontStyle:'italic'}}>{coPraesenzText}</span>
+                  <button onClick={()=>setCoPraesenz(false)} style={{background:'none',border:'none',color:'#333',fontSize:'0.75rem',padding:'0',marginLeft:'auto',cursor:'pointer'}}>✕</button>
+                </div>
+              )}
+              <button onClick={()=>onComplete(dayNum)} style={{width:'100%',padding:'1.15rem',background:'var(--red)',border:'none',borderRadius:'16px',color:'#fff',fontFamily:'Barlow Condensed,sans-serif',fontSize:'1.5rem',fontWeight:800,letterSpacing:'0.08em',boxShadow:'0 6px 28px rgba(230,57,70,0.45)'}}>✓ GESCHAFFT!</button>
+              <button onClick={()=>setShowJokerNudge(true)} style={{width:'100%',padding:'0.85rem',background:'transparent',border:'1px solid #2a2a2a',borderRadius:'14px',color:'#444',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.95rem',fontWeight:700,letterSpacing:'0.05em'}}>🃏 Joker {jokersLeft>0?'(1×)':'(0×)'}</button>
+              <button onClick={()=>{setPartialInit(undefined);setShowPartial(true);}}
+                style={{width:'100%',padding:'0.65rem',background:'transparent',border:'none',color:'#78580a',fontFamily:'Barlow Condensed,sans-serif',fontSize:'0.88rem',fontWeight:700,letterSpacing:'0.05em',cursor:'pointer',textDecoration:'underline',textDecorationColor:'#78580a44'}}>
                 🌒 Nicht alles geschafft? Trotzdem eintragen
               </button>
             </div>
@@ -1472,8 +1746,13 @@ function WorkoutScreen({dayNum, completed, completionTypes, partialCounts, profi
           )}
         </div>
       </div>
-      {showJoker&&<JokerModal profile={profile} jokerQuote={jokerQuote} onCancel={()=>setShowJoker(false)} onConfirm={async()=>{setShowJoker(false);await onJoker(dayNum);}} onSwap={async()=>{setShowJoker(false);await onJoker(dayNum,'swap');}}/>}
-      {showPartial&&<PartialModal dayNum={dayNum} target={t} onConfirm={async count=>{setShowPartial(false);await onPartial(dayNum,count);}} onCancel={()=>setShowPartial(false)}/>}
+      {showJokerNudge&&<JokerNudgeModal legends={legends} jokersLeft={jokersLeft}
+        onPartialOne={()=>{setShowJokerNudge(false);setPartialInit(1);setShowPartial(true);}}
+        onUseJoker={async()=>{setShowJokerNudge(false);await onJoker(dayNum);}}
+        onCancel={()=>setShowJokerNudge(false)}/>}
+      {showPartial&&<PartialModal dayNum={dayNum} target={t} initialCount={partialInit}
+        onConfirm={async count=>{setShowPartial(false);setPartialInit(undefined);await onPartial(dayNum,count);}}
+        onCancel={()=>{setShowPartial(false);setPartialInit(undefined);}}/>}
     </>
   );
 }
@@ -2012,6 +2291,11 @@ function App(){
   const [showAvatarEditor,setShowAvatarEditor]= useState(false);
   const [showCommunity,   setShowCommunity]   = useState(false);
   const [toast,           setToast]           = useState('');
+  const [sosEvents,       setSosEvents]       = useState([]);
+  const [legendPowers,    setLegendPowers]    = useState([]);
+  const [showStatusPicker,setShowStatusPicker]= useState(null); // dayNum oder null
+  const [installPrompt,   setInstallPrompt]   = useState(null);
+  const [showInstallBanner,setShowInstallBanner]= useState(false);
   const toastTimer = useRef(null);
   const userNameRef = useRef('');
 
@@ -2094,6 +2378,17 @@ function App(){
     if(wcc) setWildcardCompletions(wcc);
   },[]);
 
+  const loadSosEvents = useCallback(async () => {
+    const {data} = await db.from('sos_events').select('*').eq('active',true);
+    if(data) setSosEvents(data);
+  },[]);
+
+  const loadLegendPowers = useCallback(async () => {
+    const today = new Date().toISOString().split('T')[0];
+    const {data} = await db.from('legend_powers').select('from_name,created_at').gte('created_at',today);
+    if(data) setLegendPowers(data);
+  },[]);
+
   const loadAchievements = useCallback(async () => {
     const {data} = await db.from('achievements').select('*').order('created_at',{ascending:false});
     if(data) setAchievements(data);
@@ -2118,20 +2413,33 @@ function App(){
   useEffect(()=>{
     const saved = localStorage.getItem('burpee_name');
     if(saved){ userNameRef.current = saved; setUserName(saved); loadUser(saved); } else setScreen('onboarding');
-    loadLeaders(); loadWall(); loadLegends(); loadSubmissions(); loadKudos(); loadAchievements(); loadAllCompletions(); loadWildcards();
+    loadLeaders(); loadWall(); loadLegends(); loadSubmissions(); loadKudos(); loadAchievements(); loadAllCompletions(); loadWildcards(); loadSosEvents(); loadLegendPowers();
     const ch = db.channel('live')
       .on('postgres_changes',{event:'*',schema:'public',table:'wall_posts'},loadWall)
       .on('postgres_changes',{event:'*',schema:'public',table:'profiles'},loadLeaders)
       .on('postgres_changes',{event:'*',schema:'public',table:'quote_submissions'},loadSubmissions)
-      .on('postgres_changes',{event:'*',schema:'public',table:'kudos'},loadKudos)
+      .on('postgres_changes',{event:'*',schema:'public',table:'kudos'},()=>{loadKudos();loadLegendPowers();})
       .on('postgres_changes',{event:'*',schema:'public',table:'achievements'},loadAchievements)
       .on('postgres_changes',{event:'*',schema:'public',table:'wildcards'},loadWildcards)
       .on('postgres_changes',{event:'*',schema:'public',table:'wildcard_completions'},loadWildcards)
       .on('postgres_changes',{event:'*',schema:'public',table:'notifications'},()=>loadNotifications(userNameRef.current))
       .on('postgres_changes',{event:'*',schema:'public',table:'day_completions'},loadAllCompletions)
+      .on('postgres_changes',{event:'*',schema:'public',table:'sos_events'},loadSosEvents)
+      .on('postgres_changes',{event:'*',schema:'public',table:'legend_powers'},loadLegendPowers)
       .subscribe();
-    return () => ch.unsubscribe();
-  },[loadUser,loadLeaders,loadWall,loadLegends,loadSubmissions]);
+    // PWA: Service Worker registrieren
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('/sw.js').catch(e=>console.warn('SW:',e));
+    }
+    // PWA: Install-Prompt auffangen
+    const onBeforeInstall = e => {
+      e.preventDefault();
+      setInstallPrompt(e);
+      if(!localStorage.getItem('pwa_dismissed')) setShowInstallBanner(true);
+    };
+    window.addEventListener('beforeinstallprompt', onBeforeInstall);
+    return () => { ch.unsubscribe(); window.removeEventListener('beforeinstallprompt',onBeforeInstall); };
+  },[loadUser,loadLeaders,loadWall,loadLegends,loadSubmissions,loadSosEvents,loadLegendPowers]);
 
   // ── Refresh profile ──
   const refreshProfile = async name => {
@@ -2200,6 +2508,49 @@ function App(){
     localStorage.setItem('burpee_reward', JSON.stringify(reward));
     // Achievement-Toast hat Vorrang, sonst Standard-Completion-Toast
     showToast(achievementToast || '🎉 Tag '+dayNum+' geschafft!');
+    // Status-Picker auslösen (falls noch kein Status heute gesetzt)
+    const todayStr = new Date().toISOString().split('T')[0];
+    const fp = await refreshProfile(userName);
+    if(fp?.daily_status_date !== todayStr) {
+      setTimeout(()=>setShowStatusPicker(dayNum), 800);
+    }
+  };
+
+  const handleSetStatus = async emoji => {
+    const today = new Date().toISOString().split('T')[0];
+    await db.from('profiles').update({daily_status:emoji, daily_status_date:today}).eq('name',userName);
+    await refreshProfile(userName); loadLeaders();
+    setShowStatusPicker(null);
+    showToast('Status gesetzt: '+emoji);
+  };
+
+  const sendPushNotification = async (toName, title, body, tag) => {
+    try {
+      await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+SUPABASE_ANON},
+        body:JSON.stringify({to_name:toName, title, body, tag})
+      });
+    } catch(e){ console.warn('Push failed:',e); }
+  };
+
+  const subscribePush = async name => {
+    if(!('Notification' in window)||!('serviceWorker' in navigator)) return;
+    if(Notification.permission==='denied') return;
+    try{
+      const reg = await navigator.serviceWorker.ready;
+      const existing = await reg.pushManager.getSubscription();
+      const sub = existing || await (async()=>{
+        const perm = await Notification.requestPermission();
+        if(perm!=='granted') return null;
+        return reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)});
+      })();
+      if(!sub) return;
+      const j = sub.toJSON();
+      await db.from('push_subscriptions').upsert({
+        name, endpoint:j.endpoint, p256dh:j.keys.p256dh, auth:j.keys.auth
+      },{onConflict:'endpoint',ignoreDuplicates:false});
+    }catch(e){console.warn('Push subscription failed:',e);}
   };
 
   const handleHalf = async dayNum => {
@@ -2320,6 +2671,7 @@ function App(){
     await db.from('notifications').insert({to_name:toName, from_name:userName, type:'kudo', message:`💪 ${userName} gibt dir einen Kudo!
 "${message}"`});
     showToast(`💪 Kudo an ${toName} gesendet!`);
+    sendPushNotification(toName, `💪 Kudo von ${userName}!`, message, 'kudo');
   };
 
   const handleFeuerSend = async legend => {
@@ -2328,6 +2680,8 @@ function App(){
     await handlePost(msg);
     await db.from('notifications').insert({to_name:target, from_name:userName, type:'feuer', message:`🔥 ${userName} macht dir Feuer!\n${legend.emoji} "${legend.selectedQuote}"`});
     setTab('wall'); showToast(`🔥 ${target} bekommt Feuer von ${legend.char}!`);
+    sendPushNotification(target, `🔥 Feuer von ${userName}!`, legend.selectedQuote, 'feuer');
+    await loadLegendPowers();
   };
 
   const handleSubmitQuote = async sub => {
@@ -2366,7 +2720,7 @@ function App(){
   return(
     <>
       <Toast msg={toast}/>
-      {showWhatsNew&&screen==='main'&&<WhatsNewModal onClose={()=>{localStorage.setItem('seen_version',APP_VERSION);setShowWhatsNew(false);}}/>}
+      {showWhatsNew&&screen==='main'&&<WhatsNewModal onClose={()=>{localStorage.setItem('seen_version',APP_VERSION);setShowWhatsNew(false);}} installPrompt={installPrompt} onSubscribePush={()=>subscribePush(userName)}/>}
       <NotificationBanner notif={activeNotif} onDismiss={dismissNotif}/>
       {avatarMenu&&<AvatarContextMenu targetName={avatarMenu} onFeuer={setFeuerTarget} onKudo={setShowKudoModal} onClose={()=>setAvatarMenu(null)}/>}
       {showKudoModal&&<KudoModal to={showKudoModal} from={userName} onSend={handleSendKudo} onCancel={()=>setShowKudoModal(null)}/>}
@@ -2374,14 +2728,15 @@ function App(){
       {showAvatarEditor&&<AvatarEditorModal profile={profile} legends={legends} onSave={handleSaveAvatar} onCancel={()=>setShowAvatarEditor(false)}/>}
       {showCommunity&&<CommunityQuotes user={userName} legends={legends} submissions={submissions} onSubmit={handleSubmitQuote} onVote={handleVote} onClose={()=>setShowCommunity(false)}/>}
       {milestoneOverlay&&screen==='main'&&<TeamMilestoneOverlay milestone={milestoneOverlay} onClose={()=>setMilestoneOverlay(null)}/>}
+      {showStatusPicker&&<StatusPickerModal onPick={handleSetStatus} onSkip={()=>{setShowStatusPicker(null);subscribePush(userName);}}/>}
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',paddingTop:'var(--safe-t)'}}>
-        {tab==='home'     && <HomeTab user={userName} completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay} leaders={leaders} profile={profile} legends={legends} onNudge={handleNudge} achievements={achievements} onKudo={setShowKudoModal} onAvatarTap={setAvatarMenu} wildcards={wildcards} wildcardCompletions={wildcardCompletions} onCompleteWildcard={handleCompleteWildcard} allCompletions={allCompletions}/>}
+        {tab==='home'     && <HomeTab user={userName} completed={completed} completionTypes={compTypes} onOpenDay={setWorkoutDay} leaders={leaders} profile={profile} legends={legends} onNudge={handleNudge} achievements={achievements} onKudo={setShowKudoModal} onAvatarTap={setAvatarMenu} wildcards={wildcards} wildcardCompletions={wildcardCompletions} onCompleteWildcard={handleCompleteWildcard} allCompletions={allCompletions} sosEvents={sosEvents} kudos={kudos} legendPowers={legendPowers} installPrompt={showInstallBanner?installPrompt:null} onDismissInstall={()=>{setShowInstallBanner(false);localStorage.setItem('pwa_dismissed','1');}}/>}
         {tab==='calendar' && <CalendarTab completed={completed} completionTypes={compTypes} partialCounts={partialCounts} onOpenDay={setWorkoutDay}/>}
         {tab==='wall'     && <WallTab user={userName} profile={profile} legends={legends} wall={wall} onPost={handlePost} onReact={handleReact} onOpenCommunity={()=>setShowCommunity(true)}/>}
         {tab==='stats'    && <StatsTab user={userName} leaders={leaders} legends={legends} completionData={allCompletions} wildcards={wildcards} wildcardCompletions={wildcardCompletions} onCallWildcard={handleCallWildcard} onCompleteWildcard={handleCompleteWildcard}/>}
         <BottomNav tab={tab} setTab={setTab}/>
       </div>
-      {workoutDay&&<WorkoutScreen dayNum={workoutDay} completed={completed} completionTypes={compTypes} partialCounts={partialCounts} profile={profile} legends={legends} onComplete={handleComplete} onHalf={handleHalf} onJoker={handleJoker} onPartial={handlePartial} onUndo={handleUndo} onBack={()=>setWorkoutDay(null)}/>}
+      {workoutDay&&<WorkoutScreen dayNum={workoutDay} completed={completed} completionTypes={compTypes} partialCounts={partialCounts} profile={profile} legends={legends} allCompletions={allCompletions} user={userName} onComplete={handleComplete} onHalf={handleHalf} onJoker={handleJoker} onPartial={handlePartial} onUndo={handleUndo} onBack={()=>setWorkoutDay(null)}/>}
     </>
   );
 }
