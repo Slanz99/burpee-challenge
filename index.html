@@ -107,15 +107,26 @@ const WHATS_NEW = [
 ];
 
 function WhatsNewModal({onClose, installPrompt, onSubscribePush}){
-  const [step, setStep] = React.useState(1); // 1=Features, 2=PWA-Setup
+  // ── alle Hooks zuerst — Rules of Hooks ──
+  const [step,       setStep]       = React.useState(1);
+  const [pushDone,   setPushDone]   = React.useState(typeof Notification !== 'undefined' && Notification.permission==='granted');
+  const [installing, setInstalling] = React.useState(false);
+
   const features = WHATS_NEW.filter(i=>i.type==='feature');
   const fixes    = WHATS_NEW.filter(i=>i.type==='fix');
 
   const isIOS        = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.navigator.standalone;
   const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
-  const showPwaStep  = !isStandalone; // Schritt 2 überspringen wenn bereits installiert
+  const showPwaStep  = !isStandalone;
 
   const handleNext = () => { if(showPwaStep) setStep(2); else onClose(); };
+  const handleInstall = async () => {
+    if(installPrompt){ setInstalling(true); await installPrompt.prompt(); setInstalling(false); }
+  };
+  const handlePush = async () => {
+    if(onSubscribePush) await onSubscribePush();
+    setPushDone(true);
+  };
 
   // ── Schritt 1: Was ist neu ──
   if(step===1) return(
@@ -167,17 +178,6 @@ function WhatsNewModal({onClose, installPrompt, onSubscribePush}){
   );
 
   // ── Schritt 2: PWA installieren + Push aktivieren ──
-  const [pushDone,   setPushDone]   = React.useState(Notification.permission==='granted');
-  const [installing, setInstalling] = React.useState(false);
-
-  const handleInstall = async () => {
-    if(installPrompt){ setInstalling(true); await installPrompt.prompt(); setInstalling(false); }
-  };
-  const handlePush = async () => {
-    if(onSubscribePush) await onSubscribePush();
-    setPushDone(true);
-  };
-
   return(
     <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:500,display:'flex',alignItems:'flex-end',justifyContent:'center',animation:'fadeIn 0.3s ease'}}>
       <div style={{width:'100%',maxWidth:'480px',background:'var(--bg)',borderRadius:'24px 24px 0 0',padding:'1.75rem 1.5rem 1.25rem',paddingBottom:'calc(1.25rem + var(--safe-b))'}}>
